@@ -2,176 +2,185 @@ const comparisonEntries = [
   {
     id: 'shell-shift',
     type: 'modified',
-    category: 'shell',
-    title: 'Shell identity changed from Spatial Quasar to teaching lab.',
+    theme: 'shell',
+    title: 'The landing surface stopped behaving like a utility wrapper.',
+    summary: 'The old build opens like a contained calculator shell. The newer root build starts with a stronger landing surface, guidance, and orientation.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html',
-    explanation: 'The older app opens with a fixed glass navigation bar and sidebar tabs, while the newer root app shifts to a hero-led teaching shell with compact status tools and module-first guidance.'
+    insight: 'This is the front-door change: the app now performs onboarding and context work before the user even enters a tool.'
   },
   {
-    id: 'theme-default',
+    id: 'theme-bootstrap',
     type: 'modified',
-    category: 'styling',
-    title: 'Theme bootstrap moved from dark-first to preference-aware light-first.',
+    theme: 'shell',
+    title: 'Theme behavior became part of runtime boot logic.',
+    summary: 'A small default-theme posture turned into a more deliberate preference bootstrap that syncs stored choice with the interface.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/js/app.js',
     newPath: 'app.js',
-    explanation: 'The older app defaults to dark mode and flips a small icon switch; the newer app bootstraps from local storage and system preference with more descriptive controls.'
+    insight: 'The newer runtime treats theme as a product state, not a tiny decorative toggle.'
   },
   {
     id: 'welcome-guide',
     type: 'expanded',
-    category: 'workflow',
-    title: 'A quick-start guide and onboarding state were added.',
+    theme: 'workflow',
+    title: 'A guided first-run path was added for students.',
+    summary: 'The new root app adds onboarding memory, suggested entry points, and clearer routes into the main work.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html + app.js',
-    explanation: 'The newer version introduces a welcome strip, persisted onboarding completion, and module suggestions so first-time students land on the right workflow faster.'
+    insight: 'This shifts the product from "tool you already understand" to "system that helps you start correctly."'
   },
   {
     id: 'module-imports',
     type: 'expanded',
-    category: 'workflow',
-    title: 'Cross-module import actions now connect the calculators.',
+    theme: 'workflow',
+    title: 'Module results now flow into each other more directly.',
+    summary: 'Cross-module import paths let one module feed another, especially into Error Analysis.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html + app.js',
-    explanation: 'Module I and Module III results can now feed Error Analysis directly, turning isolated tools into a guided exam-style sequence.'
+    insight: 'The newer build feels more exam-like because the modules can now chain together instead of living in isolation.'
   },
   {
     id: 'ieee-tab-removed',
     type: 'removed',
-    category: 'modules',
-    title: 'The dedicated IEEE-754 tab no longer appears in the newer shell.',
+    theme: 'surface',
+    title: 'The top-level IEEE-754 destination was removed from the newer shell.',
+    summary: 'The protected older build exposes IEEE-754 as a first-class route, while the newer root app narrows the front-door module set.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/js/ui/ieee754UI.js',
-    newPath: 'Not present in the root navigation',
-    explanation: 'The older app exposes IEEE-754 as a top-level module, but the newer teaching-lab navigation concentrates on three course-facing modules instead.'
+    newPath: 'Not present in root navigation',
+    insight: 'The release surface is more focused, even while the overall teaching workflow became broader elsewhere.'
   },
   {
     id: 'css-consolidation',
     type: 'refactored',
-    category: 'architecture',
-    title: 'Split CSS files were consolidated into a single root stylesheet.',
+    theme: 'architecture',
+    title: 'Split CSS layers were collapsed into one active stylesheet.',
+    summary: 'Variables, layout, animation, and components once lived across several files. The newer build compresses that surface into one stylesheet.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/css/*.css',
     newPath: 'styles.css',
-    explanation: 'The older build separates variables, base, animations, layout, and components into multiple files; the root app flattens the visual system into one actively tuned stylesheet.'
+    insight: 'The new shell trades file granularity for a tighter, continuously tuned visual system.'
   },
   {
     id: 'module-runtime',
     type: 'refactored',
-    category: 'architecture',
-    title: 'Module orchestration moved from many UI files to one large runtime.',
+    theme: 'architecture',
+    title: 'UI orchestration concentrated into one runtime file.',
+    summary: 'Tabs, onboarding, imports, traces, and state transitions now center more heavily in app.js.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/js/modules + js/ui',
     newPath: 'app.js',
-    explanation: 'Instead of initializing several separate UI modules, the newer app centralizes state, onboarding, tabs, imports, traces, and rendering logic inside one orchestration file.'
+    insight: 'The orchestration layer flattened while the computational layers became easier to name and isolate.'
   },
   {
     id: 'engine-split',
     type: 'added',
-    category: 'architecture',
-    title: 'Dedicated math engines were introduced at the root.',
+    theme: 'architecture',
+    title: 'Named engine files were promoted to the repo root.',
+    summary: 'Arithmetic, parsing, display formatting, and polynomial logic now show up as explicit engine files instead of staying buried in a shared modules folder.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/js/modules',
     newPath: 'calc-engine.js, expression-engine.js, math-engine.js, math-display.js, poly-engine.js',
-    explanation: 'The newer project surfaces specialized engine files so arithmetic, expression parsing, display logic, and polynomial handling have clearer technical boundaries.'
+    insight: 'The internal system gained sharper names at the same time the surface layer consolidated.'
   },
   {
     id: 'trace-depth',
     type: 'expanded',
-    category: 'workflow',
-    title: 'Machine traces and exact-detail disclosures became stronger teaching tools.',
+    theme: 'workflow',
+    title: 'Detailed traces and advanced views became part of the expected rhythm.',
+    summary: 'Method traces and deeper inspection moved into the normal post-result flow instead of feeling optional.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html + app.js',
-    explanation: 'The newer app builds richer result stages, advanced tools, method details, and machine-trace openings directly into the teaching flow.'
+    insight: 'The newer build leans harder into teaching and explanation rather than output alone.'
   },
   {
     id: 'verification-tooling',
     type: 'added',
-    category: 'project',
-    title: 'Project-side documentation and deliverable tooling were added around the app.',
+    theme: 'project',
+    title: 'Docs, output artifacts, and delivery tooling appeared around the app.',
+    summary: 'Screenshots, plans, deliverable scripts, and packaged outputs now exist around the main experience.',
     oldPath: 'Older build folder only',
     newPath: 'docs/plans + scripts/build-deliverable.ps1 + output/',
-    explanation: 'The root workspace now includes planning docs, deliverable scripts, and screenshot outputs, which signals a more mature build-and-review process.'
+    insight: 'The workspace itself now shows a fuller review and shipping workflow around the product.'
   },
   {
     id: 'tab-pattern',
     type: 'modified',
-    category: 'shell',
-    title: 'Navigation shifted from sidebar and bottom bar to hero-driven top tabs.',
+    theme: 'shell',
+    title: 'Navigation moved out of the perimeter and into the page body.',
+    summary: 'The old shell relies on a sidebar and mobile bottom rail. The newer build turns modules into a central page-level surface.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html',
-    explanation: 'The older shell uses a desktop sidebar and mobile bottom tabs, while the newer app treats the modules as the center of the landing page itself.'
+    insight: 'The newer layout does more narrative work itself and feels less like a frame around isolated tools.'
   },
   {
     id: 'student-language',
     type: 'expanded',
-    category: 'workflow',
-    title: 'Result guidance now leans more explicitly toward student-facing interpretation.',
+    theme: 'workflow',
+    title: 'Result interpretation reads more like teaching guidance.',
+    summary: 'Answer guides, verdicts, next-step prompts, and empty-state copy help students interpret what the result means.',
     oldPath: 'DO NOT OPEN UNLESS SPECIFIED TO DO SO!/Num_analysis - Copy (2)/index.html',
     newPath: 'index.html + app.js',
-    explanation: 'The newer version adds answer guides, verdict blocks, next-step prompts, and empty-state language that reads more like a teaching tool than a utility shell.'
+    insight: 'The product voice matured from calculator output toward instructional support.'
   }
 ];
 
-const storyGroups = [
+const proofModules = [
   {
-    title: 'Interface shell shifted from utility wrapper to guided landing surface.',
-    label: 'Story 01',
-    copy: 'The new app stops hiding its purpose behind a fixed utility frame and instead uses the opening screen to orient students before they calculate.',
-    entryIds: ['shell-shift', 'tab-pattern', 'theme-default']
+    id: 'surface-growth',
+    label: 'Surface growth',
+    title: 'The public-facing experience widened beyond a compact module shell.',
+    metricLabel: 'Signals',
+    count: comparisonEntries.filter((entry) => entry.type === 'expanded' || entry.type === 'modified').length,
+    body: 'Landing guidance, module chaining, result interpretation, and stronger entry flows made the newer build feel more like a teaching product than a single-purpose utility.'
   },
   {
-    title: 'Workflow depth replaced isolated tools with connected study moves.',
-    label: 'Story 02',
-    copy: 'Imports, next-step prompts, onboarding, and richer traces make the newer build feel like a teaching sequence rather than a set of separate tabs.',
+    id: 'route-removals',
+    label: 'Focused removals',
+    title: 'Some routes narrowed even as the overall product grew.',
+    metricLabel: 'Removed',
+    count: comparisonEntries.filter((entry) => entry.type === 'removed').length,
+    body: 'The front-door module surface became more selective, especially around older top-level destinations that no longer anchor the main navigation.'
+  },
+  {
+    id: 'structure-rewire',
+    label: 'Structural rewiring',
+    title: 'The shell flattened while orchestration concentrated inward.',
+    metricLabel: 'Refactors',
+    count: comparisonEntries.filter((entry) => entry.type === 'refactored').length,
+    body: 'CSS and runtime responsibilities compressed into fewer top-level files, turning the shell into a more unified release surface.'
+  },
+  {
+    id: 'engine-clarity',
+    label: 'Engine clarity',
+    title: 'Deeper math responsibilities became easier to name and reason about.',
+    metricLabel: 'Engine files',
+    count: 5,
+    body: 'Explicit root engine files expose the product’s internal layers more cleanly than the older shared module structure.'
+  }
+];
+
+const capabilityStories = [
+  {
+    id: 'story-shell',
+    label: 'Story stack 01',
+    title: 'The shell became a release surface instead of a passive wrapper.',
+    body: 'The landing page now performs orientation, guidance, and state setup. That is a product move, not just a layout move.',
+    entryIds: ['shell-shift', 'theme-bootstrap', 'tab-pattern']
+  },
+  {
+    id: 'story-workflow',
+    label: 'Story stack 02',
+    title: 'The workflow deepened enough that tools now reinforce each other.',
+    body: 'Imports, traces, onboarding, and teaching language made the newer build feel orchestrated rather than merely grouped.',
     entryIds: ['welcome-guide', 'module-imports', 'trace-depth', 'student-language']
   },
   {
-    title: 'The codebase flattened at the shell and deepened in the engines.',
-    label: 'Story 03',
-    copy: 'The newer app concentrates orchestration in one runtime while also naming deeper computational responsibilities more explicitly.',
+    id: 'story-architecture',
+    label: 'Story stack 03',
+    title: 'The repo surface flattened while the internal engines became more explicit.',
+    body: 'This is the structural inversion at the heart of the release: fewer shell files on top, clearer computational boundaries underneath.',
     entryIds: ['css-consolidation', 'module-runtime', 'engine-split', 'verification-tooling']
   }
 ];
 
-const architectureLens = {
-  old: [
-    'index.html with fixed nav and module panels',
-    'css/variables.css, base.css, animations.css, layout.css, components.css',
-    'js/modules for calculator, error analysis, polynomial, IEEE-754, and state',
-    'js/ui files for per-module rendering and helpers'
-  ],
-  shifts: [
-    'Navigation and onboarding moved closer to the learning workflow',
-    'Styling responsibilities compressed into a single tuned stylesheet',
-    'Runtime behavior centralized in app.js',
-    'Computation engines surfaced as named root files'
-  ],
-  current: [
-    'index.html with hero, quick guide, and top-level module tabs',
-    'styles.css as the active visual system',
-    'app.js as orchestration for onboarding, tabs, imports, and traces',
-    'calc-engine.js, expression-engine.js, math-engine.js, math-display.js, poly-engine.js'
-  ]
-};
-
-const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-const state = {
-  activeFilter: 'all',
-  activeEntryId: comparisonEntries[0]?.id || null,
-  countsAnimated: false,
-  reducedMotion: reducedMotionQuery.matches
-};
-
-const elements = {
-  summaryValues: document.querySelectorAll('[data-summary-value]'),
-  filterButtons: document.querySelectorAll('[data-category-filter]'),
-  changeList: document.querySelector('[data-change-list]'),
-  evidenceDrawer: document.querySelector('[data-evidence-drawer]'),
-  storyGrid: document.querySelector('[data-story-grid]'),
-  architectureOld: document.querySelector('[data-architecture-old]'),
-  architectureShifts: document.querySelector('[data-architecture-shifts]'),
-  architectureNew: document.querySelector('[data-architecture-new]')
-};
-
-function renderSummary(entries) {
+function buildSummaryMetrics(entries) {
   return {
     added: entries.filter((entry) => entry.type === 'added').length,
     removed: entries.filter((entry) => entry.type === 'removed').length,
@@ -181,26 +190,53 @@ function renderSummary(entries) {
   };
 }
 
-function getVisibleEntries(entries, activeFilter) {
-  if (activeFilter === 'all') {
-    return entries;
-  }
-  return entries.filter((entry) => entry.type === activeFilter || entry.category === activeFilter);
+function buildArchitectureGroups() {
+  return {
+    old: [
+      'index.html with sidebar and mobile rail navigation',
+      'css/variables.css, base.css, animations.css, layout.css, components.css',
+      'js/modules for calculator, errors, polynomial, IEEE-754, and state',
+      'js/ui files for per-module rendering and helpers'
+    ],
+    shifts: [
+      'Landing orientation moved into the page body itself',
+      'Styling collapsed from a file family into one living stylesheet',
+      'Tabs, onboarding, traces, and imports converged harder in app.js',
+      'Engine boundaries became visible as named root files'
+    ],
+    current: [
+      'index.html with guide strip and broader landing surface',
+      'styles.css as the active visual system',
+      'app.js as orchestration for tabs, onboarding, imports, and traces',
+      'calc-engine.js, expression-engine.js, math-engine.js, math-display.js, poly-engine.js'
+    ]
+  };
 }
 
-function applyMotionHooks() {
-  if (state.reducedMotion) {
-    document.querySelectorAll('[data-reveal]').forEach((node) => {
-      node.style.removeProperty('--delay');
-    });
-    return;
-  }
+const state = {
+  activeFilter: 'all',
+  activeEntryId: comparisonEntries[0]?.id ?? null,
+  countsAnimated: false,
+  reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+};
 
-  document.querySelectorAll('[data-reveal]').forEach((node, index) => {
-    const delay = `${Math.min(index, 11) * 75}ms`;
-    node.style.setProperty('--delay', delay);
-  });
-}
+const elements = {
+  loadingState: document.querySelector('[data-loading-state]'),
+  errorState: document.querySelector('[data-error-state]'),
+  summaryValues: document.querySelectorAll('[data-summary-value]'),
+  proofGrid: document.querySelector('[data-proof-grid]'),
+  filterBar: document.querySelector('[data-filter-bar]'),
+  filterButtons: document.querySelectorAll('[data-category-filter]'),
+  changeList: document.querySelector('[data-change-list]'),
+  emptyState: document.querySelector('[data-empty-state]'),
+  evidenceDrawer: document.querySelector('[data-evidence-drawer]'),
+  capabilityGrid: document.querySelector('[data-capability-grid]'),
+  architectureOld: document.querySelector('[data-architecture-old]'),
+  architectureShifts: document.querySelector('[data-architecture-shifts]'),
+  architectureNew: document.querySelector('[data-architecture-new]'),
+  engineMesh: document.querySelector('[data-engine-mesh]'),
+  scrollButtons: document.querySelectorAll('[data-scroll-target]')
+};
 
 function animateNumber(node, nextValue) {
   if (state.reducedMotion || state.countsAnimated) {
@@ -208,12 +244,13 @@ function animateNumber(node, nextValue) {
     return;
   }
 
-  const duration = 700;
   const start = performance.now();
+  const duration = 880;
 
   function frame(now) {
     const progress = Math.min((now - start) / duration, 1);
-    node.textContent = String(Math.round(nextValue * progress));
+    const eased = 1 - Math.pow(1 - progress, 4);
+    node.textContent = String(Math.round(nextValue * eased));
     if (progress < 1) {
       window.requestAnimationFrame(frame);
     }
@@ -222,214 +259,298 @@ function animateNumber(node, nextValue) {
   window.requestAnimationFrame(frame);
 }
 
-function setActiveFilter(nextFilter) {
-  state.activeFilter = nextFilter;
-  renderAll();
-}
-
-function openEvidenceDrawer(entryId) {
-  state.activeEntryId = entryId;
-  elements.evidenceDrawer?.classList.add('is-open');
-  renderAll();
-
-  if (window.innerWidth < 961) {
-    elements.evidenceDrawer?.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth', block: 'start' });
+function getVisibleEntries() {
+  if (state.activeFilter === 'all') {
+    return comparisonEntries;
   }
+
+  return comparisonEntries.filter((entry) => entry.type === state.activeFilter || entry.theme === state.activeFilter);
 }
 
-function closeEvidenceDrawer() {
-  elements.evidenceDrawer?.classList.remove('is-open');
+function renderSummary() {
+  const summary = buildSummaryMetrics(comparisonEntries);
+  elements.summaryValues.forEach((node) => {
+    const key = node.dataset.summaryValue;
+    animateNumber(node, summary[key] ?? 0);
+  });
+  state.countsAnimated = true;
 }
 
-function renderChangeList(entries, activeFilter) {
-  const visibleEntries = getVisibleEntries(entries, activeFilter);
-
-  if (!elements.changeList) {
-    return visibleEntries;
+function renderProofBand() {
+  if (!elements.proofGrid) {
+    return;
   }
+
+  elements.proofGrid.innerHTML = proofModules.map((module, index) => `
+    <article class="proof-card" style="--proof-scale:${0.38 + index * 0.16}" data-reveal>
+      <p class="proof-card__meta">${module.label}</p>
+      <p class="proof-card__count">${module.count}</p>
+      <p class="proof-card__meta">${module.metricLabel}</p>
+      <h3>${module.title}</h3>
+      <p>${module.body}</p>
+    </article>
+  `).join('');
+}
+
+function renderFilters() {
+  elements.filterButtons.forEach((button) => {
+    const active = button.dataset.categoryFilter === state.activeFilter;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function renderChangeExplorer() {
+  const visibleEntries = getVisibleEntries();
+  if (!elements.changeList || !elements.emptyState) {
+    return;
+  }
+
+  elements.emptyState.hidden = visibleEntries.length > 0;
 
   if (visibleEntries.length === 0) {
-    elements.changeList.innerHTML = `
-      <li class="empty-panel empty-panel-inline" data-reveal>
-        <p class="section-kicker">No matching change clusters</p>
-        <h3>Try another filter to repopulate the evidence list.</h3>
-      </li>
-    `;
+    elements.changeList.innerHTML = '';
     state.activeEntryId = null;
-    applyMotionHooks();
-    return visibleEntries;
+    syncEvidenceDrawer();
+    return;
   }
 
   if (!visibleEntries.some((entry) => entry.id === state.activeEntryId)) {
     state.activeEntryId = visibleEntries[0].id;
   }
 
-  elements.changeList.innerHTML = visibleEntries.map((entry, index) => `
-    <li class="change-row" data-reveal>
-      <button class="change-row__button" type="button" data-entry-trigger="${entry.id}" aria-pressed="${String(entry.id === state.activeEntryId)}">
-        <span class="change-row__index">${String(index + 1).padStart(2, '0')}</span>
-        <span class="change-row__body">
-          <span class="change-row__type">${entry.type}</span>
-          <strong>${entry.title}</strong>
-          <span>${entry.explanation}</span>
-        </span>
-      </button>
-    </li>
-  `).join('');
+  elements.changeList.innerHTML = visibleEntries.map((entry) => {
+    const active = entry.id === state.activeEntryId;
+    return `
+      <li class="change-entry ${active ? 'is-active' : ''}">
+        <button class="change-entry__button" type="button" data-entry-id="${entry.id}">
+          <div class="change-meta">
+            <span class="change-type">${entry.type}</span>
+            <span>${entry.theme}</span>
+          </div>
+          <h3>${entry.title}</h3>
+          <p class="change-copy">${entry.summary}</p>
+        </button>
+      </li>
+    `;
+  }).join('');
 
-  return visibleEntries;
+  elements.changeList.querySelectorAll('[data-entry-id]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.activeEntryId = button.dataset.entryId;
+      renderChangeExplorer();
+      syncEvidenceDrawer();
+    });
+  });
+
+  syncEvidenceDrawer();
 }
 
-function renderDrawer(entries) {
+function syncEvidenceDrawer() {
   if (!elements.evidenceDrawer) {
     return;
   }
 
-  const activeEntry = entries.find((entry) => entry.id === state.activeEntryId);
-
-  if (!activeEntry) {
+  const entry = comparisonEntries.find((item) => item.id === state.activeEntryId);
+  if (!entry) {
     elements.evidenceDrawer.innerHTML = `
-      <div class="empty-panel" data-reveal>
-        <p class="section-kicker">No evidence selected</p>
-        <h3>Choose a change cluster to inspect its mapped files.</h3>
+      <div class="drawer-panel">
+        <p class="drawer-kicker">Evidence drawer</p>
+        <h3>No active record</h3>
+        <p class="drawer-summary">Choose a change record or capability story to inspect its exact path evidence.</p>
       </div>
     `;
     return;
   }
 
   elements.evidenceDrawer.innerHTML = `
-    <div class="evidence-panel__inner" data-reveal>
-      <div class="evidence-panel__header">
+    <div class="drawer-panel">
+      <div class="drawer-panel__header">
         <div>
-          <p class="section-kicker">Evidence view</p>
-          <h3>${activeEntry.title}</h3>
+          <p class="drawer-kicker">Evidence drawer</p>
+          <h3>${entry.title}</h3>
         </div>
-        <button class="drawer-dismiss" type="button" data-drawer-close aria-label="Collapse evidence view">Close</button>
+        <button type="button" class="drawer-close">Clear focus</button>
       </div>
-      <p class="evidence-copy">${activeEntry.explanation}</p>
-      <dl class="evidence-list">
-        <div>
-          <dt>Change type</dt>
-          <dd>${activeEntry.type}</dd>
-        </div>
-        <div>
-          <dt>Old path</dt>
-          <dd><code>${activeEntry.oldPath}</code></dd>
-        </div>
-        <div>
-          <dt>New path</dt>
-          <dd><code>${activeEntry.newPath}</code></dd>
-        </div>
-      </dl>
+      <p class="drawer-summary">${entry.summary}</p>
+      <div class="drawer-paths">
+        <article>
+          <span>Older path</span>
+          <p class="evidence-path">${entry.oldPath}</p>
+        </article>
+        <article>
+          <span>Newer path</span>
+          <p class="evidence-path">${entry.newPath}</p>
+        </article>
+      </div>
+      <p class="drawer-summary drawer-insight">${entry.insight}</p>
     </div>
   `;
-}
 
-function renderSummaryValues() {
-  const summary = renderSummary(comparisonEntries);
-  elements.summaryValues.forEach((node) => {
-    const key = node.dataset.summaryValue;
-    animateNumber(node, summary[key] || 0);
-  });
-  state.countsAnimated = true;
-}
-
-function renderFilters() {
-  elements.filterButtons.forEach((button) => {
-    const isActive = button.dataset.categoryFilter === state.activeFilter;
-    button.classList.toggle('is-active', isActive);
-    button.setAttribute('aria-pressed', String(isActive));
+  elements.evidenceDrawer.querySelector('.drawer-close')?.addEventListener('click', () => {
+    state.activeFilter = 'all';
+    state.activeEntryId = comparisonEntries[0]?.id ?? null;
+    renderFilters();
+    renderChangeExplorer();
   });
 }
 
-function renderStories() {
-  if (!elements.storyGrid) {
+function renderCapabilityStories() {
+  if (!elements.capabilityGrid) {
     return;
   }
 
-  elements.storyGrid.innerHTML = storyGroups.map((story) => {
-    const highlights = story.entryIds
-      .map((entryId) => comparisonEntries.find((entry) => entry.id === entryId))
-      .filter(Boolean)
-      .map((entry) => `<li><span>${entry.type}</span><button type="button" data-story-entry="${entry.id}">${entry.title}</button></li>`)
-      .join('');
+  elements.capabilityGrid.innerHTML = capabilityStories.map((story) => {
+    const buttons = story.entryIds.map((entryId) => {
+      const entry = comparisonEntries.find((item) => item.id === entryId);
+      if (!entry) {
+        return '';
+      }
+      return `
+        <button type="button" class="story-card__button" data-story-entry="${entry.id}">
+          <strong>${entry.title}</strong>
+          <span>${entry.type}</span>
+        </button>
+      `;
+    }).join('');
 
     return `
       <article class="story-card" data-reveal>
         <p class="story-card__label">${story.label}</p>
         <h3>${story.title}</h3>
-        <p>${story.copy}</p>
-        <ul class="story-card__list">${highlights}</ul>
+        <p>${story.body}</p>
+        <div class="story-card__list">${buttons}</div>
       </article>
     `;
   }).join('');
-}
 
-function renderArchitectureList(node, items) {
-  if (!node) {
-    return;
-  }
-  node.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
+  elements.capabilityGrid.querySelectorAll('[data-story-entry]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.activeEntryId = button.dataset.storyEntry;
+      renderChangeExplorer();
+      syncEvidenceDrawer();
+      elements.evidenceDrawer?.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth', block: 'nearest' });
+    });
+  });
 }
 
 function renderArchitectureLens() {
-  renderArchitectureList(elements.architectureOld, architectureLens.old);
-  renderArchitectureList(elements.architectureShifts, architectureLens.shifts);
-  renderArchitectureList(elements.architectureNew, architectureLens.current);
+  const architecture = buildArchitectureGroups();
+  const mappings = [
+    [elements.architectureOld, architecture.old],
+    [elements.architectureShifts, architecture.shifts],
+    [elements.architectureNew, architecture.current]
+  ];
+
+  mappings.forEach(([node, values]) => {
+    if (!node) {
+      return;
+    }
+    node.innerHTML = values.map((value) => `<li>${value}</li>`).join('');
+  });
 }
 
-function renderAll() {
-  renderSummaryValues();
+function renderEngineMesh() {
+  if (!elements.engineMesh) {
+    return;
+  }
+
+  const nodes = comparisonEntries.slice(0, 6);
+  const positions = [
+    { top: 16, left: 58 },
+    { top: 26, left: 18 },
+    { top: 38, left: 62 },
+    { top: 52, left: 12 },
+    { top: 66, left: 56 },
+    { top: 76, left: 26 }
+  ];
+
+  const links = [
+    { top: 24, left: 30, width: 210, rotation: -14 },
+    { top: 42, left: 22, width: 250, rotation: 12 },
+    { top: 58, left: 24, width: 220, rotation: -10 },
+    { top: 70, left: 34, width: 180, rotation: 8 }
+  ];
+
+  elements.engineMesh.innerHTML = `
+    ${links.map((link) => `<span class="engine-link" style="top:${link.top}%; left:${link.left}%; width:${link.width}px; transform: rotate(${link.rotation}deg);"></span>`).join('')}
+    ${nodes.map((entry, index) => {
+      const pos = positions[index];
+      return `
+        <article class="engine-node" style="top:${pos.top}%; left:${pos.left}%; --duration:${7 + index}s; --delay:${index * 0.6}s;">
+          <span>${entry.type}</span>
+          <strong>${entry.title}</strong>
+        </article>
+      `;
+    }).join('')}
+  `;
+}
+
+function applyRevealStates() {
+  const nodes = document.querySelectorAll('[data-reveal]');
+  nodes.forEach((node, index) => {
+    node.style.setProperty('--delay', `${Math.min(index, 12) * 85}ms`);
+    if (state.reducedMotion) {
+      node.classList.add('is-visible');
+      return;
+    }
+    window.setTimeout(() => {
+      node.classList.add('is-visible');
+    }, 90 + index * 70);
+  });
+}
+
+function setActiveFilter(nextFilter) {
+  state.activeFilter = nextFilter;
   renderFilters();
-  renderStories();
-  renderArchitectureLens();
-  const visibleEntries = renderChangeList(comparisonEntries, state.activeFilter);
-  renderDrawer(visibleEntries);
-  applyMotionHooks();
+  renderChangeExplorer();
 }
 
-if (typeof reducedMotionQuery.addEventListener === 'function') {
-  reducedMotionQuery.addEventListener('change', (event) => {
-    state.reducedMotion = event.matches;
-    document.documentElement.classList.toggle('reduced-motion', event.matches);
-    document.documentElement.classList.toggle('motion-ready', !event.matches);
-    applyMotionHooks();
+function bindFilterBar() {
+  elements.filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      setActiveFilter(button.dataset.categoryFilter);
+    });
   });
 }
 
-document.documentElement.classList.toggle('reduced-motion', state.reducedMotion);
-document.documentElement.classList.toggle('motion-ready', !state.reducedMotion);
-
-elements.filterButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    setActiveFilter(button.dataset.categoryFilter || 'all');
+function bindScrollButtons() {
+  elements.scrollButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const target = document.getElementById(button.dataset.scrollTarget);
+      target?.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth', block: 'start' });
+    });
   });
-});
+}
 
-elements.changeList?.addEventListener('click', (event) => {
-  const trigger = event.target.closest('[data-entry-trigger]');
-  if (!trigger) {
+function showError(message) {
+  if (!elements.errorState) {
     return;
   }
-  openEvidenceDrawer(trigger.dataset.entryTrigger);
-});
+  elements.errorState.hidden = false;
+  elements.errorState.textContent = message;
+}
 
-elements.storyGrid?.addEventListener('click', (event) => {
-  const trigger = event.target.closest('[data-story-entry]');
-  if (!trigger) {
-    return;
+function boot() {
+  try {
+    renderSummary();
+    renderProofBand();
+    renderFilters();
+    renderChangeExplorer();
+    renderCapabilityStories();
+    renderArchitectureLens();
+    renderEngineMesh();
+    bindFilterBar();
+    bindScrollButtons();
+    applyRevealStates();
+    window.setTimeout(() => {
+      document.body.classList.add('is-ready');
+    }, state.reducedMotion ? 0 : 420);
+  } catch (error) {
+    showError(error instanceof Error ? error.message : 'The explorer failed to initialize.');
+    document.body.classList.add('is-ready');
+    throw error;
   }
-  openEvidenceDrawer(trigger.dataset.storyEntry);
-});
+}
 
-elements.evidenceDrawer?.addEventListener('click', (event) => {
-  const dismiss = event.target.closest('[data-drawer-close]');
-  if (dismiss) {
-    closeEvidenceDrawer();
-  }
-});
-
-renderAll();
-window.requestAnimationFrame(() => {
-  document.body.classList.add('is-ready');
-});
+boot();

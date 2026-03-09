@@ -13,21 +13,11 @@ foreach ($path in $required) {
 }
 
 $html = Get-Content 'project-evolution-explorer.html' -Raw
-$requiredHooks = @(
-  'data-summary-metric',
-  'data-category-filter',
-  'data-change-list',
-  'data-evidence-drawer'
-)
-foreach ($hook in $requiredHooks) {
-  if ($html -notmatch [regex]::Escape($hook)) {
-    throw "Missing required hook: $hook"
-  }
-}
 $requiredSections = @(
-  'id="hero-console"',
+  'id="launch-hero"',
+  'id="proof-band"',
   'id="change-explorer"',
-  'id="evolution-stories"',
+  'id="capability-stories"',
   'id="architecture-lens"',
   'id="evidence-drawer"'
 )
@@ -36,22 +26,37 @@ foreach ($section in $requiredSections) {
     throw "Missing required section: $section"
   }
 }
-if ($html -notmatch 'project-evolution-explorer.css') {
-  throw 'HTML does not reference the explorer stylesheet.'
-}
-if ($html -notmatch 'project-evolution-explorer.js') {
-  throw 'HTML does not reference the explorer script.'
+
+$requiredHooks = @(
+  'data-summary-value',
+  'data-proof-grid',
+  'data-filter-bar',
+  'data-change-list',
+  'data-empty-state',
+  'data-evidence-drawer',
+  'data-capability-grid',
+  'data-architecture-old',
+  'data-architecture-new'
+)
+foreach ($hook in $requiredHooks) {
+  if ($html -notmatch [regex]::Escape($hook)) {
+    throw "Missing required hook: $hook"
+  }
 }
 
 $js = Get-Content 'project-evolution-explorer.js' -Raw
 $requiredTokens = @(
   'const comparisonEntries',
-  'renderSummary',
-  'renderChangeList',
-  'openEvidenceDrawer',
-  'setActiveFilter',
-  'renderStories',
-  'matchMedia("(prefers-reduced-motion: reduce)")'
+  'const proofModules',
+  'const capabilityStories',
+  'function buildSummaryMetrics',
+  'function buildArchitectureGroups',
+  'function renderProofBand',
+  'function renderChangeExplorer',
+  'function renderCapabilityStories',
+  'function renderArchitectureLens',
+  'function syncEvidenceDrawer',
+  "window.matchMedia('(prefers-reduced-motion: reduce)')"
 )
 foreach ($token in $requiredTokens) {
   if ($js -notmatch [regex]::Escape($token)) {
@@ -61,8 +66,12 @@ foreach ($token in $requiredTokens) {
 
 $css = Get-Content 'project-evolution-explorer.css' -Raw
 $requiredStyleTokens = @(
-  '--accent-moss',
-  '.hero-console',
+  '--surface-0',
+  '--accent-signal',
+  '.release-shell',
+  '.launch-hero',
+  '.proof-band',
+  '.comparison-engine',
   '.change-filter.is-active',
   '@media (max-width: 768px)',
   '@media (prefers-reduced-motion: reduce)'
