@@ -1,0 +1,114 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Numerical Analysis Toolkit
+    - heading "Machine Arithmetic and Round-Off Error Lab" [level=1] [ref=e5]
+    - paragraph [ref=e6]: A browser-only teaching calculator for decimal machine arithmetic, error interpretation, and polynomial evaluation.
+  - tablist "Core modules" [ref=e7]:
+    - tab "Module I" [ref=e8] [cursor=pointer]
+    - tab "Module II" [ref=e9] [cursor=pointer]
+    - tab "Module III" [active] [selected] [ref=e10] [cursor=pointer]
+  - tabpanel "Module III" [ref=e106]:
+    - generic [ref=e107]:
+      - article [ref=e108]:
+        - paragraph [ref=e109]: Module III
+        - heading "Compare evaluation methods" [level=2] [ref=e110]
+        - paragraph [ref=e111]: Evaluate the same polynomial exactly, stepwise in machine arithmetic, and with final-only rounding to see where the loss appears.
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - text: Polynomial f(x)
+            - textbox "Polynomial f(x)" [ref=e114]:
+              - /placeholder: "Example: 2x - x^3/3 + x^5/60"
+              - text: (x - 10)^9
+          - generic [ref=e115]:
+            - text: x value
+            - textbox "x value" [ref=e116]:
+              - /placeholder: "Example: 1.25"
+              - text: "9.99"
+          - generic [ref=e117]:
+            - text: Significant Digits (k)
+            - spinbutton "Significant Digits (k)" [ref=e118]: "7"
+          - generic [ref=e119]:
+            - text: Truncation Method
+            - combobox "Truncation Method" [ref=e120]:
+              - option "Chopping"
+              - option "Rounding" [selected]
+        - button "Compute" [ref=e122] [cursor=pointer]
+        - group [ref=e123]:
+          - generic "Teaching presets" [ref=e124] [cursor=pointer]
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - text: Lesson Preset
+              - combobox "Lesson Preset" [ref=e197]:
+                - option "Choose a lesson preset"
+                - option "Taylor approximation of sqrt(3)"
+                - 'option "Near repeated root: (x - 2)^13"'
+                - 'option "Expanded sensitivity: (x - 10)^9" [selected]'
+            - button "Load preset" [ref=e199] [cursor=pointer]
+            - paragraph [ref=e200]: This preset emphasizes how an expanded polynomial near a root can magnify round-off differently across evaluation methods.
+      - article [ref=e125]:
+        - generic [ref=e126]:
+          - paragraph [ref=e127]: Exact value
+          - paragraph [ref=e128]: "-0.000000000000000001"
+          - paragraph [ref=e129]: Exact p = f(x), before the chosen machine rule is applied.
+        - generic [ref=e130]:
+          - generic [ref=e131]:
+            - term [ref=e132]: Canonical polynomial
+            - definition [ref=e133]: x^9 - 90x^8 + 3600x^7 - 84000x^6 + 1260000x^5 - 12600000x^4 + 84000000x^3 - 360000000x^2 + 900000000x - 1000000000
+          - generic [ref=e134]:
+            - term [ref=e135]: x in machine form
+            - definition [ref=e136]: "9.99"
+        - generic [ref=e137]:
+          - generic [ref=e138]:
+            - paragraph [ref=e139]: Horner
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - term [ref=e142]: Stepwise p*
+                - definition [ref=e143]: "-4000"
+              - generic [ref=e144]:
+                - term [ref=e145]: Final-only p*
+                - definition [ref=e146]: "-0.000000000000000001"
+              - generic [ref=e147]:
+                - term [ref=e148]: Stepwise absolute error
+                - definition [ref=e149]: "3999.999999999999999999"
+              - generic [ref=e150]:
+                - term [ref=e151]: Stepwise significant digits
+                - definition [ref=e152]: "0"
+              - generic [ref=e153]:
+                - term [ref=e154]: Multiplications
+                - definition [ref=e155]: "9"
+              - generic [ref=e156]:
+                - term [ref=e157]: Additions
+                - definition [ref=e158]: "9"
+          - generic [ref=e159]:
+            - paragraph [ref=e160]: Direct
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - term [ref=e163]: Stepwise p*
+                - definition [ref=e164]: "-10000"
+              - generic [ref=e165]:
+                - term [ref=e166]: Final-only p*
+                - definition [ref=e167]: "-0.000000000000000001"
+              - generic [ref=e168]:
+                - term [ref=e169]: Stepwise absolute error
+                - definition [ref=e170]: "9999.999999999999999999"
+              - generic [ref=e171]:
+                - term [ref=e172]: Stepwise significant digits
+                - definition [ref=e173]: "0"
+              - generic [ref=e174]:
+                - term [ref=e175]: Multiplications
+                - definition [ref=e176]: "45"
+              - generic [ref=e177]:
+                - term [ref=e178]: Additions
+                - definition [ref=e179]: "10"
+        - generic [ref=e180]:
+          - heading "What to notice" [level=3] [ref=e181]
+          - generic [ref=e182]:
+            - paragraph [ref=e183]: Horner is more accurate in stepwise arithmetic for this input because its absolute error is smaller than direct evaluation.
+            - paragraph [ref=e184]: Horner uses fewer arithmetic operations here (18 versus 55), which is why it is usually preferred for polynomial evaluation.
+            - paragraph [ref=e185]: Final-only rounding is identical for both methods because rounding is deferred until after the exact polynomial value is computed. The gap between final-only and stepwise errors shows that most of the visible loss comes from intermediate rounding, not from the last decimal representation alone. Direct evaluation amplifies round-off more strongly for this polynomial at the chosen x.
+        - group [ref=e186]:
+          - generic "Detailed method metrics" [ref=e187] [cursor=pointer]
+        - group [ref=e188]:
+          - generic "Step-by-step machine operations" [ref=e189] [cursor=pointer]
+          - option "Horner"
+          - option "Direct" [selected]

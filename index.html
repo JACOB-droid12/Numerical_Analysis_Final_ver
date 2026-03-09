@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Machine Arithmetic and Error Analysis Lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23b8d48a%27/%3E%3Cpath d=%27M17 19h30v4H17zm0 11h30v4H17zm0 11h18v4H17z%27 fill=%27%231b2417%27/%3E%3C/svg%3E">
+  <script>
+    (function bootstrapTheme() {
+      try {
+        var key = "ma-lab-theme-v1";
+        var saved = window.localStorage.getItem(key);
+        var theme = saved === "dark" || saved === "light"
+          ? saved
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (error) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
+  <meta name="description"
+    content="An interactive lab for analyzing floating-point numbers, error propagation, and polynomial evaluation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+    onload="this.rel='stylesheet'">
+  <noscript><link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="stylesheet" href="styles.css?v=student3" />
+</head>
+
+<body>
+  <a href="#tab-basic" class="skip-link">Skip to calculator</a>
+  <main class="app-shell">
+    <header class="masthead hero">
+      <div class="masthead-copy">
+        <p class="eyebrow">Numerical Analysis Toolkit</p>
+        <h1>Machine Arithmetic and Round-Off Error Lab</h1>
+        <p class="subtitle">
+          Work exam-style machine arithmetic, error, and polynomial problems with textbook-style notation and quick result checks.
+        </p>
+      </div>
+
+      <div class="masthead-tools" aria-label="Calculator utilities">
+        <div class="status-strip" aria-label="Calculator status">
+          <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+          <div class="status-chip"><span class="status-name">Display</span><strong id="status-display">RECT</strong>
+          </div>
+          <div class="status-chip"><span class="status-name">Engine</span><strong id="status-engine">EXACT</strong>
+          </div>
+        </div>
+        <div class="tool-cluster tool-cluster-compact">
+          <details class="micro-panel micro-panel-settings">
+            <summary>Settings</summary>
+            <div class="micro-panel-body">
+              <button id="theme-toggle" type="button" class="ghost theme-toggle"></button>
+              <button id="angle-toggle" type="button" class="ghost">Use radians</button>
+              <button id="display-toggle" type="button" class="ghost">Show polar</button>
+            </div>
+          </details>
+          <details class="micro-panel micro-panel-catalog">
+            <summary>Catalog</summary>
+            <div class="micro-panel-body catalog-list">
+              <p><strong>Supports</strong> decimals, fractions, scientific notation, <code>pi</code>, <code>π</code>,
+                <code>e</code>, <code>i</code>, <code>sqrt()</code>, and <code>polar(r,theta)</code>.
+              </p>
+              <p><strong>Complex</strong> <code>3+4i</code>, <code>2i</code>, <code>-i</code>, <code>5∠30</code></p>
+              <p><strong>Polynomial</strong> keep coefficients real; complex <code>x</code> is allowed.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <details id="welcome-strip" class="welcome-strip" aria-label="Quick start guide">
+      <summary>
+        <span class="module-kicker">Quick guide</span>
+        <span class="welcome-title">Quick start</span>
+      </summary>
+      <div class="welcome-body">
+        <p class="summary-paragraph">
+          Start in Module I for the fastest first result, or load a worked example to compare polynomial methods.
+        </p>
+        <div class="welcome-actions">
+          <button id="welcome-open-basic" type="button">Start with Module I</button>
+          <button id="welcome-load-poly" type="button" class="ghost">Load worked example</button>
+        </div>
+      </div>
+    </details>
+
+    <nav class="tabs tabs-home" aria-label="Core modules" role="tablist">
+      <button id="tab-btn-basic" type="button" class="tab-btn active" data-tab="basic" role="tab" aria-selected="true"
+        aria-controls="tab-basic" aria-label="Machine Arithmetic" tabindex="0"><span class="tab-icon">∑</span><span
+          class="tab-meta"><span class="tab-index">Module I</span><span class="tab-title">Calculation</span><span
+            class="tab-caption">Expressions, chop or round, and inspect stored arithmetic.</span></span></button>
+      <button id="tab-btn-error" type="button" class="tab-btn" data-tab="error" role="tab" aria-selected="false"
+        aria-controls="tab-error" aria-label="Error Analysis" tabindex="-1"><span class="tab-icon">Δ</span><span
+          class="tab-meta"><span class="tab-index">Module II</span><span class="tab-title">Errors</span><span
+            class="tab-caption">Read relative error, thresholds, and significant digits fast.</span></span></button>
+      <button id="tab-btn-poly" type="button" class="tab-btn" data-tab="poly" role="tab" aria-selected="false"
+        aria-controls="tab-poly" aria-label="Polynomial Methods" tabindex="-1"><span class="tab-icon">f(x)</span><span
+          class="tab-meta"><span class="tab-index">Module III</span><span class="tab-title">Polynomial</span><span
+            class="tab-caption">Compare Horner, direct, and final-only machine results.</span></span></button>
+    </nav>
+
+    <section id="tab-basic" class="panel active" role="tabpanel" aria-labelledby="tab-btn-basic" tabindex="0">
+      <div class="module-shell module-basic">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Module I</p>
+            <h2>Machine Arithmetic Workbench</h2>
+          </div>
+          <p class="module-copy">
+            Enter an expression, choose <strong>k</strong> and the rule, then read <strong>p</strong>,
+            stepwise <strong>p*</strong>, and final-only <strong>p*</strong>.
+          </p>
+        </header>
+
+        <section class="control-band control-band-expression" aria-label="Expression controls">
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="basic-expression" type="text" maxlength="300"
+                placeholder="((1/3 + 6/5) + 0.948854) - (5/30 + 6/59)">
+              <button type="button" class="symbol-trigger" data-symbol-target="basic-expression" aria-label="Open symbols" title="Open symbols">∑</button>
+              <button id="basic-expression-compute" type="button" class="btn-calculate-omni"
+                title="Calculate">=</button>
+            </div>
+            <p class="input-hint">Supports fractions, decimals, pi, e, sqrt(), and trig functions. Open <strong>Catalog</strong> for full syntax.</p>
+
+            <div class="search-settings">
+              <label>
+                Significant digits (k)
+                <input id="basic-expression-k" type="number" min="1" max="25" step="1" value="8" inputmode="decimal">
+              </label>
+              <label>
+                Machine rule
+                <select id="basic-expression-mode">
+                  <option value="chop" selected>Chopping</option>
+                  <option value="round">Rounding</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <p id="basic-expression-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true"
+            hidden></p>
+        </section>
+        <p id="basic-status-msg" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <section id="basic-empty" class="empty-state" hidden>
+          <p class="result-label">Try a calculation</p>
+          <h3 class="empty-title">Try the starter example or enter your own expression to see the machine result.</h3>
+          <div class="empty-actions">
+            <button id="basic-empty-compute" type="button">Load starter expression</button>
+          </div>
+        </section>
+
+        <section id="basic-result-stage" class="result-stage" aria-label="Primary expression results" hidden>
+          <div class="comparison-grid comparison-grid-triple">
+            <div class="answer-hero answer-hero-major answer-hero-source">
+              <p id="basic-expression-reference-label" class="result-label">Exact value p</p>
+              <p id="basic-expression-exact" class="answer-value is-empty">Ready to calculate</p>
+            </div>
+
+            <div class="answer-hero answer-hero-major">
+              <p class="result-label">Stepwise p* (apply the rule after every step)</p>
+              <p id="basic-expression-stepwise" class="answer-value is-empty">Ready to calculate</p>
+            </div>
+
+            <div class="answer-hero answer-hero-major">
+              <p id="basic-expression-final-label" class="result-label">Final-only p* (exact expression, then chop once)
+              </p>
+              <p id="basic-expression-final" class="answer-value is-empty">Ready to calculate</p>
+            </div>
+          </div>
+          <p id="basic-expression-answer-guide" class="result-caption answer-guide" hidden>Use the stepwise machine answer for exam-style machine arithmetic. Use the final-only machine answer only when the full exact expression is rounded or chopped at the end.</p>
+
+          <dl id="basic-answer-strip" class="answer-strip answer-strip-triple" hidden>
+            <div>
+              <dt>Simplified Exact Expression</dt>
+              <dd id="basic-expression-canonical" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Counted operations</dt>
+              <dd id="basic-expression-ops" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Per-step rule bound</dt>
+              <dd id="basic-expression-bound" class="is-empty">Ready to calculate</dd>
+            </div>
+          </dl>
+          <p id="basic-expression-note" class="focus-note is-empty" hidden>Ready to calculate</p>
+        </section>
+
+        <section id="basic-next-steps" class="result-next-steps" hidden>
+  <p class="result-label">Next step</p>
+  <div id="basic-actions" class="control-actions control-actions-secondary">
+    <button id="basic-send-step" type="button" class="ghost" disabled>Send stepwise p* to Errors</button>
+    <button id="basic-send-final" type="button" class="ghost" disabled>Send final-only p* to Errors</button>
+    <button id="basic-open-trace" type="button" class="ghost" disabled>Open machine trace</button>
+  </div>
+</section>
+
+
+        <section class="standalone-helper" aria-label="Single operation helper">
+          <div class="utility-stack">
+            <div>
+              <p class="module-kicker" style="margin-bottom: var(--space-1);">Detailed Inspection Tool</p>
+              <h3 style="margin: 0 0 var(--space-2) 0;">Single operation helper</h3>
+              <p class="lesson-note" style="margin: 0;">Use this helper when you want the exact operand storage paths,
+                normalized bounds, and unit-in-the-last-place (ULP) context for a single binary operation.</p>
+            </div>
+
+            <section class="control-band control-band-basic" aria-label="Single operation helper controls">
+              <div class="field-grid field-grid-basic">
+                <label>
+                  <div class="field-shell"><input id="basic-a" type="text" maxlength="150" value="2.1892"
+                      placeholder="2.1892">
+                    <button type="button" class="symbol-trigger symbol-trigger-mini" data-symbol-target="basic-a" aria-label="Open symbols" title="Open symbols">∑</button>
+                  </div>
+                </label>
+                <label>
+                  Operation
+                  <select id="basic-op">
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                    <option value="*" selected>*</option>
+                    <option value="/">/</option>
+                  </select>
+                </label>
+                <label>
+                  <div class="field-shell"><input id="basic-b" type="text" maxlength="150" value="3.7008"
+                      placeholder="3.7008">
+                    <button type="button" class="symbol-trigger symbol-trigger-mini" data-symbol-target="basic-b" aria-label="Open symbols" title="Open symbols">∑</button>
+                  </div>
+                </label>
+                <label>
+                  Significant digits (k)
+                  <input id="basic-k" type="number" min="1" max="25" step="1" value="8" inputmode="decimal">
+                </label>
+                <label>
+                  Machine rule
+                  <select id="basic-mode">
+                    <option value="chop" selected>Chopping</option>
+                    <option value="round">Rounding</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="control-actions">
+                <button id="basic-compute" type="button" class="ghost">Calculate</button>
+              </div>
+
+              <p id="basic-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+              </p>
+            </section>
+
+            <section class="result-stage" aria-label="Single operation helper result">
+              <div class="answer-hero answer-hero-major">
+                <p class="result-label">Stored machine answer p*</p>
+                <p id="basic-approx-primary" class="answer-value is-empty">Ready to calculate</p>
+                <p class="result-caption">This helper isolates the fundamental numerical analysis lesson: comparing the
+                  true mathematical exact result directly with the machine-stored path.</p>
+              </div>
+
+              <dl class="answer-strip answer-strip-quad">
+                <div>
+                  <dt>Exact answer p</dt>
+                  <dd id="basic-exact-summary" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Machine Operation fl(x op y)</dt>
+                  <dd id="basic-approx-stored" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Guard digit</dt>
+                  <dd id="basic-guard" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Worst-case relative-error bound</dt>
+                  <dd id="basic-bound" class="is-empty">Ready to calculate</dd>
+                </div>
+              </dl>
+              <p class="focus-note">Read the exact result, the stored-operand path, the guard digit, and the bound
+                first. Then open the neighborhood details if you need deeper context.</p>
+            </section>
+
+            <details class="disclosure disclosure-secondary" aria-label="Stored number details and machine neighborhood">
+              <summary>Machine notes and neighborhood</summary>
+              <div class="detail-grid detail-grid-basic">
+                <section class="reading-panel reading-panel-quiet">
+                  <h3>Why the stored answer changed</h3>
+                  <div class="note-stack">
+                    <p id="basic-normalization-note" class="lesson-note is-empty">Ready to calculate</p>
+                    <p id="basic-guard-note" class="lesson-note is-empty">Ready to calculate</p>
+                    <p id="basic-rounding-note" class="lesson-note is-empty">Ready to calculate</p>
+                  </div>
+                </section>
+
+                <section class="reference-panel">
+                  <h3>Stored inputs and normalized form</h3>
+                  <dl class="metric-list">
+                    <div>
+                      <dt>Exact x</dt>
+                      <dd id="basic-a-exact" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Normalized x</dt>
+                      <dd id="basic-a-normalized" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Stored fl(x)</dt>
+                      <dd id="basic-a-machine" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Exact y</dt>
+                      <dd id="basic-b-exact" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Normalized y</dt>
+                      <dd id="basic-b-normalized" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Stored fl(y)</dt>
+                      <dd id="basic-b-machine" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Exact normalization</dt>
+                      <dd id="basic-exact-scientific" class="is-empty">Ready to calculate</dd>
+                    </div>
+                  </dl>
+                </section>
+
+                <section class="reference-panel reference-panel-wide">
+                  <h3>Neighboring machine numbers</h3>
+                  <dl class="metric-list metric-list-inline">
+                    <div>
+                      <dt>ULP / spacing</dt>
+                      <dd id="basic-ulp" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Next smaller machine number</dt>
+                      <dd id="basic-prev" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Next larger machine number</dt>
+                      <dd id="basic-next" class="is-empty">Ready to calculate</dd>
+                    </div>
+                    <div>
+                      <dt>Represented interval</dt>
+                      <dd id="basic-interval" class="is-empty">Ready to calculate</dd>
+                    </div>
+                  </dl>
+                </section>
+              </div>
+            </details>
+
+            <details class="utility-panel utility-panel-subtle" aria-label="Worked examples for single operation helper">
+              <summary>Examples</summary>
+              <div class="utility-stack">
+                <div class="preset-row">
+                  <label>Worked example
+                    <select id="basic-preset">
+                      <option value="">Choose an example</option>
+                      <option value="pi">pi with 5-digit comparison</option>
+                      <option value="third">1 / 3 repeating decimal</option>
+                      <option value="cancel">near-cancellation subtraction</option>
+                    </select>
+                  </label>
+                  <div class="actions utility-actions">
+                    <button id="basic-load-preset" type="button" class="ghost">Load example</button>
+                    <button id="basic-verify" type="button" class="ghost">Run required test</button>
+                  </div>
+                </div>
+                <p id="basic-preset-note" class="lesson-note is-empty">Choose an example to fill the inputs.</p>
+                <pre id="basic-verify-output" class="verify-box"></pre>
+              </div>
+            </details>
+          </div>
+        </section>
+
+
+        <details class="disclosure disclosure-secondary" aria-label="Module I expression trace showing step-by-step computation">
+          <summary>Expression trace</summary>
+          <div class="utility-stack">
+            <p class="lesson-note">Leaf values are stored first. Each step below shows the operator applied to those
+              already-stored values before the rule is applied again.</p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Description</th>
+                    <th>Exact step</th>
+                    <th>Machine step</th>
+                    <th>Normalized machine step</th>
+                  </tr>
+                </thead>
+                <tbody id="basic-expression-steps-body">
+                  <tr class="empty-row">
+                    <td colspan="5">No computed steps.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="tab-error" class="panel" role="tabpanel" aria-labelledby="tab-btn-error" tabindex="0" hidden>
+      <div class="module-shell module-error">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Module II</p>
+            <h2>Error Analysis</h2>
+          </div>
+          <p class="module-copy">
+            Compare true value <strong>p</strong> with approximation <strong>p*</strong> and read the key error
+            metrics quickly.
+          </p>
+        </header>
+
+        <section class="control-band control-band-error" aria-label="Error analysis controls">
+          <div class="field-grid field-grid-error">
+            <div class="field-label-group">
+              <span class="field-label-text">True value p</span>
+              <div class="field-shell"><input id="error-exact" type="text" maxlength="150" aria-label="True value p"
+                  placeholder="8.10179136, pi, or 3+4i">
+              </div>
+            </div>
+            <div class="field-label-group">
+              <span class="field-label-text">Approximation p*</span>
+              <div class="field-shell"><input id="error-approx" type="text" maxlength="150" aria-label="Approximation p*"
+                  placeholder="8.1017, 22/7, or 2∠45">
+              </div>
+            </div>
+          </div>
+
+          <div class="control-actions control-actions-inline">
+            <button id="error-compute" type="button">Calculate error</button>
+            <button id="error-import-basic" type="button" class="ghost">Import Module I stepwise p*</button>
+          </div>
+
+
+          <details class="utility-panel utility-panel-inline" aria-label="Additional import tools">
+            <summary>Tools</summary>
+            <div class="actions utility-actions">
+              <button id="error-import-basic-final" type="button" class="ghost">Import Module I final-only p*</button>
+              <button id="error-import-horner" type="button" class="ghost">Import Module III Horner stepwise
+                p*</button>
+              <button id="error-import-direct" type="button" class="ghost">Import Module III Direct stepwise
+                p*</button>
+              <button id="error-import-final" type="button" class="ghost">Import Module III final-only p*</button>
+              <button id="error-empty-sample" type="button" class="ghost">Load sample values</button>
+            </div>
+          </details>
+
+          <p id="error-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+          </p>
+        </section>
+        <p id="error-status-msg" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <section id="error-empty" class="empty-state">
+          <p class="result-label">Compare two values</p>
+          <h3 class="empty-title">Import a machine result or enter a true value and approximation to compare them.</h3>
+          <div class="empty-actions">
+            <button id="error-empty-import" type="button">Import Module I stepwise p*</button>
+            <button id="error-empty-manual" type="button" class="ghost">Type values</button>
+          </div>
+        </section>
+
+        <p id="error-source-line" class="source-line" hidden>Using values from <span id="error-source"
+            class="source-value">Entered manually</span></p>
+
+        <section id="error-result-stage" class="result-stage result-stage-reading" aria-label="Primary error result" hidden>
+          <div class="answer-hero answer-hero-major answer-hero-reading">
+            <p class="result-label">Relative error</p>
+            <p id="error-rel" class="answer-value is-empty">Ready to calculate</p>
+            <p id="error-verdict" class="result-verdict is-empty">Ready to calculate</p>
+            <p class="result-caption">This shows the size of the miss relative to the true value.</p>
+          </div>
+
+          <dl class="answer-strip answer-strip-quad">
+            <div>
+              <dt>Relative error (%)</dt>
+              <dd id="error-rel-pct" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Absolute error</dt>
+              <dd id="error-abs" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Significant digits</dt>
+              <dd id="error-t" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Maximum Absolute Error</dt>
+              <dd id="error-maxabs" class="is-empty">Ready to calculate</dd>
+            </div>
+          </dl>
+        </section>
+
+        <div id="error-reading-grid" class="reading-grid" hidden>
+          <section class="reading-panel reading-panel-rule">
+            <p class="result-label">Significant Digits Test</p>
+            <p id="error-check" class="lesson-note is-empty">Ready to calculate</p>
+          </section>
+
+          <section class="reading-panel reading-panel-meaning">
+            <p class="result-label">How to read the metrics</p>
+            <div class="note-stack">
+              <p id="error-meaning-abs" class="lesson-note is-empty">Ready to calculate</p>
+              <p id="error-meaning-rel" class="lesson-note is-empty">Ready to calculate</p>
+              <p id="error-meaning-t" class="lesson-note is-empty">Ready to calculate</p>
+              <p id="error-meaning-extra" class="lesson-note is-empty">Ready to calculate</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-poly" class="panel" role="tabpanel" aria-labelledby="tab-btn-poly" tabindex="0" hidden>
+      <div class="module-shell module-poly">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Module III</p>
+            <h2>Polynomial Comparison Board</h2>
+          </div>
+          <p class="module-copy">
+            Enter <strong>f(x)</strong> and <strong>x</strong>, then compare the source value, stepwise machine
+            answers, and the shared final-only <strong>p*</strong>.
+          </p>
+        </header>
+
+        <section class="control-band control-band-poly" aria-label="Polynomial evaluation controls">
+          <div class="preset-band preset-band-secondary" aria-label="Polynomial worked examples"
+            style="margin-bottom: var(--space-4);">
+            <label>
+              Worked example
+              <select id="poly-preset">
+                <option value="">Choose an example</option>
+                <option value="sqrt3">Taylor approximation of sqrt(3)</option>
+                <option value="root13">Near repeated root: (x - 2)^13</option>
+                <option value="root9">Expanded sensitivity: (x - 10)^9</option>
+              </select>
+            </label>
+            <div class="control-actions control-actions-secondary">
+              <button id="poly-load-preset" type="button" class="ghost">Load example</button>
+            </div>
+          </div>
+
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="poly-expression" type="text" maxlength="300" placeholder="2x - x^3/3 + x^5/60">
+              <button type="button" class="symbol-trigger" data-symbol-target="poly-expression" aria-label="Open symbols" title="Open symbols">∑</button>
+              <button id="poly-compute" type="button" class="btn-calculate-omni" title="Calculate polynomial">=</button>
+            </div>
+
+            <div class="search-settings">
+              <div class="field-group field-group-inline">
+                <label for="poly-x">x-value</label>
+                <div class="field-shell field-shell-inline-tools">
+                  <input id="poly-x" type="text" maxlength="150" placeholder="1.25, i, or 1∠90" aria-label="x-value">
+                  <button type="button" class="symbol-trigger symbol-trigger-mini" data-symbol-target="poly-x" aria-label="Open symbols" title="Open symbols">∑</button>
+                </div>
+              </div>
+              <label>
+                Digits (k)
+                <input id="poly-k" type="number" min="1" max="25" step="1" value="6" inputmode="decimal">
+              </label>
+              <label>
+                Machine rule
+                <select id="poly-mode">
+                  <option value="chop" selected>Chopping</option>
+                  <option value="round">Rounding</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <p id="poly-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
+          <p id="poly-preset-note" class="lesson-note is-empty">Choose an example to fill the fields.</p>
+        </section>
+        <p id="poly-status-msg" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <section id="poly-empty" class="empty-state">
+          <p class="result-label">Compare evaluation methods</p>
+          <h3 class="empty-title">Load a worked example or enter a polynomial to compare Horner and direct evaluation.</h3>
+          <div class="empty-actions">
+            <button id="poly-empty-load" type="button">Load sqrt(3) example</button>
+          </div>
+        </section>
+
+        <section id="poly-summary-band" class="summary-band" aria-label="Exact polynomial summary" hidden>
+          <div class="answer-hero answer-hero-poly answer-hero-major answer-hero-source">
+            <p id="poly-reference-label" class="result-label">Exact polynomial value f(x)</p>
+            <p id="poly-exact" class="answer-value is-empty">Ready to calculate</p>
+            <p class="result-caption">This is <strong>f(x)</strong> before the machine rule is applied.</p>
+          </div>
+
+          <dl class="answer-strip answer-strip-inline">
+            <div>
+              <dt>Rewritten polynomial</dt>
+              <dd id="poly-canonical" class="is-empty">Ready to calculate</dd>
+            </div>
+            <div>
+              <dt>Stored x</dt>
+              <dd id="poly-xapprox" class="is-empty">Ready to calculate</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section id="poly-comparison-board" class="comparison-board" aria-label="Method comparison" hidden>
+          <p class="focus-note">Read the verdict first. Then compare the Horner and Direct cards to see which stepwise
+            method keeps more significant digits.</p>
+          <section class="conclusion-block conclusion-block-featured">
+            <h3>Verdict</h3>
+            <div class="note-stack">
+              <p id="poly-accuracy-winner" class="lesson-note is-empty">Ready to calculate</p>
+            </div>
+            <details class="disclosure disclosure-secondary verdict-explainer" aria-label="Explanation of accuracy verdict">
+              <summary>Why this result</summary>
+              <div class="note-stack">
+                <p id="poly-operation-winner" class="lesson-note is-empty">Ready to calculate</p>
+                <p id="poly-sensitivity-note" class="lesson-note is-empty">Ready to calculate</p>
+              </div>
+            </details>
+          </section>
+
+          <p id="poly-next-step" class="result-next-step is-empty" hidden>Ready to calculate</p>
+
+          <div class="answer-hero answer-hero-major comparison-baseline">
+            <p id="poly-final-shared-label" class="result-label">Final-only p* (exact f(x), then chop once)</p>
+            <p id="poly-final-shared" class="answer-value is-empty">Ready to calculate</p>
+          </div>
+
+          <div class="comparison-grid comparison-grid-board">
+            <section class="method-panel method-panel-horner">
+              <dl class="metric-list">
+                <div>
+                  <dt>Horner stepwise p*</dt>
+                  <dd id="poly-horner-step-approx" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Measured Significant Digits (t)</dt>
+                  <dd id="poly-horner-step-t" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Counted operations</dt>
+                  <dd id="poly-horner-ops-summary" class="is-empty">Ready to calculate</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="method-panel method-panel-direct">
+              <dl class="metric-list">
+                <div>
+                  <dt>Direct stepwise p*</dt>
+                  <dd id="poly-direct-step-approx" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Measured Significant Digits (t)</dt>
+                  <dd id="poly-direct-step-t" class="is-empty">Ready to calculate</dd>
+                </div>
+                <div>
+                  <dt>Counted operations</dt>
+                  <dd id="poly-direct-ops-summary" class="is-empty">Ready to calculate</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </section>
+
+        <details id="poly-method-details" class="disclosure" aria-label="Detailed Horner and Direct method metrics" hidden>
+          <summary>Details</summary>
+          <div class="comparison-grid comparison-grid-board comparison-grid-details">
+            <section>
+              <p class="method-kicker">Horner details</p>
+              <dl class="metric-list">
+                <div>
+                  <dt>Stepwise absolute error</dt>
+                  <dd id="poly-horner-step-abs" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only absolute error</dt>
+                  <dd id="poly-horner-final-abs" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Stepwise relative error</dt>
+                  <dd id="poly-horner-step-rel" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only relative error</dt>
+                  <dd id="poly-horner-final-rel" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only significant digits</dt>
+                  <dd id="poly-horner-final-t" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Multiplications</dt>
+                  <dd id="poly-horner-mults" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Additions</dt>
+                  <dd id="poly-horner-adds" class="is-empty">Not calculated yet.</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section>
+              <p class="method-kicker">Direct details</p>
+              <dl class="metric-list">
+                <div>
+                  <dt>Stepwise absolute error</dt>
+                  <dd id="poly-direct-step-abs" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only absolute error</dt>
+                  <dd id="poly-direct-final-abs" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Stepwise relative error</dt>
+                  <dd id="poly-direct-step-rel" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only relative error</dt>
+                  <dd id="poly-direct-final-rel" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Final-only significant digits</dt>
+                  <dd id="poly-direct-final-t" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Multiplications</dt>
+                  <dd id="poly-direct-mults" class="is-empty">Not calculated yet.</dd>
+                </div>
+                <div>
+                  <dt>Additions</dt>
+                  <dd id="poly-direct-adds" class="is-empty">Not calculated yet.</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+        </details>
+
+        <details id="poly-machine-trace" class="disclosure disclosure-table" aria-label="Step-by-step machine computation trace" hidden>
+          <summary>Machine trace</summary>
+          <div class="step-toolbar">
+            <label>
+              Show steps for
+              <select id="poly-method">
+                <option value="horner" selected>Horner</option>
+                <option value="direct">Direct</option>
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Description</th>
+                  <th>Exact step</th>
+                  <th>Machine step</th>
+                  <th>Normalized machine step</th>
+                </tr>
+              </thead>
+              <tbody id="poly-steps-body">
+                <tr class="empty-row">
+                  <td colspan="5">No computed steps.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>
+    <button type="button" class="symbol-btn" data-symbol-insert="pi" aria-label="Insert pi">π</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="e" aria-label="Insert Euler's number e">e</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="i" aria-label="Insert imaginary unit i">i</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="sqrt(" aria-label="Insert square root">√(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="∠" aria-label="Insert angle symbol">∠</button>
+  </div>
+  <script src="math-engine.js?v=cw1"></script>
+  <script src="calc-engine.js?v=cw1"></script>
+  <script src="expression-engine.js?v=cw1"></script>
+  <script src="poly-engine.js?v=cw1"></script>
+  <script src="math-display.js?v=nat1"></script>
+  <script src="app.js?v=student3"></script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

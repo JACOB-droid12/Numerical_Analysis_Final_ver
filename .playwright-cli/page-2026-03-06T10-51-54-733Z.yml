@@ -1,0 +1,60 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Numerical Analysis Toolkit
+    - heading "Machine Arithmetic and Round-Off Error Lab" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Browser-only app for k-digit chopping/rounding, exact rational arithmetic, and polynomial evaluation.
+  - tablist "Core modules" [ref=e7]:
+    - 'tab "Module I: Basic Operations" [ref=e8] [cursor=pointer]'
+    - 'tab "Module II: Error Analysis" [active] [selected] [ref=e9] [cursor=pointer]'
+    - 'tab "Module III: Polynomial Evaluation" [ref=e10] [cursor=pointer]'
+  - 'tabpanel "Module II: Error Analysis" [ref=e279]':
+    - generic [ref=e280]:
+      - article [ref=e281]:
+        - heading "Inputs" [level=2] [ref=e282]
+        - generic [ref=e283]:
+          - generic [ref=e284]:
+            - text: Exact Value (p)
+            - textbox "Exact Value (p)" [ref=e285]:
+              - /placeholder: "Examples: 8.10179136 or 202544784/25000000"
+              - text: 1/10000000000000000000000000000000000000000000000000000
+          - generic [ref=e286]:
+            - text: Approximated Value (p*)
+            - textbox "Approximated Value (p*)" [ref=e287]:
+              - /placeholder: "Examples: 8.1017 or 81017913/10000000"
+              - text: 1541/100
+        - generic [ref=e288]:
+          - button "Import Module I" [ref=e289] [cursor=pointer]
+          - button "Import Horner Stepwise" [ref=e290] [cursor=pointer]
+          - button "Import Direct Stepwise" [ref=e291] [cursor=pointer]
+          - button "Import Module III Final-Only" [ref=e292] [cursor=pointer]
+          - button "Compute Module II" [ref=e293] [cursor=pointer]
+      - article [ref=e294]:
+        - heading "Error Metrics" [level=2] [ref=e295]
+        - generic [ref=e296]:
+          - generic [ref=e297]:
+            - term [ref=e298]: Source context
+            - definition [ref=e299]: "Imported from Module III: Horner stepwise p*, k = 6, mode = round."
+          - generic [ref=e300]:
+            - term [ref=e301]: Relative Error |p - p*| / |p|
+            - definition [ref=e302]: 154099999999999999999999999999999999999999999999999999 (~ 154099999999999999999999999999999999999999999999999999) | 0.154099999999999999 * 10^54
+          - generic [ref=e303]:
+            - term [ref=e304]: Relative Error (%)
+            - definition [ref=e305]: 15409999999999999999999999999999999999999999999999999900%
+          - generic [ref=e306]:
+            - term [ref=e307]: Absolute Error |p - p*|
+            - definition [ref=e308]: 154099999999999999999999999999999999999999999999999999/10000000000000000000000000000000000000000000000000000 (~ 15.40999999999999999999999999999999999999...) | 0.154099999999999999 * 10^2
+          - generic [ref=e309]:
+            - term [ref=e310]: Significant Digits (t)
+            - definition [ref=e311]: "0"
+          - generic [ref=e312]:
+            - term [ref=e313]: Significant-Digit Check
+            - definition [ref=e314]: "|p - p*| / |p| <= 5 x 10^-0 is false; <= 5 x 10^-1 is false."
+          - generic [ref=e315]:
+            - term [ref=e316]: Maximum Absolute Error (5 x 10^-t) |p|
+            - definition [ref=e317]: 1/2000000000000000000000000000000000000000000000000000 (~ 0.00000000000000000000000000000000000000...) | 0.500000000000000000 * 10^-51
+        - generic [ref=e318]:
+          - heading "Interpretation" [level=3] [ref=e319]
+          - paragraph [ref=e320]: Absolute error tells you the raw distance between the true value and the approximation, measured in the same units as p.
+          - paragraph [ref=e321]: Relative error is usually the better accuracy measure here because it scales the error by the size of the true value. This approximation is off by about 15409999999999999999999999999999999999999999999999999900%.
+          - paragraph [ref=e322]: t = 0 because the relative error satisfies the threshold 5 x 10^-0 but not the tighter threshold 5 x 10^-1.
+          - paragraph [ref=e323]: The maximum absolute error bound combines the scale of p with the significant-digit threshold, so it grows when the true value is larger.

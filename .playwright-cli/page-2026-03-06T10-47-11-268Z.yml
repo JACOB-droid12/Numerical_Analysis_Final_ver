@@ -1,0 +1,146 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Numerical Analysis Toolkit
+    - heading "Machine Arithmetic and Round-Off Error Lab" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Browser-only app for k-digit chopping/rounding, exact rational arithmetic, and polynomial evaluation.
+  - tablist "Core modules" [ref=e7]:
+    - 'tab "Module I: Basic Operations" [ref=e8] [cursor=pointer]'
+    - 'tab "Module II: Error Analysis" [ref=e9] [cursor=pointer]'
+    - 'tab "Module III: Polynomial Evaluation" [active] [selected] [ref=e10] [cursor=pointer]'
+  - 'tabpanel "Module III: Polynomial Evaluation" [ref=e99]':
+    - generic [ref=e100]:
+      - article [ref=e101]:
+        - heading "Inputs" [level=2] [ref=e102]
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - text: Polynomial f(x)
+            - textbox "Polynomial f(x)" [ref=e105]:
+              - /placeholder: "Example: 2x - x^3/3 + x^5/60"
+              - text: 2x^3-3x+1
+          - generic [ref=e106]:
+            - text: x value
+            - textbox "x value" [ref=e107]:
+              - /placeholder: "Example: 1.25"
+              - text: "1.2345"
+          - generic [ref=e108]:
+            - text: Significant Digits (k)
+            - spinbutton "Significant Digits (k)" [ref=e109]: "6"
+          - generic [ref=e110]:
+            - text: Truncation Method
+            - combobox "Truncation Method" [ref=e111]:
+              - option "Chopping" [selected]
+              - option "Rounding"
+          - generic [ref=e112]:
+            - text: Step Table Method
+            - combobox "Step Table Method" [ref=e113]:
+              - option "Horner" [selected]
+              - option "Direct"
+          - generic [ref=e114]:
+            - text: Lesson Preset
+            - combobox "Lesson Preset" [ref=e115]:
+              - option "Choose a lesson preset" [selected]
+              - option "Taylor approximation of sqrt(3)"
+              - 'option "Near repeated root: (x - 2)^13"'
+              - 'option "Expanded sensitivity: (x - 10)^9"'
+        - generic [ref=e116]:
+          - button "Compute Module III" [ref=e117] [cursor=pointer]
+          - button "Load Lesson Preset" [ref=e118] [cursor=pointer]
+        - paragraph [ref=e119]: No lesson preset loaded.
+      - article [ref=e120]:
+        - heading "Polynomial Results" [level=2] [ref=e121]
+        - generic [ref=e122]:
+          - heading "Shared Context" [level=3] [ref=e123]
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - term [ref=e126]: Canonical Polynomial
+              - definition [ref=e127]: Not available
+            - generic [ref=e128]:
+              - term [ref=e129]: Exact p = f(x)
+              - definition [ref=e130]: Not available
+            - generic [ref=e131]:
+              - term [ref=e132]: x in machine form
+              - definition [ref=e133]: Not available
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - heading "Horner Summary" [level=3] [ref=e136]
+            - generic [ref=e137]:
+              - generic [ref=e138]:
+                - term [ref=e139]: Stepwise p*
+                - definition [ref=e140]: Not available
+              - generic [ref=e141]:
+                - term [ref=e142]: Final-only p*
+                - definition [ref=e143]: Not available
+              - generic [ref=e144]:
+                - term [ref=e145]: Stepwise Absolute Error
+                - definition [ref=e146]: Not available
+              - generic [ref=e147]:
+                - term [ref=e148]: Final-only Absolute Error
+                - definition [ref=e149]: Not available
+              - generic [ref=e150]:
+                - term [ref=e151]: Stepwise Relative Error
+                - definition [ref=e152]: Not available
+              - generic [ref=e153]:
+                - term [ref=e154]: Final-only Relative Error
+                - definition [ref=e155]: Not available
+              - generic [ref=e156]:
+                - term [ref=e157]: Stepwise Significant Digits
+                - definition [ref=e158]: Not available
+              - generic [ref=e159]:
+                - term [ref=e160]: Final-only Significant Digits
+                - definition [ref=e161]: Not available
+              - generic [ref=e162]:
+                - term [ref=e163]: Multiplications
+                - definition [ref=e164]: Not available
+              - generic [ref=e165]:
+                - term [ref=e166]: Additions
+                - definition [ref=e167]: Not available
+          - generic [ref=e168]:
+            - heading "Direct Summary" [level=3] [ref=e169]
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - term [ref=e172]: Stepwise p*
+                - definition [ref=e173]: Not available
+              - generic [ref=e174]:
+                - term [ref=e175]: Final-only p*
+                - definition [ref=e176]: Not available
+              - generic [ref=e177]:
+                - term [ref=e178]: Stepwise Absolute Error
+                - definition [ref=e179]: Not available
+              - generic [ref=e180]:
+                - term [ref=e181]: Final-only Absolute Error
+                - definition [ref=e182]: Not available
+              - generic [ref=e183]:
+                - term [ref=e184]: Stepwise Relative Error
+                - definition [ref=e185]: Not available
+              - generic [ref=e186]:
+                - term [ref=e187]: Final-only Relative Error
+                - definition [ref=e188]: Not available
+              - generic [ref=e189]:
+                - term [ref=e190]: Stepwise Significant Digits
+                - definition [ref=e191]: Not available
+              - generic [ref=e192]:
+                - term [ref=e193]: Final-only Significant Digits
+                - definition [ref=e194]: Not available
+              - generic [ref=e195]:
+                - term [ref=e196]: Multiplications
+                - definition [ref=e197]: Not available
+              - generic [ref=e198]:
+                - term [ref=e199]: Additions
+                - definition [ref=e200]: Not available
+        - generic [ref=e201]:
+          - heading "Stability Conclusion" [level=3] [ref=e202]
+          - paragraph [ref=e203]: Not available
+          - paragraph [ref=e204]: Not available
+          - paragraph [ref=e205]: Not available
+        - heading "Step-by-step Machine Operations" [level=3] [ref=e206]
+        - table [ref=e208]:
+          - rowgroup [ref=e209]:
+            - row "# Description Exact Intermediate Approximated Normalized p*" [ref=e210]:
+              - columnheader "#" [ref=e211]
+              - columnheader "Description" [ref=e212]
+              - columnheader "Exact Intermediate" [ref=e213]
+              - columnheader "Approximated" [ref=e214]
+              - columnheader "Normalized p*" [ref=e215]
+          - rowgroup [ref=e216]:
+            - row "No computed steps." [ref=e217]:
+              - cell "No computed steps." [ref=e218]

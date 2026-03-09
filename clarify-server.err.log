@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\http\server.py", line 1307, in <module>
+    test(
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\http\server.py", line 1258, in test
+    with ServerClass(addr, HandlerClass) as httpd:
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\socketserver.py", line 452, in __init__
+    self.server_bind()
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\http\server.py", line 1301, in server_bind
+    return super().server_bind()
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\http\server.py", line 137, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "C:\Users\Emmy Lou\AppData\Local\Programs\Python\Python310\lib\socketserver.py", line 466, in server_bind
+    self.socket.bind(self.server_address)
+PermissionError: [WinError 10013] An attempt was made to access a socket in a way forbidden by its access permissions

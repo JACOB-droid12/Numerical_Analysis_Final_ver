@@ -1,0 +1,204 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Numerical Analysis Toolkit
+    - heading "Machine Arithmetic and Round-Off Error Lab" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Browser-only app for k-digit chopping/rounding, exact rational arithmetic, and polynomial evaluation.
+  - tablist "Core modules" [ref=e7]:
+    - 'tab "Module I: Basic Operations" [ref=e8] [cursor=pointer]'
+    - 'tab "Module II: Error Analysis" [ref=e9] [cursor=pointer]'
+    - 'tab "Module III: Polynomial Evaluation" [selected] [ref=e10] [cursor=pointer]'
+  - 'tabpanel "Module III: Polynomial Evaluation" [ref=e99]':
+    - generic [ref=e100]:
+      - article [ref=e101]:
+        - heading "Inputs" [level=2] [ref=e102]
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - text: Polynomial f(x)
+            - textbox "Polynomial f(x)" [ref=e105]:
+              - /placeholder: "Example: 2x - x^3/3 + x^5/60"
+              - text: 2x^3-3x+1
+          - generic [ref=e106]:
+            - text: x value
+            - textbox "x value" [ref=e107]:
+              - /placeholder: "Example: 1.25"
+              - text: "1.2345"
+          - generic [ref=e108]:
+            - text: Significant Digits (k)
+            - spinbutton "Significant Digits (k)" [ref=e109]: "6"
+          - generic [ref=e110]:
+            - text: Truncation Method
+            - combobox "Truncation Method" [ref=e111]:
+              - option "Chopping" [selected]
+              - option "Rounding"
+          - generic [ref=e112]:
+            - text: Step Table Method
+            - combobox "Step Table Method" [ref=e113]:
+              - option "Horner" [selected]
+              - option "Direct"
+          - generic [ref=e114]:
+            - text: Lesson Preset
+            - combobox "Lesson Preset" [ref=e115]:
+              - option "Choose a lesson preset" [selected]
+              - option "Taylor approximation of sqrt(3)"
+              - 'option "Near repeated root: (x - 2)^13"'
+              - 'option "Expanded sensitivity: (x - 10)^9"'
+        - generic [ref=e116]:
+          - button "Compute Module III" [active] [ref=e117] [cursor=pointer]
+          - button "Load Lesson Preset" [ref=e118] [cursor=pointer]
+        - paragraph [ref=e119]: No lesson preset loaded.
+      - article [ref=e120]:
+        - heading "Polynomial Results" [level=2] [ref=e121]
+        - generic [ref=e122]:
+          - heading "Shared Context" [level=3] [ref=e123]
+          - generic [ref=e124]:
+            - generic [ref=e125]:
+              - term [ref=e126]: Canonical Polynomial
+              - definition [ref=e127]: 2x^3 - 3x + 1
+            - generic [ref=e128]:
+              - term [ref=e129]: Exact p = f(x)
+              - definition [ref=e130]: 4236927709/4000000000 (~ 1.05923192725) | 0.10592319272500000000 * 10^1
+            - generic [ref=e131]:
+              - term [ref=e132]: x in machine form
+              - definition [ref=e133]: 2469/2000 (~ 1.2345) | 0.123450000000000000 * 10^1
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - heading "Horner Summary" [level=3] [ref=e136]
+            - generic [ref=e137]:
+              - generic [ref=e138]:
+                - term [ref=e139]: Stepwise p*
+                - definition [ref=e140]: 105923/100000 (~ 1.05923) | 0.105923000000000000 * 10^1
+              - generic [ref=e141]:
+                - term [ref=e142]: Final-only p*
+                - definition [ref=e143]: 105923/100000 (~ 1.05923) | 0.105923000000000000 * 10^1
+              - generic [ref=e144]:
+                - term [ref=e145]: Stepwise Absolute Error
+                - definition [ref=e146]: 7709/4000000000 (~ 0.00000192725) | 0.192725000000000000 * 10^-5
+              - generic [ref=e147]:
+                - term [ref=e148]: Final-only Absolute Error
+                - definition [ref=e149]: 7709/4000000000 (~ 0.00000192725) | 0.192725000000000000 * 10^-5
+              - generic [ref=e150]:
+                - term [ref=e151]: Stepwise Relative Error
+                - definition [ref=e152]: 7709/4236927709 (~ 0.0000018194787660938115854928786560...) | 0.1819478766093811 * 10^-5
+              - generic [ref=e153]:
+                - term [ref=e154]: Final-only Relative Error
+                - definition [ref=e155]: 7709/4236927709 (~ 0.0000018194787660938115854928786560...) | 0.1819478766093811 * 10^-5
+              - generic [ref=e156]:
+                - term [ref=e157]: Stepwise Significant Digits
+                - definition [ref=e158]: "6"
+              - generic [ref=e159]:
+                - term [ref=e160]: Final-only Significant Digits
+                - definition [ref=e161]: "6"
+              - generic [ref=e162]:
+                - term [ref=e163]: Multiplications
+                - definition [ref=e164]: "3"
+              - generic [ref=e165]:
+                - term [ref=e166]: Additions
+                - definition [ref=e167]: "3"
+          - generic [ref=e168]:
+            - heading "Direct Summary" [level=3] [ref=e169]
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - term [ref=e172]: Stepwise p*
+                - definition [ref=e173]: 52961/50000 (~ 1.05922) | 0.105922000000000000 * 10^1
+              - generic [ref=e174]:
+                - term [ref=e175]: Final-only p*
+                - definition [ref=e176]: 105923/100000 (~ 1.05923) | 0.105923000000000000 * 10^1
+              - generic [ref=e177]:
+                - term [ref=e178]: Stepwise Absolute Error
+                - definition [ref=e179]: 47709/4000000000 (~ 0.00001192725) | 0.119272500000000000 * 10^-4
+              - generic [ref=e180]:
+                - term [ref=e181]: Final-only Absolute Error
+                - definition [ref=e182]: 7709/4000000000 (~ 0.00000192725) | 0.192725000000000000 * 10^-5
+              - generic [ref=e183]:
+                - term [ref=e184]: Stepwise Relative Error
+                - definition [ref=e185]: 47709/4236927709 (~ 0.0000112602818071824694425061289144...) | 0.1126028180718246 * 10^-4
+              - generic [ref=e186]:
+                - term [ref=e187]: Final-only Relative Error
+                - definition [ref=e188]: 7709/4236927709 (~ 0.0000018194787660938115854928786560...) | 0.1819478766093811 * 10^-5
+              - generic [ref=e189]:
+                - term [ref=e190]: Stepwise Significant Digits
+                - definition [ref=e191]: "5"
+              - generic [ref=e192]:
+                - term [ref=e193]: Final-only Significant Digits
+                - definition [ref=e194]: "6"
+              - generic [ref=e195]:
+                - term [ref=e196]: Multiplications
+                - definition [ref=e197]: "4"
+              - generic [ref=e198]:
+                - term [ref=e199]: Additions
+                - definition [ref=e200]: "3"
+        - generic [ref=e201]:
+          - heading "Stability Conclusion" [level=3] [ref=e202]
+          - paragraph [ref=e203]: Horner is more accurate in stepwise arithmetic for this input because its absolute error is smaller than direct evaluation.
+          - paragraph [ref=e204]: Horner uses fewer arithmetic operations here (6 versus 7), which is why it is usually preferred for polynomial evaluation.
+          - paragraph [ref=e205]: Final-only rounding is identical for both methods because rounding is deferred until after the exact polynomial value is computed. The gap between final-only and stepwise errors shows that most of the visible loss comes from intermediate rounding, not from the last decimal representation alone. Direct evaluation amplifies round-off more strongly for this polynomial at the chosen x.
+        - heading "Step-by-step Machine Operations" [level=3] [ref=e206]
+        - table [ref=e208]:
+          - rowgroup [ref=e209]:
+            - row "# Description Exact Intermediate Approximated Normalized p*" [ref=e210]:
+              - columnheader "#" [ref=e211]
+              - columnheader "Description" [ref=e212]
+              - columnheader "Exact Intermediate" [ref=e213]
+              - columnheader "Approximated" [ref=e214]
+              - columnheader "Normalized p*" [ref=e215]
+          - rowgroup [ref=e216]:
+            - row "1 Initialize accumulator with leading coefficient a_3 2 | 2 2 | 2 0.200000 * 10^1" [ref=e219]:
+              - cell "1" [ref=e220]
+              - cell "Initialize accumulator with leading coefficient a_3" [ref=e221]
+              - cell "2 | 2" [ref=e222]
+              - cell "2 | 2" [ref=e223]
+              - cell "0.200000 * 10^1" [ref=e224]
+            - row "2 Multiply accumulator by x* 2469/1000 | 2.469 2469/1000 | 2.469 0.246900 * 10^1" [ref=e225]:
+              - cell "2" [ref=e226]
+              - cell "Multiply accumulator by x*" [ref=e227]
+              - cell "2469/1000 | 2.469" [ref=e228]
+              - cell "2469/1000 | 2.469" [ref=e229]
+              - cell "0.246900 * 10^1" [ref=e230]
+            - row "3 Machine coefficient a_2 0 | 0 0 | 0 0" [ref=e231]:
+              - cell "3" [ref=e232]
+              - cell "Machine coefficient a_2" [ref=e233]
+              - cell "0 | 0" [ref=e234]
+              - cell "0 | 0" [ref=e235]
+              - cell "0" [ref=e236]
+            - row "4 Add coefficient a_2 2469/1000 | 2.469 2469/1000 | 2.469 0.246900 * 10^1" [ref=e237]:
+              - cell "4" [ref=e238]
+              - cell "Add coefficient a_2" [ref=e239]
+              - cell "2469/1000 | 2.469" [ref=e240]
+              - cell "2469/1000 | 2.469" [ref=e241]
+              - cell "0.246900 * 10^1" [ref=e242]
+            - row "5 Multiply accumulator by x* 6095961/2000000 | 3.0479805 152399/50000 | 3.04798 0.304798 * 10^1" [ref=e243]:
+              - cell "5" [ref=e244]
+              - cell "Multiply accumulator by x*" [ref=e245]
+              - cell "6095961/2000000 | 3.0479805" [ref=e246]
+              - cell "152399/50000 | 3.04798" [ref=e247]
+              - cell "0.304798 * 10^1" [ref=e248]
+            - row "6 Machine coefficient a_1 -3 | -3 -3 | -3 -0.300000 * 10^1" [ref=e249]:
+              - cell "6" [ref=e250]
+              - cell "Machine coefficient a_1" [ref=e251]
+              - cell "-3 | -3" [ref=e252]
+              - cell "-3 | -3" [ref=e253]
+              - cell "-0.300000 * 10^1" [ref=e254]
+            - row "7 Add coefficient a_1 2399/50000 | 0.04798 2399/50000 | 0.04798 0.479800 * 10^-1" [ref=e255]:
+              - cell "7" [ref=e256]
+              - cell "Add coefficient a_1" [ref=e257]
+              - cell "2399/50000 | 0.04798" [ref=e258]
+              - cell "2399/50000 | 0.04798" [ref=e259]
+              - cell "0.479800 * 10^-1" [ref=e260]
+            - row "8 Multiply accumulator by x* 5923131/100000000 | 0.05923131 592313/10000000 | 0.0592313 0.592313 * 10^-1" [ref=e261]:
+              - cell "8" [ref=e262]
+              - cell "Multiply accumulator by x*" [ref=e263]
+              - cell "5923131/100000000 | 0.05923131" [ref=e264]
+              - cell "592313/10000000 | 0.0592313" [ref=e265]
+              - cell "0.592313 * 10^-1" [ref=e266]
+            - row "9 Machine coefficient a_0 1 | 1 1 | 1 0.100000 * 10^1" [ref=e267]:
+              - cell "9" [ref=e268]
+              - cell "Machine coefficient a_0" [ref=e269]
+              - cell "1 | 1" [ref=e270]
+              - cell "1 | 1" [ref=e271]
+              - cell "0.100000 * 10^1" [ref=e272]
+            - row "10 Add coefficient a_0 10592313/10000000 | 1.0592313 105923/100000 | 1.05923 0.105923 * 10^1" [ref=e273]:
+              - cell "10" [ref=e274]
+              - cell "Add coefficient a_0" [ref=e275]
+              - cell "10592313/10000000 | 1.0592313" [ref=e276]
+              - cell "105923/100000 | 1.05923" [ref=e277]
+              - cell "0.105923 * 10^1" [ref=e278]

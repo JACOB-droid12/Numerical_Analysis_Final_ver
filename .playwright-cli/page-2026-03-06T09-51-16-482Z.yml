@@ -1,0 +1,149 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - paragraph [ref=e4]: Numerical Analysis Toolkit
+    - heading "Machine Arithmetic and Round-Off Error Lab" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Browser-only app for k-digit chopping/rounding, exact rational arithmetic, and polynomial evaluation.
+  - navigation "Core modules" [ref=e7]:
+    - 'button "Module I: Basic Operations" [ref=e8] [cursor=pointer]'
+    - 'button "Module II: Error Analysis" [ref=e9] [cursor=pointer]'
+    - 'button "Module III: Polynomial Evaluation" [ref=e10] [cursor=pointer]'
+  - generic [ref=e64]:
+    - article [ref=e65]:
+      - heading "Inputs" [level=2] [ref=e66]
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - text: Polynomial f(x)
+          - textbox "Polynomial f(x)" [ref=e69]:
+            - /placeholder: "Example: 2x - x^3/3 + x^5/60"
+            - text: 2x - x^3/3 + x^5/60
+        - generic [ref=e70]:
+          - text: x value
+          - textbox "x value" [ref=e71]:
+            - /placeholder: "Example: 1.25"
+            - text: 3.14159/3
+        - generic [ref=e72]:
+          - text: Significant Digits (k)
+          - spinbutton "Significant Digits (k)" [active] [ref=e73]: "8"
+        - generic [ref=e74]:
+          - text: Truncation Method
+          - combobox "Truncation Method" [ref=e75]:
+            - option "Chopping"
+            - option "Rounding" [selected]
+        - generic [ref=e76]:
+          - text: Approximation Path
+          - combobox "Approximation Path" [ref=e77]:
+            - option "Horner" [selected]
+            - option "Term-by-term"
+      - button "Compute Module III" [ref=e79] [cursor=pointer]
+    - article [ref=e80]:
+      - heading "Polynomial Results" [level=2] [ref=e81]
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - term [ref=e84]: Canonical Polynomial
+          - definition [ref=e85]: 2x^3 - 3x + 1
+        - generic [ref=e86]:
+          - term [ref=e87]: x in machine form (stepwise)
+          - definition [ref=e88]: 2469/2000 (~ 1.2345) | 0.123450 * 10^1
+        - generic [ref=e89]:
+          - term [ref=e90]: Exact p = f(x)
+          - definition [ref=e91]: 4236927709/4000000000 (~ 1.05923192725) | 0.10592319272500000000 * 10^1
+        - generic [ref=e92]:
+          - term [ref=e93]: Approx p* (stepwise)
+          - definition [ref=e94]: 105923/100000 (~ 1.05923) | 0.10592300000000000000 * 10^1
+        - generic [ref=e95]:
+          - term [ref=e96]: Approx p* (final-only)
+          - definition [ref=e97]: 105923/100000 (~ 1.05923) | 0.105923 * 10^1
+        - generic [ref=e98]:
+          - term [ref=e99]: Absolute Error (stepwise)
+          - definition [ref=e100]: 7709/4000000000 (~ 0.00000192725)
+        - generic [ref=e101]:
+          - term [ref=e102]: Absolute Error (final-only)
+          - definition [ref=e103]: 7709/4000000000 (~ 0.00000192725)
+        - generic [ref=e104]:
+          - term [ref=e105]: Relative Error (stepwise)
+          - definition [ref=e106]: 7709/4236927709 (~ 0.000001819478766093811585492878656051669726517866344837369515...)
+        - generic [ref=e107]:
+          - term [ref=e108]: Relative Error (final-only)
+          - definition [ref=e109]: 7709/4236927709 (~ 0.000001819478766093811585492878656051669726517866344837369515...)
+        - generic [ref=e110]:
+          - term [ref=e111]: Significant Digits t (stepwise)
+          - definition [ref=e112]: "6"
+        - generic [ref=e113]:
+          - term [ref=e114]: Significant Digits t (final-only)
+          - definition [ref=e115]: "6"
+        - generic [ref=e116]:
+          - term [ref=e117]: Maximum Absolute Error (stepwise)
+          - definition [ref=e118]: 4236927709/800000000000000 (~ 0.00000529615963625)
+        - generic [ref=e119]:
+          - term [ref=e120]: Maximum Absolute Error (final-only)
+          - definition [ref=e121]: 4236927709/800000000000000 (~ 0.00000529615963625)
+      - heading "Step-by-step Machine Operations" [level=3] [ref=e122]
+      - table [ref=e124]:
+        - rowgroup [ref=e125]:
+          - row "# Description Exact Intermediate Approximated Normalized p* (stepwise)" [ref=e126]:
+            - columnheader "#" [ref=e127]
+            - columnheader "Description" [ref=e128]
+            - columnheader "Exact Intermediate" [ref=e129]
+            - columnheader "Approximated" [ref=e130]
+            - columnheader "Normalized p* (stepwise)" [ref=e131]
+        - rowgroup [ref=e132]:
+          - row "1 Initialize accumulator with leading coefficient a_3 2 | 2 2 | 2 0.200000 * 10^1" [ref=e133]:
+            - cell "1" [ref=e134]
+            - cell "Initialize accumulator with leading coefficient a_3" [ref=e135]
+            - cell "2 | 2" [ref=e136]
+            - cell "2 | 2" [ref=e137]
+            - cell "0.200000 * 10^1" [ref=e138]
+          - row "2 Multiply accumulator by x* 2469/1000 | 2.469 2469/1000 | 2.469 0.246900 * 10^1" [ref=e139]:
+            - cell "2" [ref=e140]
+            - cell "Multiply accumulator by x*" [ref=e141]
+            - cell "2469/1000 | 2.469" [ref=e142]
+            - cell "2469/1000 | 2.469" [ref=e143]
+            - cell "0.246900 * 10^1" [ref=e144]
+          - row "3 Machine coefficient a_2 0 | 0 0 | 0 0" [ref=e145]:
+            - cell "3" [ref=e146]
+            - cell "Machine coefficient a_2" [ref=e147]
+            - cell "0 | 0" [ref=e148]
+            - cell "0 | 0" [ref=e149]
+            - cell "0" [ref=e150]
+          - row "4 Add coefficient a_2 2469/1000 | 2.469 2469/1000 | 2.469 0.246900 * 10^1" [ref=e151]:
+            - cell "4" [ref=e152]
+            - cell "Add coefficient a_2" [ref=e153]
+            - cell "2469/1000 | 2.469" [ref=e154]
+            - cell "2469/1000 | 2.469" [ref=e155]
+            - cell "0.246900 * 10^1" [ref=e156]
+          - row "5 Multiply accumulator by x* 6095961/2000000 | 3.0479805 152399/50000 | 3.04798 0.304798 * 10^1" [ref=e157]:
+            - cell "5" [ref=e158]
+            - cell "Multiply accumulator by x*" [ref=e159]
+            - cell "6095961/2000000 | 3.0479805" [ref=e160]
+            - cell "152399/50000 | 3.04798" [ref=e161]
+            - cell "0.304798 * 10^1" [ref=e162]
+          - row "6 Machine coefficient a_1 -3 | -3 -3 | -3 -0.300000 * 10^1" [ref=e163]:
+            - cell "6" [ref=e164]
+            - cell "Machine coefficient a_1" [ref=e165]
+            - cell "-3 | -3" [ref=e166]
+            - cell "-3 | -3" [ref=e167]
+            - cell "-0.300000 * 10^1" [ref=e168]
+          - row "7 Add coefficient a_1 2399/50000 | 0.04798 2399/50000 | 0.04798 0.479800 * 10^-1" [ref=e169]:
+            - cell "7" [ref=e170]
+            - cell "Add coefficient a_1" [ref=e171]
+            - cell "2399/50000 | 0.04798" [ref=e172]
+            - cell "2399/50000 | 0.04798" [ref=e173]
+            - cell "0.479800 * 10^-1" [ref=e174]
+          - row "8 Multiply accumulator by x* 5923131/100000000 | 0.05923131 592313/10000000 | 0.0592313 0.592313 * 10^-1" [ref=e175]:
+            - cell "8" [ref=e176]
+            - cell "Multiply accumulator by x*" [ref=e177]
+            - cell "5923131/100000000 | 0.05923131" [ref=e178]
+            - cell "592313/10000000 | 0.0592313" [ref=e179]
+            - cell "0.592313 * 10^-1" [ref=e180]
+          - row "9 Machine coefficient a_0 1 | 1 1 | 1 0.100000 * 10^1" [ref=e181]:
+            - cell "9" [ref=e182]
+            - cell "Machine coefficient a_0" [ref=e183]
+            - cell "1 | 1" [ref=e184]
+            - cell "1 | 1" [ref=e185]
+            - cell "0.100000 * 10^1" [ref=e186]
+          - row "10 Add coefficient a_0 10592313/10000000 | 1.0592313 105923/100000 | 1.05923 0.105923 * 10^1" [ref=e187]:
+            - cell "10" [ref=e188]
+            - cell "Add coefficient a_0" [ref=e189]
+            - cell "10592313/10000000 | 1.0592313" [ref=e190]
+            - cell "105923/100000 | 1.05923" [ref=e191]
+            - cell "0.105923 * 10^1" [ref=e192]
