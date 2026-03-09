@@ -58,3 +58,17 @@ foreach ($token in $requiredTokens) {
     throw "Missing required script token: $token"
   }
 }
+
+$css = Get-Content 'project-evolution-explorer.css' -Raw
+$requiredStyleTokens = @(
+  '--accent-moss',
+  '.hero-console',
+  '.change-filter.is-active',
+  '@media (max-width: 768px)',
+  '@media (prefers-reduced-motion: reduce)'
+)
+foreach ($token in $requiredStyleTokens) {
+  if ($css -notmatch [regex]::Escape($token)) {
+    throw "Missing required style token: $token"
+  }
+}

@@ -188,6 +188,20 @@ function getVisibleEntries(entries, activeFilter) {
   return entries.filter((entry) => entry.type === activeFilter || entry.category === activeFilter);
 }
 
+function applyMotionHooks() {
+  if (state.reducedMotion) {
+    document.querySelectorAll('[data-reveal]').forEach((node) => {
+      node.style.removeProperty('--delay');
+    });
+    return;
+  }
+
+  document.querySelectorAll('[data-reveal]').forEach((node, index) => {
+    const delay = `${Math.min(index, 11) * 75}ms`;
+    node.style.setProperty('--delay', delay);
+  });
+}
+
 function animateNumber(node, nextValue) {
   if (state.reducedMotion || state.countsAnimated) {
     node.textContent = String(nextValue);
@@ -217,6 +231,10 @@ function openEvidenceDrawer(entryId) {
   state.activeEntryId = entryId;
   elements.evidenceDrawer?.classList.add('is-open');
   renderAll();
+
+  if (window.innerWidth < 961) {
+    elements.evidenceDrawer?.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth', block: 'start' });
+  }
 }
 
 function closeEvidenceDrawer() {
@@ -232,12 +250,13 @@ function renderChangeList(entries, activeFilter) {
 
   if (visibleEntries.length === 0) {
     elements.changeList.innerHTML = `
-      <li class="empty-panel empty-panel-inline">
+      <li class="empty-panel empty-panel-inline" data-reveal>
         <p class="section-kicker">No matching change clusters</p>
         <h3>Try another filter to repopulate the evidence list.</h3>
       </li>
     `;
     state.activeEntryId = null;
+    applyMotionHooks();
     return visibleEntries;
   }
 
@@ -246,7 +265,7 @@ function renderChangeList(entries, activeFilter) {
   }
 
   elements.changeList.innerHTML = visibleEntries.map((entry, index) => `
-    <li class="change-row">
+    <li class="change-row" data-reveal>
       <button class="change-row__button" type="button" data-entry-trigger="${entry.id}" aria-pressed="${String(entry.id === state.activeEntryId)}">
         <span class="change-row__index">${String(index + 1).padStart(2, '0')}</span>
         <span class="change-row__body">
@@ -270,7 +289,7 @@ function renderDrawer(entries) {
 
   if (!activeEntry) {
     elements.evidenceDrawer.innerHTML = `
-      <div class="empty-panel">
+      <div class="empty-panel" data-reveal>
         <p class="section-kicker">No evidence selected</p>
         <h3>Choose a change cluster to inspect its mapped files.</h3>
       </div>
@@ -279,7 +298,7 @@ function renderDrawer(entries) {
   }
 
   elements.evidenceDrawer.innerHTML = `
-    <div class="evidence-panel__inner">
+    <div class="evidence-panel__inner" data-reveal>
       <div class="evidence-panel__header">
         <div>
           <p class="section-kicker">Evidence view</p>
@@ -336,7 +355,7 @@ function renderStories() {
       .join('');
 
     return `
-      <article class="story-card">
+      <article class="story-card" data-reveal>
         <p class="story-card__label">${story.label}</p>
         <h3>${story.title}</h3>
         <p>${story.copy}</p>
@@ -366,22 +385,20 @@ function renderAll() {
   renderArchitectureLens();
   const visibleEntries = renderChangeList(comparisonEntries, state.activeFilter);
   renderDrawer(visibleEntries);
+  applyMotionHooks();
 }
 
 if (typeof reducedMotionQuery.addEventListener === 'function') {
   reducedMotionQuery.addEventListener('change', (event) => {
     state.reducedMotion = event.matches;
-    if (event.matches) {
-      document.documentElement.classList.add('reduced-motion');
-    } else {
-      document.documentElement.classList.remove('reduced-motion');
-    }
+    document.documentElement.classList.toggle('reduced-motion', event.matches);
+    document.documentElement.classList.toggle('motion-ready', !event.matches);
+    applyMotionHooks();
   });
 }
 
-if (state.reducedMotion) {
-  document.documentElement.classList.add('reduced-motion');
-}
+document.documentElement.classList.toggle('reduced-motion', state.reducedMotion);
+document.documentElement.classList.toggle('motion-ready', !state.reducedMotion);
 
 elements.filterButtons.forEach((button) => {
   button.addEventListener('click', () => {
@@ -413,3 +430,6 @@ elements.evidenceDrawer?.addEventListener('click', (event) => {
 });
 
 renderAll();
+window.requestAnimationFrame(() => {
+  document.body.classList.add('is-ready');
+});
