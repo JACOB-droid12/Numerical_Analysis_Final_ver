@@ -4,13 +4,91 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Evolution Explorer</title>
+  <meta name="description" content="Interactive technical diff explorer comparing the older modular Numerical Analysis app with the newer teaching-lab build.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" onload="this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="project-evolution-explorer.css">
 </head>
 <body>
+  <a class="skip-link" href="#change-explorer">Skip to change explorer</a>
+  <div class="page-noise" aria-hidden="true"></div>
   <main class="explorer-shell">
-    <section class="hero-console"></section>
-    <section class="change-explorer"></section>
-    <aside class="evidence-drawer"></aside>
+    <header class="hero-console" id="hero-console">
+      <div class="hero-copy">
+        <p class="eyebrow">Forensics Desk</p>
+        <h1>Tracing how a compact modular calculator turned into a broader teaching lab.</h1>
+        <p class="hero-summary">This explorer compares the older <span>Spatial Quasar</span> build inside the protected folder with the newer root app that emphasizes exam workflow, richer guidance, and a flatter architecture.</p>
+        <div class="hero-signals" aria-label="Key evolution signals">
+          <div>
+            <strong>Old shape</strong>
+            <span>Split CSS and UI modules</span>
+          </div>
+          <div>
+            <strong>New shape</strong>
+            <span>Root app shell plus focused engines</span>
+          </div>
+          <div>
+            <strong>Main shift</strong>
+            <span>From module shell to guided teaching workflow</span>
+          </div>
+        </div>
+      </div>
+
+      <section class="summary-board" aria-labelledby="summary-title">
+        <div class="summary-board__header">
+          <p class="summary-kicker">Change console</p>
+          <h2 id="summary-title">What changed across the project surface</h2>
+        </div>
+        <ul class="summary-metrics" aria-label="Change summary">
+          <li class="summary-metric" data-summary-metric="added">
+            <span class="summary-metric__label">Added</span>
+            <strong class="summary-metric__value" data-summary-value="added">0</strong>
+          </li>
+          <li class="summary-metric" data-summary-metric="removed">
+            <span class="summary-metric__label">Removed</span>
+            <strong class="summary-metric__value" data-summary-value="removed">0</strong>
+          </li>
+          <li class="summary-metric" data-summary-metric="modified">
+            <span class="summary-metric__label">Modified</span>
+            <strong class="summary-metric__value" data-summary-value="modified">0</strong>
+          </li>
+          <li class="summary-metric" data-summary-metric="refactored">
+            <span class="summary-metric__label">Refactored</span>
+            <strong class="summary-metric__value" data-summary-value="refactored">0</strong>
+          </li>
+          <li class="summary-metric" data-summary-metric="expanded">
+            <span class="summary-metric__label">Expanded scope</span>
+            <strong class="summary-metric__value" data-summary-value="expanded">0</strong>
+          </li>
+        </ul>
+      </section>
+    </header>
+
+    <section class="change-explorer" id="change-explorer" aria-labelledby="change-explorer-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Filter the evidence</p>
+          <h2 id="change-explorer-title">Curated technical diff</h2>
+        </div>
+        <p class="section-copy">The list below favors structural shifts and project-shaping decisions over noisy one-file trivia.</p>
+      </div>
+
+      <div class="filter-row" role="toolbar" aria-label="Filter changes">
+        <button class="change-filter is-active" type="button" data-category-filter="all" aria-pressed="true">All changes</button>
+        <button class="change-filter" type="button" data-category-filter="added" aria-pressed="false">Added</button>
+        <button class="change-filter" type="button" data-category-filter="removed" aria-pressed="false">Removed</button>
+        <button class="change-filter" type="button" data-category-filter="modified" aria-pressed="false">Modified</button>
+        <button class="change-filter" type="button" data-category-filter="refactored" aria-pressed="false">Refactored</button>
+        <button class="change-filter" type="button" data-category-filter="expanded" aria-pressed="false">Expanded scope</button>
+      </div>
+
+      <div class="explorer-grid">
+        <ol class="change-list" data-change-list aria-live="polite"></ol>
+        <aside class="evidence-panel" data-evidence-drawer aria-live="polite"></aside>
+      </div>
+    </section>
   </main>
   <script src="project-evolution-explorer.js"></script>
 </body>
