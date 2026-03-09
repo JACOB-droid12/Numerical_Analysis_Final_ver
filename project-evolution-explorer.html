@@ -86,7 +86,42 @@
 
       <div class="explorer-grid">
         <ol class="change-list" data-change-list aria-live="polite"></ol>
-        <aside class="evidence-panel" data-evidence-drawer aria-live="polite"></aside>
+        <aside class="evidence-panel" id="evidence-drawer" data-evidence-drawer aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <section class="story-rail" id="evolution-stories" aria-labelledby="story-title">
+      <div class="section-heading section-heading-tight">
+        <div>
+          <p class="section-kicker">Showcase view</p>
+          <h2 id="story-title">Evolution stories</h2>
+        </div>
+        <p class="section-copy">Each story compresses a cluster of file changes into one clearer project-level move.</p>
+      </div>
+      <div class="story-grid" data-story-grid></div>
+    </section>
+
+    <section class="architecture-lens" id="architecture-lens" aria-labelledby="architecture-title">
+      <div class="section-heading section-heading-tight">
+        <div>
+          <p class="section-kicker">Architecture lens</p>
+          <h2 id="architecture-title">How the structure changed</h2>
+        </div>
+        <p class="section-copy">The older build spreads responsibilities across folder boundaries. The newer build flattens the shell and pulls deeper math concerns into named engine files.</p>
+      </div>
+      <div class="architecture-grid">
+        <article class="architecture-column architecture-column-old">
+          <p class="architecture-label">Older modular build</p>
+          <ul data-architecture-old></ul>
+        </article>
+        <article class="architecture-column architecture-column-shift">
+          <p class="architecture-label">Shift markers</p>
+          <ul data-architecture-shifts></ul>
+        </article>
+        <article class="architecture-column architecture-column-new">
+          <p class="architecture-label">Newer root build</p>
+          <ul data-architecture-new></ul>
+        </article>
       </div>
     </section>
   </main>

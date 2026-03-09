@@ -109,16 +109,66 @@ const comparisonEntries = [
   }
 ];
 
+const storyGroups = [
+  {
+    title: 'Interface shell shifted from utility wrapper to guided landing surface.',
+    label: 'Story 01',
+    copy: 'The new app stops hiding its purpose behind a fixed utility frame and instead uses the opening screen to orient students before they calculate.',
+    entryIds: ['shell-shift', 'tab-pattern', 'theme-default']
+  },
+  {
+    title: 'Workflow depth replaced isolated tools with connected study moves.',
+    label: 'Story 02',
+    copy: 'Imports, next-step prompts, onboarding, and richer traces make the newer build feel like a teaching sequence rather than a set of separate tabs.',
+    entryIds: ['welcome-guide', 'module-imports', 'trace-depth', 'student-language']
+  },
+  {
+    title: 'The codebase flattened at the shell and deepened in the engines.',
+    label: 'Story 03',
+    copy: 'The newer app concentrates orchestration in one runtime while also naming deeper computational responsibilities more explicitly.',
+    entryIds: ['css-consolidation', 'module-runtime', 'engine-split', 'verification-tooling']
+  }
+];
+
+const architectureLens = {
+  old: [
+    'index.html with fixed nav and module panels',
+    'css/variables.css, base.css, animations.css, layout.css, components.css',
+    'js/modules for calculator, error analysis, polynomial, IEEE-754, and state',
+    'js/ui files for per-module rendering and helpers'
+  ],
+  shifts: [
+    'Navigation and onboarding moved closer to the learning workflow',
+    'Styling responsibilities compressed into a single tuned stylesheet',
+    'Runtime behavior centralized in app.js',
+    'Computation engines surfaced as named root files'
+  ],
+  current: [
+    'index.html with hero, quick guide, and top-level module tabs',
+    'styles.css as the active visual system',
+    'app.js as orchestration for onboarding, tabs, imports, and traces',
+    'calc-engine.js, expression-engine.js, math-engine.js, math-display.js, poly-engine.js'
+  ]
+};
+
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
 const state = {
   activeFilter: 'all',
-  activeEntryId: comparisonEntries[0]?.id || null
+  activeEntryId: comparisonEntries[0]?.id || null,
+  countsAnimated: false,
+  reducedMotion: reducedMotionQuery.matches
 };
 
 const elements = {
   summaryValues: document.querySelectorAll('[data-summary-value]'),
   filterButtons: document.querySelectorAll('[data-category-filter]'),
   changeList: document.querySelector('[data-change-list]'),
-  evidenceDrawer: document.querySelector('[data-evidence-drawer]')
+  evidenceDrawer: document.querySelector('[data-evidence-drawer]'),
+  storyGrid: document.querySelector('[data-story-grid]'),
+  architectureOld: document.querySelector('[data-architecture-old]'),
+  architectureShifts: document.querySelector('[data-architecture-shifts]'),
+  architectureNew: document.querySelector('[data-architecture-new]')
 };
 
 function renderSummary(entries) {
@@ -138,6 +188,41 @@ function getVisibleEntries(entries, activeFilter) {
   return entries.filter((entry) => entry.type === activeFilter || entry.category === activeFilter);
 }
 
+function animateNumber(node, nextValue) {
+  if (state.reducedMotion || state.countsAnimated) {
+    node.textContent = String(nextValue);
+    return;
+  }
+
+  const duration = 700;
+  const start = performance.now();
+
+  function frame(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    node.textContent = String(Math.round(nextValue * progress));
+    if (progress < 1) {
+      window.requestAnimationFrame(frame);
+    }
+  }
+
+  window.requestAnimationFrame(frame);
+}
+
+function setActiveFilter(nextFilter) {
+  state.activeFilter = nextFilter;
+  renderAll();
+}
+
+function openEvidenceDrawer(entryId) {
+  state.activeEntryId = entryId;
+  elements.evidenceDrawer?.classList.add('is-open');
+  renderAll();
+}
+
+function closeEvidenceDrawer() {
+  elements.evidenceDrawer?.classList.remove('is-open');
+}
+
 function renderChangeList(entries, activeFilter) {
   const visibleEntries = getVisibleEntries(entries, activeFilter);
 
@@ -145,39 +230,33 @@ function renderChangeList(entries, activeFilter) {
     return visibleEntries;
   }
 
-  elements.changeList.innerHTML = '';
-
-  visibleEntries.forEach((entry, index) => {
-    const item = document.createElement('li');
-    item.className = 'change-row';
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'change-row__button';
-    button.dataset.entryId = entry.id;
-    button.setAttribute('aria-pressed', String(entry.id === state.activeEntryId));
-
-    button.innerHTML = `
-      <span class="change-row__index">${String(index + 1).padStart(2, '0')}</span>
-      <span class="change-row__body">
-        <span class="change-row__type">${entry.type}</span>
-        <strong>${entry.title}</strong>
-        <span>${entry.explanation}</span>
-      </span>
+  if (visibleEntries.length === 0) {
+    elements.changeList.innerHTML = `
+      <li class="empty-panel empty-panel-inline">
+        <p class="section-kicker">No matching change clusters</p>
+        <h3>Try another filter to repopulate the evidence list.</h3>
+      </li>
     `;
-
-    button.addEventListener('click', () => {
-      state.activeEntryId = entry.id;
-      renderAll();
-    });
-
-    item.appendChild(button);
-    elements.changeList.appendChild(item);
-  });
+    state.activeEntryId = null;
+    return visibleEntries;
+  }
 
   if (!visibleEntries.some((entry) => entry.id === state.activeEntryId)) {
-    state.activeEntryId = visibleEntries[0]?.id || null;
+    state.activeEntryId = visibleEntries[0].id;
   }
+
+  elements.changeList.innerHTML = visibleEntries.map((entry, index) => `
+    <li class="change-row">
+      <button class="change-row__button" type="button" data-entry-trigger="${entry.id}" aria-pressed="${String(entry.id === state.activeEntryId)}">
+        <span class="change-row__index">${String(index + 1).padStart(2, '0')}</span>
+        <span class="change-row__body">
+          <span class="change-row__type">${entry.type}</span>
+          <strong>${entry.title}</strong>
+          <span>${entry.explanation}</span>
+        </span>
+      </button>
+    </li>
+  `).join('');
 
   return visibleEntries;
 }
@@ -201,8 +280,13 @@ function renderDrawer(entries) {
 
   elements.evidenceDrawer.innerHTML = `
     <div class="evidence-panel__inner">
-      <p class="section-kicker">Evidence view</p>
-      <h3>${activeEntry.title}</h3>
+      <div class="evidence-panel__header">
+        <div>
+          <p class="section-kicker">Evidence view</p>
+          <h3>${activeEntry.title}</h3>
+        </div>
+        <button class="drawer-dismiss" type="button" data-drawer-close aria-label="Collapse evidence view">Close</button>
+      </div>
       <p class="evidence-copy">${activeEntry.explanation}</p>
       <dl class="evidence-list">
         <div>
@@ -226,8 +310,9 @@ function renderSummaryValues() {
   const summary = renderSummary(comparisonEntries);
   elements.summaryValues.forEach((node) => {
     const key = node.dataset.summaryValue;
-    node.textContent = String(summary[key] || 0);
+    animateNumber(node, summary[key] || 0);
   });
+  state.countsAnimated = true;
 }
 
 function renderFilters() {
@@ -238,18 +323,93 @@ function renderFilters() {
   });
 }
 
+function renderStories() {
+  if (!elements.storyGrid) {
+    return;
+  }
+
+  elements.storyGrid.innerHTML = storyGroups.map((story) => {
+    const highlights = story.entryIds
+      .map((entryId) => comparisonEntries.find((entry) => entry.id === entryId))
+      .filter(Boolean)
+      .map((entry) => `<li><span>${entry.type}</span><button type="button" data-story-entry="${entry.id}">${entry.title}</button></li>`)
+      .join('');
+
+    return `
+      <article class="story-card">
+        <p class="story-card__label">${story.label}</p>
+        <h3>${story.title}</h3>
+        <p>${story.copy}</p>
+        <ul class="story-card__list">${highlights}</ul>
+      </article>
+    `;
+  }).join('');
+}
+
+function renderArchitectureList(node, items) {
+  if (!node) {
+    return;
+  }
+  node.innerHTML = items.map((item) => `<li>${item}</li>`).join('');
+}
+
+function renderArchitectureLens() {
+  renderArchitectureList(elements.architectureOld, architectureLens.old);
+  renderArchitectureList(elements.architectureShifts, architectureLens.shifts);
+  renderArchitectureList(elements.architectureNew, architectureLens.current);
+}
+
 function renderAll() {
   renderSummaryValues();
   renderFilters();
+  renderStories();
+  renderArchitectureLens();
   const visibleEntries = renderChangeList(comparisonEntries, state.activeFilter);
   renderDrawer(visibleEntries);
 }
 
+if (typeof reducedMotionQuery.addEventListener === 'function') {
+  reducedMotionQuery.addEventListener('change', (event) => {
+    state.reducedMotion = event.matches;
+    if (event.matches) {
+      document.documentElement.classList.add('reduced-motion');
+    } else {
+      document.documentElement.classList.remove('reduced-motion');
+    }
+  });
+}
+
+if (state.reducedMotion) {
+  document.documentElement.classList.add('reduced-motion');
+}
+
 elements.filterButtons.forEach((button) => {
   button.addEventListener('click', () => {
-    state.activeFilter = button.dataset.categoryFilter || 'all';
-    renderAll();
+    setActiveFilter(button.dataset.categoryFilter || 'all');
   });
+});
+
+elements.changeList?.addEventListener('click', (event) => {
+  const trigger = event.target.closest('[data-entry-trigger]');
+  if (!trigger) {
+    return;
+  }
+  openEvidenceDrawer(trigger.dataset.entryTrigger);
+});
+
+elements.storyGrid?.addEventListener('click', (event) => {
+  const trigger = event.target.closest('[data-story-entry]');
+  if (!trigger) {
+    return;
+  }
+  openEvidenceDrawer(trigger.dataset.storyEntry);
+});
+
+elements.evidenceDrawer?.addEventListener('click', (event) => {
+  const dismiss = event.target.closest('[data-drawer-close]');
+  if (dismiss) {
+    closeEvidenceDrawer();
+  }
 });
 
 renderAll();

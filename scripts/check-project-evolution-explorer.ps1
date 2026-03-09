@@ -24,6 +24,18 @@ foreach ($hook in $requiredHooks) {
     throw "Missing required hook: $hook"
   }
 }
+$requiredSections = @(
+  'id="hero-console"',
+  'id="change-explorer"',
+  'id="evolution-stories"',
+  'id="architecture-lens"',
+  'id="evidence-drawer"'
+)
+foreach ($section in $requiredSections) {
+  if ($html -notmatch [regex]::Escape($section)) {
+    throw "Missing required section: $section"
+  }
+}
 if ($html -notmatch 'project-evolution-explorer.css') {
   throw 'HTML does not reference the explorer stylesheet.'
 }
@@ -32,7 +44,15 @@ if ($html -notmatch 'project-evolution-explorer.js') {
 }
 
 $js = Get-Content 'project-evolution-explorer.js' -Raw
-$requiredTokens = @('const comparisonEntries', 'renderSummary', 'renderChangeList')
+$requiredTokens = @(
+  'const comparisonEntries',
+  'renderSummary',
+  'renderChangeList',
+  'openEvidenceDrawer',
+  'setActiveFilter',
+  'renderStories',
+  'matchMedia("(prefers-reduced-motion: reduce)")'
+)
 foreach ($token in $requiredTokens) {
   if ($js -notmatch [regex]::Escape($token)) {
     throw "Missing required script token: $token"
