@@ -2165,6 +2165,74 @@ html[data-density="exam"] .module-shell {
   opacity: 1;
 }
 
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: var(--space-1) 0;
+}
+
+.sidebar-tools {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sidebar-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar-setting-btn {
+  width: 100%;
+  text-align: left;
+  font-size: 0.8rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.sidebar-catalog summary {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-catalog summary:hover {
+  background: var(--surface-1);
+  color: var(--text);
+}
+
+.sidebar-catalog-body {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.sidebar-catalog-body p {
+  margin: 0 0 var(--space-2);
+}
+
+.sidebar-catalog-body p:last-child {
+  margin-bottom: 0;
+}
+
+.app-shell[data-sidebar="collapsed"] .sidebar-tools,
+.app-shell[data-sidebar="collapsed"] .sidebar-divider {
+  display: none;
+}
+
 .masthead {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem;
