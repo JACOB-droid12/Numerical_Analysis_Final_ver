@@ -605,21 +605,6 @@
     refreshComputedViews();
   }
 
-  function syncMicroPanels() {
-    const panels = Array.from(document.querySelectorAll(".micro-panel"));
-    panels.forEach(function (panel) {
-      panel.addEventListener("toggle", function onPanelToggle() {
-        if (!panel.open) {
-          return;
-        }
-        panels.forEach(function (otherPanel) {
-          if (otherPanel !== panel) {
-            otherPanel.open = false;
-          }
-        });
-      });
-    });
-  }
 
   function setHidden(id, hidden) {
     byId(id).hidden = hidden;
@@ -2543,14 +2528,10 @@
     initializeTheme();
     initializeDisplaySettings();
     applyExamModeLayout();
-    syncMicroPanels();
     wireEvents();
 
     document.addEventListener("keydown", function onGlobalKeyDown(e) {
       if (e.key === "Escape") {
-        document.querySelectorAll(".micro-panel[open]").forEach(function (panel) {
-          panel.open = false;
-        });
         closeSymbolPopover();
       }
     });
