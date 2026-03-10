@@ -793,31 +793,9 @@
         : null;
       const expressionNote = document.getElementById("basic-expression-note");
       if (expressionStrip && expressionNote && !expressionStrip.closest(".advanced-tools-section")) {
-        const detailsPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "Exact details");
+        const detailsPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "Check exact form");
         moveIntoPanel(detailsPanel.body, [expressionStrip, expressionNote]);
         basicAdvanced.body.appendChild(detailsPanel.details);
-      }
-
-      const helperSection = basicModule.querySelector(".standalone-helper");
-      if (helperSection && !helperSection.closest(".advanced-tools-section")) {
-        const toolsPanel = createDisclosurePanel("utility-panel utility-panel-subtle tools-section", "Operation helper");
-        helperSection.querySelectorAll(".utility-panel.utility-panel-subtle").forEach(function (nestedPanel) {
-          nestedPanel.classList.add("utility-panel-nested");
-          const summary = nestedPanel.querySelector("summary");
-          if (summary && summary.textContent.trim() === "Tools: examples") {
-            summary.textContent = "Examples";
-          }
-        });
-        const machineDetails = findPanelBySummary(helperSection, "details.disclosure", ["Machine notes and neighborhood", "Stored-number details"]);
-        if (machineDetails) {
-          const summary = machineDetails.querySelector("summary");
-          if (summary) {
-            summary.textContent = "Stored-number details";
-          }
-          machineDetails.classList.add("details-section");
-        }
-        toolsPanel.body.appendChild(helperSection);
-        basicAdvanced.body.appendChild(toolsPanel.details);
       }
 
       const tracePanel = findPanelBySummary(basicModule, "details.disclosure", ["Expression trace", "Machine trace"]);
@@ -825,7 +803,7 @@
         tracePanel.classList.add("details-section");
         const summary = tracePanel.querySelector("summary");
         if (summary) {
-          summary.textContent = "Machine trace";
+          summary.textContent = "Check machine trace";
         }
         basicAdvanced.body.appendChild(tracePanel);
       }
@@ -847,7 +825,7 @@
       if (importTools) {
         const summary = importTools.querySelector("summary");
         if (summary) {
-          summary.textContent = "Import tools";
+          summary.textContent = "Check imported source";
         }
         if (!importTools.closest(".advanced-tools-section")) {
           errorAdvanced.body.appendChild(importTools);
@@ -856,7 +834,7 @@
 
       const readingGrid = errorModule.querySelector(".reading-grid");
       if (readingGrid && !readingGrid.closest(".advanced-tools-section")) {
-        const howPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "How to read this");
+        const howPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "Check error metrics");
         howPanel.body.appendChild(readingGrid);
         errorAdvanced.body.appendChild(howPanel.details);
       }
@@ -874,19 +852,11 @@
         document.getElementById("poly-comparison-board") || document.getElementById("poly-summary-band") || document.getElementById("poly-empty")
       );
 
-      const presetBand = polyModule.querySelector(".preset-band");
-      const presetNote = document.getElementById("poly-preset-note");
-      if (presetBand && presetNote && !presetBand.closest(".advanced-tools-section")) {
-        const toolsPanel = createDisclosurePanel("utility-panel utility-panel-subtle tools-section", "Examples");
-        moveIntoPanel(toolsPanel.body, [presetBand, presetNote]);
-        polyAdvanced.body.appendChild(toolsPanel.details);
-      }
-
       const summaryStrip = document.getElementById("poly-canonical")
         ? document.getElementById("poly-canonical").closest(".answer-strip")
         : null;
       if (summaryStrip && !summaryStrip.closest(".advanced-tools-section")) {
-        const detailsPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "Exact details");
+        const detailsPanel = createDisclosurePanel("disclosure disclosure-secondary details-section", "Check exact form");
         detailsPanel.body.appendChild(summaryStrip);
         polyAdvanced.body.appendChild(detailsPanel.details);
       }
@@ -895,7 +865,7 @@
       if (methodDetails) {
         const summary = methodDetails.querySelector("summary");
         if (summary) {
-          summary.textContent = "Method details";
+          summary.textContent = "Check method details";
         }
         methodDetails.classList.add("details-section");
         if (!methodDetails.closest(".advanced-tools-section")) {
@@ -904,8 +874,31 @@
       }
 
       const machineTrace = document.getElementById("poly-machine-trace");
-      if (machineTrace && !machineTrace.closest(".advanced-tools-section")) {
-        polyAdvanced.body.appendChild(machineTrace);
+      if (machineTrace) {
+        machineTrace.classList.add("details-section");
+        const summary = machineTrace.querySelector("summary");
+        if (summary) {
+          summary.textContent = "Check machine trace";
+        }
+        if (!machineTrace.closest(".advanced-tools-section")) {
+          polyAdvanced.body.appendChild(machineTrace);
+        }
+      }
+    }
+
+    const tutorialModule = document.querySelector(".module-tutorial");
+    if (tutorialModule) {
+      const basicPractice = document.getElementById("tutorial-basic-practice");
+      const helperSection = document.querySelector(".standalone-helper");
+      if (basicPractice && helperSection && helperSection.parentElement !== basicPractice) {
+        basicPractice.appendChild(helperSection);
+      }
+
+      const polyPractice = document.getElementById("tutorial-poly-practice");
+      const presetBand = document.querySelector(".module-poly .preset-band");
+      const presetNote = document.getElementById("poly-preset-note");
+      if (polyPractice) {
+        moveIntoPanel(polyPractice, [presetBand, presetNote]);
       }
     }
   }
@@ -979,6 +972,18 @@
     setErrorSource("sample values from the required multiplication test", "sample");
     activateTab("error");
     computeErrorModule({ sourceStatusPrefix: "Sample values loaded into Error Analysis." });
+  }
+
+  function loadErrorTutorialExample() {
+    byId("error-exact").value = "8.10179136";
+    byId("error-approx").value = "8.1017913";
+    clearErrorFeedback();
+    resetErrorResults();
+    setErrorSource("tutorial example: exact and rounded multiplication result", "tutorial");
+    activateTab("error");
+    syncOnboardingUI();
+    announceStatus("error-status-msg", "Tutorial example loaded into Error Analysis. Select Calculate error.");
+    byId("error-compute").focus();
   }
 
   function focusErrorManualEntry() {
@@ -1089,7 +1094,7 @@
 
   function getTabButtons() {
     if (!cachedTabButtons) {
-      cachedTabButtons = Array.from(document.querySelectorAll(".tab-btn[role='tab']"));
+      cachedTabButtons = Array.from(document.querySelectorAll(".sidebar-nav-item[role='tab']"));
     }
     return cachedTabButtons;
   }
@@ -1127,9 +1132,9 @@
     }
 
     let nextIndex = null;
-    if (event.key === "ArrowRight" || event.key === "Right") {
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
       nextIndex = (currentIndex + 1) % buttons.length;
-    } else if (event.key === "ArrowLeft" || event.key === "Left") {
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
       nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
     } else if (event.key === "Home") {
       nextIndex = 0;
@@ -1509,15 +1514,15 @@
   }
 
   function expressionFinalLabel(mode) {
-    return "Final-only p* (exact expression, then " + finalOnlyVerb(mode) + " once)";
+    return "Final-only comparison (exact expression, then " + finalOnlyVerb(mode) + " once)";
   }
 
   function expressionAnswerGuide(mode) {
-    return "Use the stepwise machine answer for machine-arithmetic exercises. Use the final-only machine answer only when the whole exact expression is " + finalOnlyPast(mode) + " once at the end.";
+    return "Use the Stepwise result unless the problem explicitly says " + finalOnlyVerb(mode) + " once at the end. Final-only is for exact-first, " + finalOnlyPast(mode) + "-once instructions.";
   }
 
   function polyFinalLabel(mode) {
-    return "Final-only p* (exact f(x), then " + finalOnlyVerb(mode) + " once)";
+    return "Final-only comparison (exact f(x), then " + finalOnlyVerb(mode) + " once)";
   }
 
   function updateExpressionFinalLabel(mode) {
@@ -1891,10 +1896,10 @@
       ? state.expressionComparison.final.approx
       : state.expressionComparison.step.approx;
     const referenceLabel = state.expressionComparison.path === "exact" ? "Exact" : "Reference";
-    const label = "Module I " + (resultKind === "final" ? "final-only p*" : "stepwise p*") + " for " + state.expressionComparison.canonical + " (k = " + state.expressionComparison.k + ", mode = " + state.expressionComparison.mode + ")";
+    const label = "Module I " + (resultKind === "final" ? "final-only comparison" : "main machine p*") + " for " + state.expressionComparison.canonical + " (k = " + state.expressionComparison.k + ", mode = " + state.expressionComparison.mode + ")";
     const statusMessage = resultKind === "final"
-      ? "Module I final-only values imported into Error Analysis."
-      : "Module I step-by-step values imported into Error Analysis.";
+      ? "Module I final-only comparison imported into Error Analysis."
+      : "Module I main machine p* imported into Error Analysis.";
 
     byId("error-exact").value = importFieldValue(state.expressionComparison.exact);
     byId("error-approx").value = importFieldValue(approx);
@@ -1917,16 +1922,16 @@
     let statusMessage;
     if (kind === "horner") {
       approx = state.polyComparison.horner.step.approx;
-      label = "Module III Horner stepwise p* for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
-      statusMessage = "Module III Horner stepwise p* imported into Error Analysis.";
+      label = "Module III Horner main machine p* for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
+      statusMessage = "Module III Horner main machine p* imported into Error Analysis.";
     } else if (kind === "direct") {
       approx = state.polyComparison.direct.step.approx;
-      label = "Module III Direct stepwise p* for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
-      statusMessage = "Module III Direct stepwise p* imported into Error Analysis.";
+      label = "Module III Direct main machine p* for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
+      statusMessage = "Module III Direct main machine p* imported into Error Analysis.";
     } else {
       approx = state.polyComparison.final.approx;
-      label = "Module III final-only p* for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
-      statusMessage = "Module III final-only p* imported into Error Analysis.";
+      label = "Module III final-only comparison for x = " + state.polyComparison.xInput + " (k = " + state.polyComparison.k + ", mode = " + state.polyComparison.mode + ")";
+      statusMessage = "Module III final-only comparison imported into Error Analysis.";
     }
 
     byId("error-exact").value = importFieldValue(state.polyComparison.exact);
@@ -2157,7 +2162,7 @@
       accuracyNote = "Horner and Direct are effectively tied for this input, so either stepwise result is acceptable.";
     }
     setContent("poly-accuracy-winner", accuracyNote, false);
-    setContent("poly-next-step", "Open Advanced tools to inspect the method details and machine trace.", false);
+    setContent("poly-next-step", "Use the better Stepwise method result for most machine-arithmetic problems. Final-only is only for round-once or chop-once instructions. Open Advanced tools to inspect the method details and machine trace.", false);
 
     let operationNote;
     if (totalHorner < totalDirect) {
@@ -2310,7 +2315,88 @@
     };
   }
 
+  function initSidebar() {
+    var storageKey = "ma-lab-sidebar-v1";
+    var appShell = document.querySelector(".app-shell");
+    var sidebar = document.querySelector(".sidebar");
+    var toggleBtn = byId("sidebar-toggle");
+    var mobileToggle = byId("sidebar-mobile-toggle");
+    var backdrop = byId("sidebar-backdrop");
+
+    // Restore saved state (default: expanded)
+    var saved = null;
+    try { saved = localStorage.getItem(storageKey); } catch (e) {}
+    var sidebarState = saved === "collapsed" ? "collapsed" : "expanded";
+    appShell.setAttribute("data-sidebar", sidebarState);
+    updateToggleButton(sidebarState);
+
+    function updateToggleButton(state) {
+      var icon = toggleBtn.querySelector(".sidebar-toggle-icon");
+      if (state === "collapsed") {
+        icon.textContent = "\u00BB";
+        toggleBtn.setAttribute("aria-label", "Expand sidebar");
+        toggleBtn.setAttribute("title", "Expand sidebar");
+      } else {
+        icon.textContent = "\u00AB";
+        toggleBtn.setAttribute("aria-label", "Collapse sidebar");
+        toggleBtn.setAttribute("title", "Collapse sidebar");
+      }
+    }
+
+    function toggleSidebar() {
+      var current = appShell.getAttribute("data-sidebar");
+      var next = current === "expanded" ? "collapsed" : "expanded";
+      appShell.setAttribute("data-sidebar", next);
+      updateToggleButton(next);
+      try { localStorage.setItem(storageKey, next); } catch (e) {}
+    }
+
+    function openMobileDrawer() {
+      sidebar.classList.add("is-open");
+      backdrop.hidden = false;
+      void backdrop.offsetHeight;
+      backdrop.classList.add("is-visible");
+      mobileToggle.setAttribute("aria-label", "Close navigation");
+    }
+
+    function closeMobileDrawer() {
+      sidebar.classList.remove("is-open");
+      backdrop.classList.remove("is-visible");
+      setTimeout(function () { backdrop.hidden = true; }, 200);
+      mobileToggle.setAttribute("aria-label", "Open navigation");
+    }
+
+    toggleBtn.addEventListener("click", toggleSidebar);
+
+    mobileToggle.addEventListener("click", function () {
+      if (sidebar.classList.contains("is-open")) {
+        closeMobileDrawer();
+      } else {
+        openMobileDrawer();
+      }
+    });
+
+    backdrop.addEventListener("click", closeMobileDrawer);
+
+    var navItems = sidebar.querySelectorAll(".sidebar-nav-item");
+    for (var j = 0; j < navItems.length; j++) {
+      navItems[j].addEventListener("click", function () {
+        if (sidebar.classList.contains("is-open")) {
+          closeMobileDrawer();
+        }
+      });
+    }
+
+    function checkMobileToggle() {
+      var isMobile = window.matchMedia("(max-width: 768px)").matches;
+      mobileToggle.hidden = !isMobile;
+    }
+    checkMobileToggle();
+    window.addEventListener("resize", debounce(checkMobileToggle, 150));
+  }
+
   function wireEvents() {
+    initSidebar();
     for (const btn of getTabButtons()) {
       btn.addEventListener("click", function onTabClick() {
         activateTab(btn.dataset.tab || "basic");
@@ -2354,6 +2440,9 @@
     byId("welcome-open-basic").addEventListener("click", openBasicGuide);
     byId("welcome-load-poly").addEventListener("click", loadPolyQuickStart);
     byId("welcome-strip").addEventListener("toggle", handleWelcomeGuideToggle);
+    byId("tutorial-send-basic").addEventListener("click", loadBasicStarter);
+    byId("tutorial-send-error").addEventListener("click", loadErrorTutorialExample);
+    byId("tutorial-send-poly").addEventListener("click", loadPolyQuickStart);
 
     byId("basic-expression-compute").addEventListener("click", computeExpressionModule);
     byId("basic-send-step").addEventListener("click", function onImportModule1Step() {
