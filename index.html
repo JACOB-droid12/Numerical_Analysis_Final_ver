@@ -29,13 +29,68 @@
     onload="this.rel='stylesheet'">
   <noscript><link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="styles.css?v=student3" />
+  <link rel="stylesheet" href="styles.css?v=student4" />
 </head>
 
 <body>
   <a href="#tab-basic" class="skip-link">Skip to calculator</a>
-  <main class="app-shell">
+  <main class="app-shell" data-sidebar="expanded">
+    <aside class="sidebar" aria-label="Navigation">
+      <button id="sidebar-toggle" type="button" class="sidebar-toggle" aria-label="Collapse sidebar" title="Collapse sidebar">
+        <span class="sidebar-toggle-icon">«</span>
+      </button>
+
+      <nav class="sidebar-nav" aria-label="Core modules" role="tablist">
+        <button id="tab-btn-basic" type="button" class="sidebar-nav-item active" data-tab="basic" role="tab" aria-selected="true" aria-controls="tab-basic" aria-label="Machine Arithmetic" tabindex="0">
+          <span class="sidebar-icon">∑</span>
+          <span class="sidebar-label">Calculation</span>
+        </button>
+        <button id="tab-btn-error" type="button" class="sidebar-nav-item" data-tab="error" role="tab" aria-selected="false" aria-controls="tab-error" aria-label="Error Analysis" tabindex="-1">
+          <span class="sidebar-icon">Δ</span>
+          <span class="sidebar-label">Errors</span>
+        </button>
+        <button id="tab-btn-poly" type="button" class="sidebar-nav-item" data-tab="poly" role="tab" aria-selected="false" aria-controls="tab-poly" aria-label="Polynomial Methods" tabindex="-1">
+          <span class="sidebar-icon">f(x)</span>
+          <span class="sidebar-label">Polynomial</span>
+        </button>
+        <button id="tab-btn-tutorial" type="button" class="sidebar-nav-item" data-tab="tutorial" role="tab" aria-selected="false" aria-controls="tab-tutorial" aria-label="Tutorial" tabindex="-1">
+          <span class="sidebar-icon">?</span>
+          <span class="sidebar-label">Tutorial</span>
+        </button>
+      </nav>
+
+      <hr class="sidebar-divider">
+
+      <div class="sidebar-tools">
+        <div class="sidebar-status" aria-label="Calculator status">
+          <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+          <div class="status-chip"><span class="status-name">Display</span><strong id="status-display">RECT</strong></div>
+          <div class="status-chip"><span class="status-name">Engine</span><strong id="status-engine">EXACT</strong></div>
+        </div>
+
+        <div class="sidebar-settings">
+          <button id="theme-toggle" type="button" class="ghost sidebar-setting-btn theme-toggle"></button>
+          <button id="angle-toggle" type="button" class="ghost sidebar-setting-btn">Use radians</button>
+          <button id="display-toggle" type="button" class="ghost sidebar-setting-btn">Show polar</button>
+        </div>
+
+        <details class="sidebar-catalog">
+          <summary>Catalog</summary>
+          <div class="sidebar-catalog-body">
+            <p><strong>Supports</strong> decimals, fractions, scientific notation, <code>pi</code>, <code>π</code>,
+              <code>e</code>, <code>i</code>, <code>sqrt()</code>, and <code>polar(r,theta)</code>.</p>
+            <p><strong>Complex</strong> <code>3+4i</code>, <code>2i</code>, <code>-i</code>, <code>5∠30</code></p>
+            <p><strong>Polynomial</strong> keep coefficients real; complex <code>x</code> is allowed.</p>
+          </div>
+        </details>
+      </div>
+    </aside>
+
+    <div class="main-content">
     <header class="masthead hero">
+      <button id="sidebar-mobile-toggle" type="button" class="sidebar-mobile-toggle" aria-label="Open navigation" hidden>
+        <span class="sidebar-mobile-icon">☰</span>
+      </button>
       <div class="masthead-copy">
         <p class="eyebrow">Numerical Analysis Toolkit</p>
         <h1>Machine Arithmetic and Round-Off Error Lab</h1>
@@ -44,35 +99,6 @@
         </p>
       </div>
 
-      <div class="masthead-tools" aria-label="Calculator utilities">
-        <div class="status-strip" aria-label="Calculator status">
-          <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
-          <div class="status-chip"><span class="status-name">Display</span><strong id="status-display">RECT</strong>
-          </div>
-          <div class="status-chip"><span class="status-name">Engine</span><strong id="status-engine">EXACT</strong>
-          </div>
-        </div>
-        <div class="tool-cluster tool-cluster-compact">
-          <details class="micro-panel micro-panel-settings">
-            <summary>Settings</summary>
-            <div class="micro-panel-body">
-              <button id="theme-toggle" type="button" class="ghost theme-toggle"></button>
-              <button id="angle-toggle" type="button" class="ghost">Use radians</button>
-              <button id="display-toggle" type="button" class="ghost">Show polar</button>
-            </div>
-          </details>
-          <details class="micro-panel micro-panel-catalog">
-            <summary>Catalog</summary>
-            <div class="micro-panel-body catalog-list">
-              <p><strong>Supports</strong> decimals, fractions, scientific notation, <code>pi</code>, <code>π</code>,
-                <code>e</code>, <code>i</code>, <code>sqrt()</code>, and <code>polar(r,theta)</code>.
-              </p>
-              <p><strong>Complex</strong> <code>3+4i</code>, <code>2i</code>, <code>-i</code>, <code>5∠30</code></p>
-              <p><strong>Polynomial</strong> keep coefficients real; complex <code>x</code> is allowed.</p>
-            </div>
-          </details>
-        </div>
-      </div>
     </header>
 
     <details id="welcome-strip" class="welcome-strip" aria-label="Quick start guide">
@@ -90,21 +116,6 @@
         </div>
       </div>
     </details>
-
-    <nav class="tabs tabs-home" aria-label="Core modules" role="tablist">
-      <button id="tab-btn-basic" type="button" class="tab-btn active" data-tab="basic" role="tab" aria-selected="true"
-        aria-controls="tab-basic" aria-label="Machine Arithmetic" tabindex="0"><span class="tab-icon">∑</span><span
-          class="tab-meta"><span class="tab-index">Module I</span><span class="tab-title">Calculation</span><span
-            class="tab-caption">Expressions, chop or round, and inspect stored arithmetic.</span></span></button>
-      <button id="tab-btn-error" type="button" class="tab-btn" data-tab="error" role="tab" aria-selected="false"
-        aria-controls="tab-error" aria-label="Error Analysis" tabindex="-1"><span class="tab-icon">Δ</span><span
-          class="tab-meta"><span class="tab-index">Module II</span><span class="tab-title">Errors</span><span
-            class="tab-caption">Read relative error, thresholds, and significant digits fast.</span></span></button>
-      <button id="tab-btn-poly" type="button" class="tab-btn" data-tab="poly" role="tab" aria-selected="false"
-        aria-controls="tab-poly" aria-label="Polynomial Methods" tabindex="-1"><span class="tab-icon">f(x)</span><span
-          class="tab-meta"><span class="tab-index">Module III</span><span class="tab-title">Polynomial</span><span
-            class="tab-caption">Compare Horner, direct, and final-only machine results.</span></span></button>
-    </nav>
 
     <section id="tab-basic" class="panel active" role="tabpanel" aria-labelledby="tab-btn-basic" tabindex="0">
       <div class="module-shell module-basic">
@@ -165,18 +176,18 @@
               <p id="basic-expression-exact" class="answer-value is-empty">Ready to calculate</p>
             </div>
 
-            <div class="answer-hero answer-hero-major">
-              <p class="result-label">Stepwise p* (apply the rule after every step)</p>
+            <div class="answer-hero answer-hero-major answer-hero-primary-machine">
+              <p class="result-label">Main machine answer p* (apply the rule after every step)</p>
               <p id="basic-expression-stepwise" class="answer-value is-empty">Ready to calculate</p>
             </div>
 
-            <div class="answer-hero answer-hero-major">
-              <p id="basic-expression-final-label" class="result-label">Final-only p* (exact expression, then chop once)
+            <div class="answer-hero answer-hero-major answer-hero-secondary-comparison">
+              <p id="basic-expression-final-label" class="result-label">Final-only comparison (exact expression, then chop once)
               </p>
               <p id="basic-expression-final" class="answer-value is-empty">Ready to calculate</p>
             </div>
           </div>
-          <p id="basic-expression-answer-guide" class="result-caption answer-guide" hidden>Use the stepwise machine answer for exam-style machine arithmetic. Use the final-only machine answer only when the full exact expression is rounded or chopped at the end.</p>
+          <p id="basic-expression-answer-guide" class="result-caption answer-guide" hidden>Use the Stepwise result unless the problem explicitly says round or chop once at the end. Final-only is for exact-first, round-once or chop-once instructions.</p>
 
           <dl id="basic-answer-strip" class="answer-strip answer-strip-triple" hidden>
             <div>
@@ -198,8 +209,8 @@
         <section id="basic-next-steps" class="result-next-steps" hidden>
   <p class="result-label">Next step</p>
   <div id="basic-actions" class="control-actions control-actions-secondary">
-    <button id="basic-send-step" type="button" class="ghost" disabled>Send stepwise p* to Errors</button>
-    <button id="basic-send-final" type="button" class="ghost" disabled>Send final-only p* to Errors</button>
+    <button id="basic-send-step" type="button" class="ghost" disabled>Send main machine p* to Errors</button>
+    <button id="basic-send-final" type="button" class="ghost" disabled>Send final-only comparison to Errors</button>
     <button id="basic-open-trace" type="button" class="ghost" disabled>Open machine trace</button>
   </div>
 </section>
@@ -442,19 +453,17 @@
 
           <div class="control-actions control-actions-inline">
             <button id="error-compute" type="button">Calculate error</button>
-            <button id="error-import-basic" type="button" class="ghost">Import Module I stepwise p*</button>
+            <button id="error-import-basic" type="button" class="ghost">Import Module I main machine p*</button>
           </div>
 
 
           <details class="utility-panel utility-panel-inline" aria-label="Additional import tools">
             <summary>Tools</summary>
             <div class="actions utility-actions">
-              <button id="error-import-basic-final" type="button" class="ghost">Import Module I final-only p*</button>
-              <button id="error-import-horner" type="button" class="ghost">Import Module III Horner stepwise
-                p*</button>
-              <button id="error-import-direct" type="button" class="ghost">Import Module III Direct stepwise
-                p*</button>
-              <button id="error-import-final" type="button" class="ghost">Import Module III final-only p*</button>
+              <button id="error-import-basic-final" type="button" class="ghost">Import Module I final-only comparison</button>
+              <button id="error-import-horner" type="button" class="ghost">Import Module III Horner main machine p*</button>
+              <button id="error-import-direct" type="button" class="ghost">Import Module III Direct main machine p*</button>
+              <button id="error-import-final" type="button" class="ghost">Import Module III final-only comparison</button>
               <button id="error-empty-sample" type="button" class="ghost">Load sample values</button>
             </div>
           </details>
@@ -468,7 +477,7 @@
           <p class="result-label">Compare two values</p>
           <h3 class="empty-title">Import a machine result or enter a true value and approximation to compare them.</h3>
           <div class="empty-actions">
-            <button id="error-empty-import" type="button">Import Module I stepwise p*</button>
+            <button id="error-empty-import" type="button">Import Module I main machine p*</button>
             <button id="error-empty-manual" type="button" class="ghost">Type values</button>
           </div>
         </section>
@@ -633,8 +642,8 @@
 
           <p id="poly-next-step" class="result-next-step is-empty" hidden>Ready to calculate</p>
 
-          <div class="answer-hero answer-hero-major comparison-baseline">
-            <p id="poly-final-shared-label" class="result-label">Final-only p* (exact f(x), then chop once)</p>
+          <div class="answer-hero answer-hero-major comparison-baseline answer-hero-secondary-comparison">
+            <p id="poly-final-shared-label" class="result-label">Final-only comparison (exact f(x), then chop once)</p>
             <p id="poly-final-shared" class="answer-value is-empty">Ready to calculate</p>
           </div>
 
@@ -780,6 +789,80 @@
         </details>
       </div>
     </section>
+
+    <section id="tab-tutorial" class="panel" role="tabpanel" aria-labelledby="tab-btn-tutorial" tabindex="0" hidden>
+      <div class="module-shell module-tutorial">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Guide</p>
+            <h2>Tutorial and Practice</h2>
+          </div>
+          <p class="module-copy">
+            Learn with worked examples here, then send them into the calculators when you want to solve or verify for real.
+          </p>
+        </header>
+
+        <section class="tutorial-grid" aria-label="Tutorial topics">
+          <article class="tutorial-topic tutorial-topic-basic">
+            <p class="module-kicker">Topic I</p>
+            <h3>Machine arithmetic basics</h3>
+            <p class="tutorial-copy">Practice how stored digits change an answer, then send a starter expression back to Module I.</p>
+            <div class="tutorial-example">
+              <p class="result-label">Worked example</p>
+              <p class="lesson-note">Starter expression plus a single-operation drill for the stored machine path.</p>
+            </div>
+            <ul class="tutorial-checklist">
+              <li>Use the stepwise machine answer for exam-style work.</li>
+              <li>Compare exact p with p* before opening the trace.</li>
+              <li>Use the helper below when you want one operation explained slowly.</li>
+            </ul>
+            <div class="control-actions control-actions-secondary">
+              <button id="tutorial-send-basic" type="button">Send this example to Module I</button>
+            </div>
+            <div id="tutorial-basic-practice" class="tutorial-practice"></div>
+          </article>
+
+          <article class="tutorial-topic tutorial-topic-error">
+            <p class="module-kicker">Topic II</p>
+            <h3>Error analysis basics</h3>
+            <p class="tutorial-copy">See how true value p and approximation p* turn into absolute error, relative error, and significant digits.</p>
+            <div class="tutorial-example">
+              <p class="result-label">Worked example</p>
+              <p class="lesson-note">Compare 8.10179136 with 8.1017913 to see a small but measurable miss.</p>
+            </div>
+            <ul class="tutorial-checklist">
+              <li>Read the verdict before the detailed metrics.</li>
+              <li>Use relative error to judge how large the miss is.</li>
+              <li>Check significant digits to see how much precision remains.</li>
+            </ul>
+            <div class="control-actions control-actions-secondary">
+              <button id="tutorial-send-error" type="button">Send this example to Module II</button>
+            </div>
+          </article>
+
+          <article class="tutorial-topic tutorial-topic-poly">
+            <p class="module-kicker">Topic III</p>
+            <h3>Polynomial method comparison</h3>
+            <p class="tutorial-copy">Compare Horner and Direct evaluation with a guided example before you inspect the machine trace.</p>
+            <div class="tutorial-example">
+              <p class="result-label">Worked example</p>
+              <p class="lesson-note">Use the sqrt(3) Taylor approximation example to see why one method can keep more digits.</p>
+            </div>
+            <ul class="tutorial-checklist">
+              <li>Read the verdict first to see which method wins.</li>
+              <li>Compare stepwise p* against the shared final-only value.</li>
+              <li>Open the method details only after you know the headline result.</li>
+            </ul>
+            <div class="control-actions control-actions-secondary">
+              <button id="tutorial-send-poly" type="button">Send this example to Module III</button>
+            </div>
+            <div id="tutorial-poly-practice" class="tutorial-practice"></div>
+          </article>
+        </section>
+      </div>
+    </section>
+    </div><!-- /.main-content -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
   </main>
 
   <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>
@@ -794,7 +877,7 @@
   <script src="expression-engine.js?v=cw1"></script>
   <script src="poly-engine.js?v=cw1"></script>
   <script src="math-display.js?v=nat1"></script>
-  <script src="app.js?v=student3"></script>
+  <script src="app.js?v=student4"></script>
 </body>
 
 </html>
