@@ -1689,18 +1689,17 @@ html[data-density="exam"] .module-shell {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: var(--radius-sm);
-  background: var(--surface-1);
+  background: transparent;
   color: var(--muted);
   cursor: pointer;
   flex-shrink: 0;
   font-size: 0.9rem;
-  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .sidebar-toggle:hover {
-  background: var(--surface-2);
+  background: var(--surface-1);
   color: var(--text);
 }
 
@@ -1741,9 +1740,9 @@ html[data-density="exam"] .module-shell {
 }
 
 .sidebar-nav-item.active {
-  background: color-mix(in srgb, var(--accent-soft) 60%, var(--surface-1));
+  background: var(--accent-soft);
   color: var(--text);
-  border-left: 3px solid var(--accent);
+  border-left: 2px solid var(--accent);
   font-weight: 600;
 }
 
@@ -1753,23 +1752,11 @@ html[data-density="exam"] .module-shell {
 }
 
 .sidebar-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  background: var(--surface-1);
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--accent);
+  display: none;
 }
 
-.sidebar-nav-item.active .sidebar-icon {
-  background: color-mix(in srgb, var(--accent) 18%, var(--surface-1));
-  color: var(--accent-strong);
+.app-shell[data-sidebar="collapsed"] .sidebar-icon {
+  display: flex;
 }
 
 .sidebar-label {
@@ -1814,8 +1801,7 @@ html[data-density="exam"] .module-shell {
 
 .sidebar-divider {
   border: none;
-  border-top: 1px solid var(--line);
-  margin: var(--space-1) 0;
+  margin: var(--space-2) 0;
 }
 
 .sidebar-tools {
@@ -1841,6 +1827,14 @@ html[data-density="exam"] .module-shell {
   text-align: left;
   font-size: 0.8rem;
   padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  color: var(--muted);
+}
+
+.sidebar-setting-btn:hover {
+  color: var(--text);
+  background: var(--surface-1);
 }
 
 .sidebar-catalog summary {
@@ -1900,17 +1894,17 @@ html[data-density="exam"] .module-shell {
   width: 40px;
   height: 40px;
   padding: 0;
-  border: 1px solid var(--line);
+  border: none;
   border-radius: var(--radius-sm);
-  background: var(--surface-1);
-  color: var(--text);
+  background: transparent;
+  color: var(--muted);
   font-size: 1.2rem;
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .sidebar-mobile-toggle:hover {
-  background: var(--surface-2);
+  background: var(--surface-1);
+  color: var(--text);
 }
 
 @media (max-width: 768px) {
@@ -1930,7 +1924,7 @@ html[data-density="exam"] .module-shell {
     z-index: 1000;
     transform: translateX(-100%);
     transition: transform var(--sidebar-transition);
-    box-shadow: none;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
   }
 
   .sidebar.is-open {
@@ -1979,12 +1973,14 @@ h1 {
 }
 
 .status-chip {
-  min-height: 30px;
-  padding: 0.24rem 0.56rem;
+  display: inline-flex;
+  align-items: center;
   gap: 0.45rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--line) 62%, transparent);
-  background: color-mix(in srgb, var(--surface-0) 94%, var(--surface-1) 6%);
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
 }
 
 .status-name,
