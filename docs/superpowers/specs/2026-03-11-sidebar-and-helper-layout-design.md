@@ -13,35 +13,38 @@
 
 ### 1. Sidebar Settings Separation
 
-**Approach:** Subtle divider + spacing + section label
+**Approach:** Enhance existing divider + add section label
+
+The `<hr class="sidebar-divider">` already exists at line 62 of `index.html` between `.sidebar-nav` and `.sidebar-tools`. Its current CSS (`border: none; margin: var(--space-2) 0`) makes it invisible.
 
 **HTML changes** (`index.html`):
-- Add `<hr class="sidebar-divider">` between `.sidebar-nav` and `.sidebar-tools`
-- Add `<span class="sidebar-section-label">Settings</span>` above the status chips inside `.sidebar-tools`
+- Add `<span class="sidebar-section-label">Settings</span>` as the first child of `.sidebar-tools` (before `.sidebar-status`). This element is implicitly hidden when sidebar collapses since `.sidebar-tools` is hidden in collapsed mode.
 
 **CSS changes** (`styles.css`):
-- `.sidebar-divider`: 1px solid `var(--line)`, horizontal margins `var(--space-2)`, vertical margin `var(--space-3)`, no height/border-style override needed beyond standard hr reset
-- `.sidebar-section-label`: font-size `0.6rem`, letter-spacing `0.1em`, text-transform uppercase, color `var(--muted)`, small bottom margin
+- Modify existing `.sidebar-divider` rule (line 1530): change `border: none` to `border: none; border-top: 1px solid var(--line)`, increase margin to `var(--space-3) var(--space-2)`
+- Add new `.sidebar-section-label` rule: `font-size: 0.6rem`, `letter-spacing: 0.1em`, `text-transform: uppercase`, `color: var(--muted)`, `padding: 0 var(--space-3)`, `margin-bottom: calc(-1 * var(--space-2))` (tighten gap to status chips below)
 
-**Scope:** ~2 lines HTML, ~15 lines CSS. No JS changes.
+**Scope:** 1 line HTML, ~12 lines CSS. No JS changes.
 
 ### 2. Single Operation Helper Grid Layout
 
 **Approach:** CSS-only grid change to create two visual zones
 
+The `.field-grid-basic` currently uses `grid-template-columns: repeat(5, minmax(0, 1fr))` (line 444). There are 5 `<label>` children inside `.field-grid-basic`.
+
 **CSS changes** (`styles.css`):
-- Change `.field-grid-basic` from `grid-template-columns: repeat(5, minmax(0, 1fr))` to `grid-template-columns: 3fr minmax(5rem, 1fr) 3fr var(--space-4) 2fr 2fr`
-- Columns 1-3: Expression zone (Operand A, Operation dropdown, Operand B) — operand inputs are wider, operation dropdown is narrower
-- Column 4: Visual spacer gap (empty column using `var(--space-4)` width)
-- Columns 5-6: Config zone (Significant digits, Machine rule) — narrower, grouped together
-- Use `nth-child` selectors to place the 5 label children into the correct grid columns (skipping column 4)
+- Change `.field-grid-basic` to `grid-template-columns: 3fr minmax(5rem, 1fr) 3fr 2fr 2fr` (5 columns, no spacer column)
+- Add a larger left margin or gap to separate expression from config: `.field-grid-basic > label:nth-child(4) { margin-left: var(--space-4); }` to create visual separation between Operand B and Significant digits
+- Column sizing: operands get 3fr (wide), operation gets minmax(5rem, 1fr) (narrow), config fields get 2fr each (medium)
+
+This avoids the spacer-column problem entirely — 5 children map to 5 columns, with a margin on the 4th child creating the visual gap.
 
 **Scope:** CSS-only, no HTML changes. No JS changes. Does not touch the echo/summary boxes below the inputs.
 
 ## Files Modified
 
-- `index.html` — sidebar divider and label (2 elements added)
-- `styles.css` — sidebar divider/label styles + field-grid-basic grid change
+- `index.html` — 1 element added (sidebar section label)
+- `styles.css` — modify existing `.sidebar-divider`, add `.sidebar-section-label`, modify `.field-grid-basic` and add `nth-child(4)` margin rule
 
 ## Out of Scope
 
