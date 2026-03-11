@@ -451,31 +451,40 @@ h3 {
 }
 
 .search-shell {
-  position: relative;
-  display: flex !important;
-  align-items: stretch;
-  background: var(--surface-0);
-  border: 1px solid var(--line-strong);
-  border-radius: calc(var(--radius-sm) / 2);
-  padding: 0.2rem 0.2rem 0.2rem 1.5rem;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "input symbols action";
+  align-items: center;
+  gap: 0.42rem 0.56rem;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
-  transition: box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 .search-shell:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--focus-ring);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .search-shell input {
-  flex: 1;
-  border: none !important;
+  grid-area: input;
+  min-height: 44px;
+  padding: 0.5rem 0.72rem;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface-0) !important;
   box-shadow: none !important;
-  background: transparent !important;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-family: var(--font-mono);
-  padding: 0;
-  min-height: 60px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.search-shell input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .search-shell .symbol-rail {
@@ -483,14 +492,13 @@ h3 {
 }
 
 .btn-calculate-omni {
-  min-width: 64px;
-  min-height: 60px;
-  border-radius: calc(var(--radius-sm) / 2.5);
-  font-size: 1.5rem;
+  grid-area: action;
+  min-width: 52px;
+  min-height: 44px;
   padding: 0;
-  margin: 0;
-  display: grid;
-  place-items: center;
+  border-radius: var(--radius-sm);
+  font-size: 1.15rem;
+  box-shadow: none;
 }
 
 .search-settings {
@@ -550,10 +558,10 @@ h3 {
 }
 
 .symbol-btn {
-  min-width: 42px;
-  min-height: 36px;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-sm);
+  min-width: 36px;
+  min-height: 32px;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-xs);
   background: var(--surface-1);
   color: var(--text);
   border: 1px solid var(--line);
@@ -1491,51 +1499,7 @@ html[data-density="exam"] .table-wrap {
   margin-bottom: 0;
 }
 
-.search-shell {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    "input symbols action";
-  align-items: center;
-  gap: 0.45rem 0.6rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid color-mix(in srgb, var(--line-strong) 76%, transparent);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-0) 97%, var(--surface-1) 3%);
-  box-shadow: none;
-}
-
-.search-shell:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
-  box-shadow: 0 0 0 3px var(--focus-ring);
-}
-
-.search-shell input {
-  grid-area: input;
-  min-height: 0;
-  padding: 0;
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  font-size: 1rem;
-  line-height: 1.2;
-  font-family: var(--font-body);
-}
-
-.search-shell .symbol-rail {
-  display: none;
-}
-
-.btn-calculate-omni {
-  grid-area: action;
-  align-self: stretch;
-  min-width: 48px;
-  min-height: auto;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  font-size: 1.15rem;
-  box-shadow: none;
-}
+/* search-shell canonical rules defined earlier */
 
 .search-settings {
   display: grid;
@@ -1629,18 +1593,6 @@ html[data-density="exam"] .module-shell {
 }
 
 @media (max-width: 720px) {
-  .search-shell {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "input"
-      "symbols"
-      "action";
-  }
-
-  .btn-calculate-omni {
-    min-height: 44px;
-  }
-
   .field-shell-inline-tools {
     grid-template-columns: 1fr;
   }
@@ -2060,45 +2012,7 @@ button.ghost {
   margin-bottom: 0.1rem;
 }
 
-.search-shell {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    "input symbols action";
-  gap: 0.42rem 0.56rem;
-  align-items: center;
-  padding: 0.58rem 0.65rem;
-  border: 1px solid color-mix(in srgb, var(--line-strong) 72%, transparent);
-  border-radius: 0.9rem;
-  background: color-mix(in srgb, var(--surface-0) 97%, var(--surface-1) 3%);
-  box-shadow: none;
-}
-
-.search-shell input {
-  grid-area: input;
-  min-height: 0;
-  padding: 0;
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  font-size: 1rem;
-  line-height: 1.2;
-  font-family: var(--font-body);
-}
-
-.search-shell .symbol-rail {
-  display: none;
-}
-
-.btn-calculate-omni {
-  grid-area: action;
-  align-self: stretch;
-  min-width: 48px;
-  min-height: auto;
-  padding: 0;
-  border-radius: 0.7rem;
-  font-size: 1.12rem;
-}
+/* search-shell and btn-calculate-omni canonical rules defined earlier */
 
 .search-settings {
   display: grid;
@@ -2141,18 +2055,19 @@ button.ghost {
 
 .field-grid-error .field-shell {
   gap: 0.4rem;
-  padding: 0.58rem 0.62rem;
-  border: 1px solid color-mix(in srgb, var(--line) 52%, transparent);
-  border-radius: 0.9rem;
-  background: color-mix(in srgb, var(--surface-0) 96%, var(--surface-1) 4%);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 .field-grid-error input {
-  min-height: 0;
-  padding: 0;
-  border: none !important;
+  min-height: 44px;
+  padding: 0.5rem 0.72rem;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--surface-0) !important;
   box-shadow: none !important;
-  background: transparent !important;
 }
 
 .field-grid-error .symbol-rail {
@@ -2302,18 +2217,6 @@ html[data-density="exam"] .module-shell {
 }
 
 @media (max-width: 720px) {
-  .search-shell {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "input"
-      "symbols"
-      "action";
-  }
-
-  .btn-calculate-omni {
-    min-height: 42px;
-  }
-
   .field-shell-inline-tools {
     grid-template-columns: 1fr;
   }
@@ -2407,43 +2310,14 @@ html[data-density="exam"] .module-shell {
   background: transparent;
 }
 
-.search-shell {
-  min-height: 3.6rem;
-  padding: 0.38rem 0.38rem 0.38rem 0.9rem;
-  border-radius: 0.95rem;
-  border: 1px solid var(--line);
-  background: var(--surface-0);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
-}
-
-.search-shell:focus-within {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--line) 72%);
-  box-shadow: 0 0 0 0.2rem var(--focus-ring), inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
-}
-
-.search-shell input {
-  font-size: 1.02rem;
-  font-weight: 560;
-  letter-spacing: -0.01em;
-}
-
-.btn-calculate-omni {
-  min-width: 3rem;
-  min-height: 2.85rem;
-  border-radius: 0.82rem;
-  box-shadow: none;
-}
+/* search-shell and btn-calculate-omni canonical rules defined earlier */
 
 .search-shell .symbol-rail,
 .field-shell .symbol-rail {
   gap: 0.38rem;
 }
 
-.symbol-btn {
-  width: 1.95rem;
-  height: 1.95rem;
-  border-radius: var(--radius-sm);
-}
+/* symbol-btn canonical rules defined earlier */
 
 .search-settings {
   gap: 0.72rem;
@@ -2654,19 +2528,6 @@ html[data-density="exam"] .method-panel {
 @media (max-width: 720px) {
   .module-shell {
     padding: 0.95rem;
-  }
-
-  .search-shell {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "input"
-      "symbols"
-      "action";
-    padding-inline: 0.72rem;
-  }
-
-  .btn-calculate-omni {
-    width: 100%;
   }
 }
 
@@ -2988,15 +2849,15 @@ html[data-density="exam"] .method-panel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.95rem;
-  height: 1.95rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--line-strong) 72%, transparent);
-  background: color-mix(in srgb, var(--surface-0) 96%, var(--surface-1) 4%);
-  color: var(--text);
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.84rem;
-  font-weight: 600; letter-spacing: -0.04em;
+  font-weight: 600;
   box-shadow: none;
 }
 
@@ -3006,8 +2867,8 @@ html[data-density="exam"] .method-panel {
 }
 
 .symbol-trigger:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  background: color-mix(in srgb, var(--surface-0) 90%, var(--accent-soft) 10%);
+  border-color: var(--accent);
+  background: var(--surface-0);
 }
 
 .symbol-trigger:focus-visible {
