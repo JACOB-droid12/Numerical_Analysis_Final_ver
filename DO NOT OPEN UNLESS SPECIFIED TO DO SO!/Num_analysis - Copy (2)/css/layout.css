@@ -1,0 +1,201 @@
+/* ==========================================================================
+   LAYOUT.CSS — Page grid, fixed nav, sidebar, main, footer
+   Mobile-first: stacked → sidebar + main at ≥768px
+   ========================================================================== */
+
+/* ---------- App Shell ---------- */
+.app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ---------- Top Navigation (fixed) ---------- */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-nav);
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--sp-4);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
+    transition: background-color var(--duration-slow) var(--ease-out);
+}
+
+.nav__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.nav__logo {
+    font-size: var(--fs-lg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+}
+
+.nav__title {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.nav__title-accent {
+    color: var(--accent);
+    font-weight: var(--fw-bold);
+}
+
+.nav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+/* ---------- Mobile Tab Bar (visible < 768px, fixed to bottom) ---------- */
+.mobile-tabs {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--z-sticky);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--glass-border);
+    padding: var(--sp-2) var(--sp-4);
+    padding-bottom: calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+    overflow-x: auto;
+    justify-content: space-around;
+    gap: var(--sp-1);
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Add padding to the bottom of the app so content doesn't get hidden behind the new bottom bar */
+.app__body {
+    display: flex;
+    flex: 1;
+    margin-top: var(--nav-height);
+    margin-bottom: 60px;
+    /* Space for mobile tabs */
+}
+
+/* ---------- Main Content ---------- */
+.main {
+    flex: 1;
+    min-width: 0;
+    /* prevent flex overflow */
+    padding: var(--sp-6) var(--sp-4);
+}
+
+/* Module panels — only one visible at a time */
+.module-panel {
+    display: none;
+}
+
+.module-panel.is-active {
+    display: block;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    padding: var(--sp-4) var(--sp-6);
+    text-align: center;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-secondary);
+    transition: background-color var(--duration-slow) var(--ease-out);
+}
+
+.footer__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+}
+
+.footer__text {
+    font-size: var(--fs-xs);
+    color: var(--text-tertiary);
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* ≥ 480px — slightly wider padding */
+@media (min-width: 480px) {
+    .main {
+        padding: var(--sp-8) var(--sp-6);
+    }
+}
+
+/* Sidebar hidden on mobile by default */
+.sidebar {
+    display: none;
+}
+
+/* ≥ 768px — show sidebar, hide mobile tabs */
+@media (min-width: 768px) {
+    .app__body {
+        margin-bottom: 0;
+        /* Remove mobile tab spacing */
+    }
+
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-2);
+        width: var(--sidebar-width);
+        flex-shrink: 0;
+        padding: var(--sp-6) var(--sp-4);
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-subtle);
+        overflow-y: auto;
+        height: calc(100vh - var(--nav-height));
+        position: sticky;
+        top: var(--nav-height);
+        transition: background-color var(--duration-slow) var(--ease-out);
+    }
+
+    .mobile-tabs {
+        display: none;
+    }
+
+    .nav {
+        padding: 0 var(--sp-8);
+    }
+
+    .main {
+        padding: var(--sp-8);
+    }
+}
+
+/* ≥ 1024px — wider content area, max-width for readability */
+@media (min-width: 1024px) {
+    .main {
+        padding: var(--sp-10) var(--sp-12);
+        max-width: 960px;
+    }
+
+    .nav {
+        padding: 0 var(--sp-12);
+    }
+}
+
+/* ≥ 1280px — even wider max */
+@media (min-width: 1280px) {
+    .main {
+        max-width: 1100px;
+    }
+}

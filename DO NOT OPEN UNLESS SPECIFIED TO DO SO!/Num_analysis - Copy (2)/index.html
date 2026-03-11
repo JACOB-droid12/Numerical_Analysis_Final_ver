@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Spatial Quasar — A premium browser-based Numerical Methods Calculator featuring error analysis, polynomial evaluation, and interactive computation.">
+  <meta name="author" content="Spatial Quasar">
+
+  <!-- Open Graph for Social Sharing -->
+  <meta property="og:title" content="Spatial Quasar | Numerical Methods">
+  <meta property="og:description"
+    content="Simulate finite precision arithmetic and calculate absolute/relative errors with dynamic k-digit precision controls.">
+  <meta property="og:type" content="website">
+
+  <!-- SVG Data URI Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%231E1E24%22 stroke=%22%23E89B1A%22 stroke-width=%225%22/><path d=%22M50 20 L60 40 L80 50 L60 60 L50 80 L40 60 L20 50 L40 40 Z%22 fill=%22%23E89B1A%22/></svg>">
+
+  <title>Spatial Quasar · Numerical Methods</title>
+
+  <!-- Google Fonts: Inter (body) + JetBrains Mono (numeric) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Design System CSS (order matters) -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- ═══════════════════════════════════════════
+         TOP NAVIGATION — Fixed glassmorphic bar
+         ═══════════════════════════════════════════ -->
+    <header class="nav" role="banner">
+      <div class="nav__brand">
+        <!-- Decorative quasar icon -->
+        <span class="nav__logo" aria-hidden="true">◈</span>
+        <h1 class="nav__title">
+          <span class="nav__title-accent">Spatial Quasar</span>
+          <span class="nav__title-separator">·</span>
+          <span class="nav__title-subtitle">Numerical Methods</span>
+        </h1>
+      </div>
+
+      <div class="nav__actions">
+        <!-- Accessibility Settings Toggle -->
+        <button class="theme-toggle" id="a11y-toggle" type="button" aria-label="Accessibility Settings"
+          title="Accessibility Options">
+          <span class="theme-toggle__thumb" aria-hidden="true">⊚</span>
+        </button>
+        <!-- Theme toggle button -->
+        <button class="theme-toggle" id="theme-toggle" type="button" role="switch" aria-checked="false"
+          aria-label="Switch to light theme" title="Toggle dark / light theme">
+          <span class="theme-toggle__thumb" id="theme-icon" aria-hidden="true">☀</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════
+         BODY: Sidebar + Main
+         ═══════════════════════════════════════════ -->
+    <div class="app__body">
+
+      <!-- ——— Sidebar (desktop ≥768px) ——— -->
+      <aside class="sidebar animate-fade-in" role="navigation" aria-label="Module navigation" id="sidebar-nav">
+        <p class="sidebar__section-title">Modules</p>
+
+        <div class="tabs" role="tablist" aria-label="Select a module" id="sidebar-tablist">
+
+          <button class="tab is-active" role="tab" id="tab-calculator" data-tab="module-calculator" aria-selected="true"
+            aria-controls="module-calculator" tabindex="0">
+            <span class="tab__icon" aria-hidden="true">⊞</span>
+            <span class="tab__label">Calculator</span>
+          </button>
+
+          <button class="tab" role="tab" id="tab-error" data-tab="module-error" aria-selected="false"
+            aria-controls="module-error" tabindex="-1">
+            <span class="tab__icon" aria-hidden="true">⊘</span>
+            <span class="tab__label">Error Analysis</span>
+          </button>
+
+          <button class="tab" role="tab" id="tab-polynomial" data-tab="module-polynomial" aria-selected="false"
+            aria-controls="module-polynomial" tabindex="-1">
+            <span class="tab__icon" aria-hidden="true">⊛</span>
+            <span class="tab__label">Polynomial Evaluator</span>
+          </button>
+
+          <button class="tab" role="tab" id="tab-ieee754" data-tab="module-ieee754" aria-selected="false"
+            aria-controls="module-ieee754" tabindex="-1">
+            <span class="tab__icon" aria-hidden="true">⑽</span>
+            <span class="tab__label">IEEE-754 Converter</span>
+          </button>
+
+        </div>
+      </aside>
+
+      <!-- ——— Mobile Tab Bar (< 768px) ——— -->
+      <nav class="mobile-tabs" role="tablist" aria-label="Select a module" id="mobile-tablist" aria-hidden="true">
+
+        <button class="tab is-active" role="tab" data-tab="module-calculator" aria-selected="true"
+          aria-controls="module-calculator" tabindex="-1">
+          <span class="tab__icon" aria-hidden="true">⊞</span>
+          <span class="tab__label">Calculator</span>
+        </button>
+
+        <button class="tab" role="tab" data-tab="module-error" aria-selected="false" aria-controls="module-error"
+          tabindex="-1">
+          <span class="tab__icon" aria-hidden="true">⊘</span>
+          <span class="tab__label">Error Analysis</span>
+        </button>
+
+        <button class="tab" role="tab" data-tab="module-polynomial" aria-selected="false"
+          aria-controls="module-polynomial" tabindex="-1">
+          <span class="tab__icon" aria-hidden="true">⊛</span>
+          <span class="tab__label">Polynomial Evaluator</span>
+        </button>
+
+        <button class="tab" role="tab" data-tab="module-ieee754" aria-selected="false" aria-controls="module-ieee754"
+          tabindex="-1">
+          <span class="tab__icon" aria-hidden="true">⑽</span>
+          <span class="tab__label">IEEE-754</span>
+        </button>
+
+      </nav>
+
+      <!-- ═══════════════════════════════════════════
+           MAIN CONTENT — Module panels
+           ═══════════════════════════════════════════ -->
+      <main class="main" id="main-content">
+
+        <!-- ——— Calculator Module (rendered by CalculatorUI.init) ——— -->
+        <section class="module-panel is-active animate-slide-up" id="module-calculator" role="tabpanel"
+          aria-labelledby="tab-calculator">
+          <!-- Content injected by js/ui/calculatorUI.js -->
+        </section>
+
+        <!-- ——— Error Analysis Module (rendered by ErrorAnalysisUI.init) ——— -->
+        <section class="module-panel" id="module-error" role="tabpanel" aria-labelledby="tab-error">
+          <!-- Content injected by js/ui/errorAnalysisUI.js -->
+        </section>
+
+        <!-- ——— Polynomial Evaluator Module ——— -->
+        <section class="module-panel" id="module-polynomial" role="tabpanel" aria-labelledby="tab-polynomial">
+          <!-- Content injected by js/ui/polynomialUI.js -->
+        </section>
+
+        <!-- ——— IEEE-754 Converter Module ——— -->
+        <section class="module-panel" id="module-ieee754" role="tabpanel" aria-labelledby="tab-ieee754">
+          <!-- Content injected by js/ui/ieee754UI.js -->
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         FOOTER
+         ═══════════════════════════════════════════ -->
+    <footer class="footer" role="contentinfo">
+      <div class="footer__content">
+        <span class="footer__text">Spatial Quasar · Numerical Methods v1.0</span>
+        <button class="btn btn--ghost" id="tutorial-btn" type="button">
+          <span aria-hidden="true">?</span>
+          How to Use
+        </button>
+      </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════
+         TUTORIAL MODAL
+         ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title" id="modal-title">How to Use</h2>
+          <button class="modal__close" id="modal-close" type="button" aria-label="Close dialog">&times;</button>
+        </div>
+        <div class="modal__body">
+          <p class="mb-4">Welcome to <strong class="text-accent">Spatial
+              Quasar</strong> — your browser-based Numerical Methods Calculator.</p>
+          <p class="mb-3"><strong>1. Choose a Module</strong> — Use the sidebar (or tab bar on
+            mobile) to switch between Calculator, Error Analysis, and Polynomial Evaluator.</p>
+          <p class="mb-3"><strong>2. Input Values</strong> — Enter your parameters in the
+            provided fields. Use decimal notation for precision.</p>
+          <p class="mb-3"><strong>3. Compute</strong> — Hit the Compute button to run the
+            selected method. Results appear inline with step-by-step breakdowns.</p>
+          <p class="mb-4"><strong>4. Theme</strong> — Toggle between dark and light modes using the switch in the top-right corner.
+          </p>
+          <button class="btn btn--primary btn--sm" id="start-tour-btn" type="button">
+            <span aria-hidden="true">▶</span> Start Interactive Tour
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Module Scripts (load before app.js) -->
+  <script src="js/modules/state.js"></script>
+  <script src="js/ui/utils.js"></script>
+  <script src="js/ui/tutorial.js"></script>
+  <script src="js/ui/accessibilityPanel.js"></script>
+
+  <script src="js/modules/calculator.js"></script>
+  <script src="js/modules/errorAnalysis.js"></script>
+  <script src="js/modules/polynomial.js"></script>
+  <script src="js/modules/ieee754.js"></script>
+
+  <script src="js/ui/calculatorUI.js"></script>
+  <script src="js/ui/errorAnalysisUI.js"></script>
+  <script src="js/ui/polynomialUI.js"></script>
+  <script src="js/ui/ieee754UI.js"></script>
+
+  <!-- Application Script -->
+  <script src="js/app.js"></script>
+</body>
+
+</html>
