@@ -1706,9 +1706,9 @@ html[data-density="exam"] .module-shell {
 .app-shell {
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  width: min(1400px, 96vw);
+  width: 100%;
   padding: 0;
-  margin: 0 auto;
+  margin: 0;
   transition: grid-template-columns var(--sidebar-transition);
 }
 
@@ -1717,6 +1717,7 @@ html[data-density="exam"] .module-shell {
 }
 
 .main-content {
+  max-width: min(1400px, 96vw);
   padding: 1.35rem 1.5rem 3.5rem;
   min-width: 0;
   overflow-x: hidden;
