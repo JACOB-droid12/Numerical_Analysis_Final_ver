@@ -869,6 +869,10 @@ th {
     grid-template-columns: 1fr;
   }
 
+  .field-grid-basic > label:nth-child(4) {
+    margin-left: 0;
+  }
+
   .app-shell {
     width: min(96vw, 100%);
   }
