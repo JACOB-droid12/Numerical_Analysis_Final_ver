@@ -1,0 +1,16 @@
+.agent/
+.agents/
+.claude/
+.playwright-cli/
+.playwright-mcp/
+output/
+deliverable/
+DO NOT OPEN UNLESS SPECIFIED TO DO SO!/
+*.log
+*.png
+__tmp_server__.js
+project-evolution-explorer.html
+project-evolution-explorer.css
+project-evolution-explorer.js
+scripts/check-project-evolution-explorer.ps1
+skills-lock.json
