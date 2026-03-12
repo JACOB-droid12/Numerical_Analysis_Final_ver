@@ -226,16 +226,17 @@
                 normalized bounds, and unit-in-the-last-place (ULP) context for a single binary operation.</p>
             </div>
 
-            <section class="control-band control-band-basic" aria-label="Single operation helper controls">
-              <div class="field-grid field-grid-basic">
-                <label>
-                  <div class="field-shell"><input id="basic-a" type="text" maxlength="150" value="2.1892"
+            <section class="control-band control-band-basic single-helper-controls" aria-label="Single operation helper controls">
+              <div class="single-helper-expression">
+                <label class="single-helper-operand">
+                  <span class="visually-hidden">Left operand</span>
+                  <div class="field-shell field-shell-inline-tools"><input id="basic-a" type="text" maxlength="150" value="2.1892"
                       placeholder="2.1892">
                     <button type="button" class="symbol-trigger symbol-trigger-mini" data-symbol-target="basic-a" aria-label="Open symbols" title="Open symbols">∑</button>
                   </div>
                 </label>
-                <label>
-                  Operation
+                <label class="single-helper-operator">
+                  <span class="visually-hidden">Operation</span>
                   <select id="basic-op">
                     <option value="+">+</option>
                     <option value="-">-</option>
@@ -243,27 +244,30 @@
                     <option value="/">/</option>
                   </select>
                 </label>
-                <label>
-                  <div class="field-shell"><input id="basic-b" type="text" maxlength="150" value="3.7008"
+                <label class="single-helper-operand">
+                  <span class="visually-hidden">Right operand</span>
+                  <div class="field-shell field-shell-inline-tools"><input id="basic-b" type="text" maxlength="150" value="3.7008"
                       placeholder="3.7008">
                     <button type="button" class="symbol-trigger symbol-trigger-mini" data-symbol-target="basic-b" aria-label="Open symbols" title="Open symbols">∑</button>
                   </div>
                 </label>
-                <label>
+              </div>
+
+              <div class="single-helper-settings">
+                <label class="single-helper-setting">
                   Significant digits (k)
                   <input id="basic-k" type="number" min="1" max="25" step="1" value="8" inputmode="decimal">
                 </label>
-                <label>
+                <label class="single-helper-setting">
                   Machine rule
                   <select id="basic-mode">
                     <option value="chop" selected>Chopping</option>
                     <option value="round">Rounding</option>
                   </select>
                 </label>
-              </div>
-
-              <div class="control-actions">
-                <button id="basic-compute" type="button" class="ghost">Calculate</button>
+                <div class="single-helper-settings-action">
+                  <button id="basic-compute" type="button" class="ghost">Calculate</button>
+                </div>
               </div>
 
               <p id="basic-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden>

@@ -90,8 +90,6 @@
   const POLY_FIELD_IDS = ["poly-expression", "poly-x", "poly-k"];
   const PREVIEW_FIELDS = [
     { inputId: "basic-expression", previewId: "basic-expression-preview", allowVariable: false, className: "math-preview math-preview-wide" },
-    { inputId: "basic-a", previewId: "basic-a-preview", allowVariable: false, className: "math-preview math-preview-inline" },
-    { inputId: "basic-b", previewId: "basic-b-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "error-exact", previewId: "error-exact-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "error-approx", previewId: "error-approx-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "poly-expression", previewId: "poly-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
@@ -873,6 +871,13 @@
 
     const tutorialModule = document.querySelector(".module-tutorial");
     if (tutorialModule) {
+      ["basic-a-preview", "basic-b-preview"].forEach(function (previewId) {
+        const preview = document.getElementById(previewId);
+        if (preview) {
+          preview.remove();
+        }
+      });
+
       const basicPractice = document.getElementById("tutorial-basic-practice");
       const helperSection = document.querySelector(".standalone-helper");
       if (basicPractice && helperSection && helperSection.parentElement !== basicPractice) {
