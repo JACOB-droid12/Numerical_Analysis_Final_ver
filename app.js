@@ -86,6 +86,7 @@
   ];
   const BASIC_FIELD_IDS = ["basic-a", "basic-b", "basic-k"];
   const EXPRESSION_FIELD_IDS = ["basic-expression", "basic-expression-k"];
+  const EXPRESSION_SANDBOX_FIELD_IDS = ["basic-sandbox-k"];
   const ERROR_FIELD_IDS = ["error-exact", "error-approx"];
   const POLY_FIELD_IDS = ["poly-expression", "poly-x", "poly-k"];
   const PREVIEW_FIELDS = [
@@ -161,6 +162,7 @@
 
   const state = {
     expressionComparison: null,
+    expressionSandbox: null,
     basicExact: null,
     basicApprox: null,
     basicStoredApprox: null,
@@ -329,6 +331,11 @@
   function clearExpressionFeedback() {
     clearInvalid(EXPRESSION_FIELD_IDS, "basic-expression-error-msg");
     showError("basic-expression-error-msg", "");
+  }
+
+  function clearExpressionSandboxFeedback() {
+    clearInvalid(EXPRESSION_SANDBOX_FIELD_IDS, "basic-sandbox-error");
+    showError("basic-sandbox-error", "");
   }
 
   function clearBasicFeedback() {
@@ -766,9 +773,10 @@
       }
 
       const basicNextSteps = document.getElementById("basic-next-steps");
+      const basicSandbox = document.getElementById("basic-sandbox");
       const basicAdvanced = ensureAdvancedToolsPanel(
         basicModule,
-        basicNextSteps || basicActions || document.getElementById("basic-result-stage") || document.getElementById("basic-empty")
+        basicSandbox || basicNextSteps || basicActions || document.getElementById("basic-result-stage") || document.getElementById("basic-empty")
       );
 
       const expressionStrip = document.getElementById("basic-expression-canonical")
@@ -903,6 +911,7 @@
     setHidden("basic-empty", !showBasicStarter);
     setHidden("basic-next-steps", !hasExprResults);
     setHidden("basic-result-stage", !hasExprResults);
+    setHidden("basic-sandbox", !hasExprResults);
     // Exam mode moves the answer strip and note out of basic-result-stage,
     // so they need individual hidden control as well.
     setHidden("basic-answer-strip", !hasExprResults);
@@ -1019,6 +1028,7 @@
       setText(id, EMPTY_VALUE);
     }
     state.expressionComparison = null;
+    resetExpressionSandbox();
     byId("basic-send-step").disabled = true;
     byId("basic-send-final").disabled = true;
     byId("basic-open-trace").disabled = true;
@@ -1569,6 +1579,120 @@
     body.appendChild(fragment);
   }
 
+  function buildExpressionComparison(ast, expression, k, mode) {
+    const exactCompatible = E.isExactCompatible(ast, { angleMode: state.angleMode });
+    const reference = exactCompatible
+      ? E.evaluateExact(ast, { angleMode: state.angleMode })
+      : E.evaluateValue(ast, { angleMode: state.angleMode });
+    const stepRun = E.evaluateStepwise(ast, { k, mode }, { angleMode: state.angleMode });
+    const finalData = C.machineApproxValue(reference, k, mode);
+    return { expression, ast, exactCompatible, reference, stepRun, finalData, k, mode };
+  }
+
+  function describeExpressionSandboxChange(currentK, currentMode, altK, altMode, changedValue) {
+    const changes = [];
+    if (altK !== currentK) {
+      changes.push("changing k from " + currentK + " to " + altK);
+    }
+    if (altMode !== currentMode) {
+      changes.push("switching from " + machineRuleTitle(currentMode).toLowerCase() + " to " + machineRuleTitle(altMode).toLowerCase());
+    }
+    if (!changes.length) {
+      return "No comparison change was requested. Choose a different k or rule to test sensitivity.";
+    }
+    const summary = changes.length === 2 ? changes[0] + " and " + changes[1] : changes[0];
+    const sentence = summary.charAt(0).toUpperCase() + summary.slice(1);
+    return changedValue
+      ? sentence + " changed p* noticeably."
+      : sentence + " did not change p* for this expression.";
+  }
+
+  function clearExpressionSandboxResult() {
+    state.expressionSandbox = null;
+    setText("basic-sandbox-alt-value", EMPTY_VALUE);
+    setText("basic-sandbox-note", EMPTY_VALUE);
+    setHidden("basic-sandbox-result", true);
+  }
+
+  function resetExpressionSandbox() {
+    clearExpressionSandboxFeedback();
+    clearExpressionSandboxResult();
+    setText("basic-sandbox-current-value", EMPTY_VALUE);
+    setText("basic-sandbox-current-setup", EMPTY_VALUE);
+    setText("basic-sandbox-current-expression", EMPTY_VALUE);
+    byId("basic-sandbox-k").value = byId("basic-expression-k").value || "8";
+    byId("basic-sandbox-mode").value = byId("basic-expression-mode").value || "chop";
+  }
+
+  function primeExpressionSandbox(preferredSettings) {
+    if (!state.expressionComparison) {
+      resetExpressionSandbox();
+      return;
+    }
+
+    clearExpressionSandboxFeedback();
+    setContent("basic-sandbox-current-value", machineValueFromData(state.expressionComparison.step), false);
+    setContent("basic-sandbox-current-setup", "Current setup: k = " + state.expressionComparison.k + ", " + machineRuleTitle(state.expressionComparison.mode) + ".", false);
+    setContent("basic-sandbox-current-expression", "Expression: " + state.expressionComparison.canonical, false);
+    byId("basic-sandbox-k").value = String(preferredSettings && preferredSettings.k ? preferredSettings.k : state.expressionComparison.k);
+    byId("basic-sandbox-mode").value = preferredSettings && preferredSettings.mode ? preferredSettings.mode : state.expressionComparison.mode;
+
+    if (!preferredSettings) {
+      clearExpressionSandboxResult();
+    }
+  }
+
+  function computeExpressionSandbox(shouldAnnounce) {
+    clearExpressionSandboxFeedback();
+    if (!state.expressionComparison) {
+      return;
+    }
+
+    let altK;
+    try {
+      altK = parsePositiveInt("basic-sandbox-k", "alternate k");
+    } catch (error) {
+      clearExpressionSandboxResult();
+      markInvalid(EXPRESSION_SANDBOX_FIELD_IDS, "basic-sandbox-error");
+      showError("basic-sandbox-error", error.message);
+      byId("basic-sandbox-k").focus();
+      return;
+    }
+
+    const altMode = byId("basic-sandbox-mode").value;
+
+    try {
+      const run = buildExpressionComparison(state.expressionComparison.ast, state.expressionComparison.expression, altK, altMode);
+      const stepData = C.machineApproxValue(run.stepRun.approx, altK, altMode);
+      const changedValue = !valuesEquivalent(state.expressionComparison.step.approx, run.stepRun.approx);
+      const note = describeExpressionSandboxChange(state.expressionComparison.k, state.expressionComparison.mode, altK, altMode, changedValue);
+
+      state.expressionSandbox = {
+        k: altK,
+        mode: altMode,
+        approx: stepData.approx,
+        scientific: stepData.scientific,
+        note
+      };
+
+      setContent("basic-sandbox-alt-value", machineValueFromData(state.expressionSandbox), false);
+      setContent("basic-sandbox-note", note, false);
+      setHidden("basic-sandbox-result", false);
+
+      if (shouldAnnounce !== false) {
+        announceStatus("basic-status-msg", "Sensitivity comparison updated. Sandbox p* = " + shortValue(stepData.approx, 16, 10) + ".");
+      }
+    } catch (error) {
+      clearExpressionSandboxResult();
+      showError(
+        "basic-sandbox-error",
+        error.message === "Division by zero."
+          ? "The expression cannot divide by 0 under the alternate settings."
+          : formatExpressionInputError(error)
+      );
+    }
+  }
+
   function renderExpressionResults(ast, reference, stepRun, finalData, k, mode, exactCompatible) {
     updateExpressionFinalLabel(mode);
     const basicReferenceLabel = document.getElementById("basic-expression-reference-label");
@@ -1627,38 +1751,46 @@
     const mode = byId("basic-expression-mode").value;
 
     try {
-      const exactCompatible = E.isExactCompatible(ast, { angleMode: state.angleMode });
-      const reference = exactCompatible
-        ? E.evaluateExact(ast, { angleMode: state.angleMode })
-        : E.evaluateValue(ast, { angleMode: state.angleMode });
-      const stepRun = E.evaluateStepwise(ast, { k, mode }, { angleMode: state.angleMode });
-      const finalData = C.machineApproxValue(reference, k, mode);
-      renderExpressionResults(ast, reference, stepRun, finalData, k, mode, exactCompatible);
+      const priorSandbox = state.expressionSandbox
+        ? { k: state.expressionSandbox.k, mode: state.expressionSandbox.mode }
+        : null;
+      const run = buildExpressionComparison(ast, expression, k, mode);
+      const stepData = C.machineApproxValue(run.stepRun.approx, k, mode);
+
+      renderExpressionResults(run.ast, run.reference, run.stepRun, run.finalData, k, mode, run.exactCompatible);
       state.expressionComparison = {
         expression,
-        canonical: stepRun.canonical,
-        exact: reference,
+        ast: run.ast,
+        canonical: run.stepRun.canonical,
+        exact: run.reference,
         k,
         mode,
-        path: exactCompatible ? "exact" : "calc",
+        path: run.exactCompatible ? "exact" : "calc",
         step: {
-          approx: stepRun.approx,
-          steps: stepRun.steps,
-          opCount: stepRun.opCount
+          approx: stepData.approx,
+          scientific: stepData.scientific,
+          steps: run.stepRun.steps,
+          opCount: run.stepRun.opCount
         },
         final: {
-          approx: finalData.approx,
-          scientific: finalData.scientific
+          approx: run.finalData.approx,
+          scientific: run.finalData.scientific
         }
       };
       byId("basic-send-step").disabled = false;
       byId("basic-send-final").disabled = false;
       byId("basic-open-trace").disabled = false;
+
+      primeExpressionSandbox(priorSandbox);
+      if (priorSandbox) {
+        computeExpressionSandbox(false);
+      }
+
       markOnboardingComplete();
       syncOnboardingUI();
       announceStatus(
         "basic-status-msg",
-        "Expression results updated. Stepwise p* = " + shortValue(stepRun.approx, 16, 10) + ". Final-only p* = " + shortValue(finalData.approx, 16, 10) + "."
+        "Expression results updated. Stepwise p* = " + shortValue(run.stepRun.approx, 16, 10) + ". Final-only p* = " + shortValue(run.finalData.approx, 16, 10) + "."
       );
     } catch (error) {
       handleExpressionError(error.message === "Division by zero." ? "The expression cannot divide by 0." : formatExpressionInputError(error), ["basic-expression"]);
@@ -2442,6 +2574,9 @@
       importBasicIntoErrorModule("final");
     });
     byId("basic-open-trace").addEventListener("click", openBasicMachineTrace);
+    byId("basic-sandbox-compare").addEventListener("click", function onSandboxCompare() {
+      computeExpressionSandbox(true);
+    });
     byId("basic-compute").addEventListener("click", computeBasicModule);
     byId("basic-load-preset").addEventListener("click", loadBasicPreset);
     byId("basic-verify").addEventListener("click", runMandatoryVerification);
@@ -2488,6 +2623,15 @@
       clearExpressionFeedback();
       resetExpressionResults();
     });
+    var debouncedSandboxReset = debounce(function () {
+      clearExpressionSandboxFeedback();
+      clearExpressionSandboxResult();
+    }, 60);
+    byId("basic-sandbox-k").addEventListener("input", debouncedSandboxReset);
+    byId("basic-sandbox-mode").addEventListener("change", function onSandboxModeChange() {
+      clearExpressionSandboxFeedback();
+      clearExpressionSandboxResult();
+    });
     var debouncedBasicReset = debounce(function () {
       clearBasicFeedback();
       resetBasicResults();
@@ -2517,6 +2661,9 @@
 
     onEnterKey("basic-expression", computeExpressionModule);
     onEnterKey("basic-expression-k", computeExpressionModule);
+    onEnterKey("basic-sandbox-k", function onSandboxEnter() {
+      computeExpressionSandbox(true);
+    });
     onEnterKey("basic-a", computeBasicModule);
     onEnterKey("basic-b", computeBasicModule);
     onEnterKey("basic-k", computeBasicModule);

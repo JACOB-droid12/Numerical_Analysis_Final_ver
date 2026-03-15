@@ -216,6 +216,51 @@
   </div>
 </section>
 
+        <section id="basic-sandbox" class="sensitivity-sandbox" aria-label="Module I sensitivity sandbox" hidden>
+          <div class="sandbox-header">
+            <div>
+              <p class="module-kicker">Sensitivity sandbox</p>
+              <h3>Try one alternate machine setting</h3>
+            </div>
+            <p class="lesson-note">Compare the current stepwise machine answer with one alternate <strong>k</strong> or rule without changing the main result.</p>
+          </div>
+
+          <div class="sandbox-grid">
+            <div class="sandbox-current answer-hero answer-hero-secondary-comparison">
+              <p class="result-label">Current main machine p*</p>
+              <p id="basic-sandbox-current-value" class="answer-value is-empty">Not calculated yet.</p>
+              <p id="basic-sandbox-current-setup" class="result-caption is-empty">Not calculated yet.</p>
+              <p id="basic-sandbox-current-expression" class="lesson-note is-empty">Not calculated yet.</p>
+            </div>
+
+            <label>
+              Alternate digits (k)
+              <input id="basic-sandbox-k" type="number" min="1" max="25" step="1" value="8" inputmode="decimal">
+            </label>
+
+            <label>
+              Alternate rule
+              <select id="basic-sandbox-mode">
+                <option value="chop" selected>Chopping</option>
+                <option value="round">Rounding</option>
+              </select>
+            </label>
+
+            <div class="sandbox-action">
+              <button id="basic-sandbox-compare" type="button" class="ghost">Compare sensitivity</button>
+            </div>
+          </div>
+
+          <p id="basic-sandbox-error" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
+
+          <div id="basic-sandbox-result" class="sandbox-result" hidden>
+            <div class="answer-hero answer-hero-reading answer-hero-major">
+              <p class="result-label">Sandbox machine p*</p>
+              <p id="basic-sandbox-alt-value" class="answer-value is-empty">Not calculated yet.</p>
+              <p id="basic-sandbox-note" class="result-caption is-empty">Not calculated yet.</p>
+            </div>
+          </div>
+        </section>
 
         <section class="standalone-helper" aria-label="Single operation helper">
           <div class="utility-stack">
