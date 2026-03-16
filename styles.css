@@ -780,6 +780,124 @@ th {
   white-space: pre-wrap;
 }
 
+.module-ieee754 {
+  gap: var(--space-5);
+}
+
+.ieee-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.control-band-ieee {
+  margin: 0;
+}
+
+.ieee-card {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ieee-card-header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ieee-card-header h3 {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.28rem);
+  letter-spacing: -0.04em;
+}
+
+.ieee-result-stage {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ieee-answer-strip {
+  align-items: stretch;
+}
+
+.ieee-detail-grid {
+  align-items: start;
+}
+
+.answer-value-bits,
+.ieee-bit-string,
+.ieee-bit-field,
+#ieee-grouped-bits,
+#ieee-exponent-bits,
+#ieee-mantissa-bits {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.answer-value-bits {
+  font-size: clamp(1rem, 1.5vw, 1.28rem);
+  line-height: 1.35;
+  letter-spacing: -0.04em;
+  word-break: break-all;
+}
+
+.ieee-bit-string {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.ieee-bit-field {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.1rem;
+  padding: 0.24rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius-sm) - 4px);
+  background: var(--surface-0);
+}
+
+.ieee-bit-field-sign {
+  color: #8a4f22;
+  background: color-mix(in srgb, var(--surface-0) 70%, #f6d2b4 30%);
+}
+
+.ieee-bit-field-exponent {
+  color: #1f5f55;
+  background: color-mix(in srgb, var(--surface-0) 68%, #bde8d5 32%);
+}
+
+.ieee-bit-field-mantissa {
+  color: #5a3f7a;
+  background: color-mix(in srgb, var(--surface-0) 70%, #d9cbf6 30%);
+}
+
+.ieee-bit-divider {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.ieee-field-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+[data-theme="dark"] .ieee-bit-field-sign {
+  color: #ffd1a3;
+  background: color-mix(in srgb, var(--surface-0) 74%, #5b3417 26%);
+}
+
+[data-theme="dark"] .ieee-bit-field-exponent {
+  color: #c6f4e7;
+  background: color-mix(in srgb, var(--surface-0) 76%, #143e37 24%);
+}
+
+[data-theme="dark"] .ieee-bit-field-mantissa {
+  color: #ead7ff;
+  background: color-mix(in srgb, var(--surface-0) 76%, #3f2b58 24%);
+}
+
 [data-theme="dark"] .module-shell {
   box-shadow: none;
 }
@@ -788,6 +906,7 @@ th {
 
   .comparison-grid-board,
   .comparison-grid-triple,
+  .ieee-grid,
   .field-grid-expression,
   .field-grid-poly,
   .field-grid-error,
@@ -865,7 +984,8 @@ th {
   .answer-strip-triple,
   .answer-strip-inline,
   .comparison-grid-board,
-  .comparison-grid-triple {
+  .comparison-grid-triple,
+  .ieee-grid {
     grid-template-columns: 1fr;
   }
 
@@ -879,6 +999,15 @@ th {
 }
 
 @media (max-width: 720px) {
+  .ieee-bit-string {
+    align-items: flex-start;
+  }
+
+  .ieee-bit-field {
+    max-width: 100%;
+    word-break: break-all;
+  }
+
   .app-shell {
     padding-top: var(--space-4);
   }

@@ -53,6 +53,10 @@
           <span class="sidebar-icon">f(x)</span>
           <span class="sidebar-label">Polynomial</span>
         </button>
+        <button id="tab-btn-ieee754" type="button" class="sidebar-nav-item" data-tab="ieee754" role="tab" aria-selected="false" aria-controls="tab-ieee754" aria-label="IEEE-754 Double Precision" tabindex="-1">
+          <span class="sidebar-icon">64</span>
+          <span class="sidebar-label">IEEE-754</span>
+        </button>
         <button id="tab-btn-tutorial" type="button" class="sidebar-nav-item" data-tab="tutorial" role="tab" aria-selected="false" aria-controls="tab-tutorial" aria-label="Tutorial" tabindex="-1">
           <span class="sidebar-icon">?</span>
           <span class="sidebar-label">Tutorial</span>
@@ -840,6 +844,158 @@
       </div>
     </section>
 
+    <section id="tab-ieee754" class="panel" role="tabpanel" aria-labelledby="tab-btn-ieee754" tabindex="0" hidden>
+      <div class="module-shell module-ieee754">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Module IV</p>
+            <h2>IEEE-754 Double Precision Lab</h2>
+          </div>
+          <p class="module-copy">
+            Convert between decimal values and 64-bit IEEE-754 patterns, then inspect the sign bit, exponent,
+            mantissa, and spacing interpretation.
+          </p>
+        </header>
+
+        <section class="ieee-grid" aria-label="IEEE-754 conversion tools">
+          <section class="control-band control-band-ieee ieee-card" aria-label="Decimal to IEEE-754 conversion">
+            <div class="ieee-card-header">
+              <div>
+                <p class="module-kicker">Encode</p>
+                <h3>Decimal to IEEE-754</h3>
+              </div>
+              <p class="lesson-note">Try <code>0.1</code>, <code>-13.25</code>, <code>1e-300</code>, <code>Infinity</code>, or <code>NaN</code>.</p>
+            </div>
+
+            <div class="omnipotent-search-bar calculator-band">
+              <div class="field-shell field-shell-expression search-shell">
+                <input id="ieee-decimal-input" type="text" maxlength="160" placeholder="0.1 or -13.25">
+                <button id="ieee-encode" type="button" class="btn-calculate-omni" title="Encode decimal">=</button>
+              </div>
+            </div>
+
+            <p id="ieee-decimal-error" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
+          </section>
+
+          <section class="control-band control-band-ieee ieee-card" aria-label="IEEE-754 to decimal conversion">
+            <div class="ieee-card-header">
+              <div>
+                <p class="module-kicker">Decode</p>
+                <h3>IEEE-754 to Decimal</h3>
+              </div>
+              <p class="lesson-note">Paste 64 bits with or without spaces. The tool will normalize the grouping for display.</p>
+            </div>
+
+            <div class="omnipotent-search-bar calculator-band">
+              <div class="field-shell field-shell-expression search-shell">
+                <input id="ieee-binary-input" type="text" maxlength="95" placeholder="0100000000101010100000000000000000000000000000000000000000000000">
+                <button id="ieee-decode" type="button" class="btn-calculate-omni" title="Decode bits">=</button>
+              </div>
+            </div>
+
+            <p id="ieee-binary-error" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
+          </section>
+        </section>
+        <p id="ieee-status-msg" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <section id="ieee-empty" class="empty-state">
+          <p class="result-label">Inspect a stored double</p>
+          <h3 class="empty-title">Encode a decimal value or decode a 64-bit pattern to inspect the stored representation.</h3>
+        </section>
+
+        <section id="ieee-result-stage" class="result-stage ieee-result-stage" aria-label="IEEE-754 conversion results" hidden>
+          <div class="comparison-grid comparison-grid-triple">
+            <div class="answer-hero answer-hero-major answer-hero-source">
+              <p id="ieee-source-label" class="result-label">Most recent input</p>
+              <p id="ieee-source-value" class="answer-value is-empty">Ready to convert</p>
+            </div>
+
+            <div class="answer-hero answer-hero-major answer-hero-primary-machine">
+              <p class="result-label">64-bit stored pattern</p>
+              <p id="ieee-bit-pattern" class="answer-value answer-value-bits is-empty">Ready to convert</p>
+            </div>
+
+            <div class="answer-hero answer-hero-major answer-hero-secondary-comparison">
+              <p class="result-label">Decoded value</p>
+              <p id="ieee-decoded-value" class="answer-value is-empty">Ready to convert</p>
+            </div>
+          </div>
+
+          <dl class="answer-strip answer-strip-quad ieee-answer-strip">
+            <div>
+              <dt>Classification</dt>
+              <dd id="ieee-classification" class="is-empty">Ready to convert</dd>
+            </div>
+            <div>
+              <dt>Sign bit</dt>
+              <dd id="ieee-sign-bit" class="is-empty">Ready to convert</dd>
+            </div>
+            <div>
+              <dt>Biased exponent</dt>
+              <dd id="ieee-biased-exponent" class="is-empty">Ready to convert</dd>
+            </div>
+            <div>
+              <dt>True exponent</dt>
+              <dd id="ieee-true-exponent" class="is-empty">Ready to convert</dd>
+            </div>
+          </dl>
+
+          <div class="detail-grid detail-grid-basic ieee-detail-grid">
+            <section class="reference-panel">
+              <h3>Bit field breakdown</h3>
+              <dl class="metric-list">
+                <div>
+                  <dt>Grouped bits</dt>
+                  <dd id="ieee-grouped-bits" class="is-empty">Ready to convert</dd>
+                </div>
+                <div>
+                  <dt>Exponent bits</dt>
+                  <dd id="ieee-exponent-bits" class="is-empty">Ready to convert</dd>
+                </div>
+                <div>
+                  <dt>Mantissa bits</dt>
+                  <dd id="ieee-mantissa-bits" class="is-empty">Ready to convert</dd>
+                </div>
+                <div>
+                  <dt>Mantissa meaning</dt>
+                  <dd id="ieee-mantissa-meaning" class="is-empty">Ready to convert</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="reading-panel reading-panel-rule">
+              <h3>Interpretation</h3>
+              <div class="note-stack">
+                <p id="ieee-normalized-note" class="lesson-note is-empty">Ready to convert</p>
+                <p id="ieee-special-note" class="lesson-note is-empty">Ready to convert</p>
+                <p id="ieee-interval-note" class="lesson-note is-empty">Ready to convert</p>
+              </div>
+            </section>
+          </div>
+
+          <details id="ieee-steps-panel" class="disclosure disclosure-table" hidden>
+            <summary>Conversion steps</summary>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Stage</th>
+                    <th>Explanation</th>
+                  </tr>
+                </thead>
+                <tbody id="ieee-steps-body">
+                  <tr class="empty-row">
+                    <td colspan="3">No conversion steps yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+      </div>
+    </section>
+
     <section id="tab-tutorial" class="panel" role="tabpanel" aria-labelledby="tab-btn-tutorial" tabindex="0" hidden>
       <div class="module-shell module-tutorial">
         <header class="module-header">
@@ -926,6 +1082,7 @@
   <script src="calc-engine.js?v=cw1"></script>
   <script src="expression-engine.js?v=cw1"></script>
   <script src="poly-engine.js?v=cw1"></script>
+  <script src="ieee754.js?v=ieee1"></script>
   <script src="math-display.js?v=nat1"></script>
   <script src="app.js?v=student4"></script>
 </body>

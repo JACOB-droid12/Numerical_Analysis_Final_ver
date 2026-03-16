@@ -1,13 +1,14 @@
 "use strict";
 
 (function initApp(globalScope) {
-    const M = globalScope.MathEngine;
+  const I = globalScope.IEEE754;
+  const M = globalScope.MathEngine;
   const C = globalScope.CalcEngine;
   const E = globalScope.ExpressionEngine;
   const D = globalScope.MathDisplay;
   const P = globalScope.PolyEngine;
-  if (!M || !C || !E || !D || !P) {
-    throw new Error("MathEngine, CalcEngine, ExpressionEngine, MathDisplay, and PolyEngine must be loaded before app.js.");
+  if (!I || !M || !C || !E || !D || !P) {
+    throw new Error("IEEE754, MathEngine, CalcEngine, ExpressionEngine, MathDisplay, and PolyEngine must be loaded before app.js.");
   }
 
   const EMPTY_VALUE = "Not calculated yet.";
@@ -84,11 +85,29 @@
     "poly-operation-winner",
     "poly-sensitivity-note"
   ];
+  const IEEE_RESULT_IDS = [
+    "ieee-source-value",
+    "ieee-bit-pattern",
+    "ieee-decoded-value",
+    "ieee-classification",
+    "ieee-sign-bit",
+    "ieee-biased-exponent",
+    "ieee-true-exponent",
+    "ieee-grouped-bits",
+    "ieee-exponent-bits",
+    "ieee-mantissa-bits",
+    "ieee-mantissa-meaning",
+    "ieee-normalized-note",
+    "ieee-special-note",
+    "ieee-interval-note"
+  ];
   const BASIC_FIELD_IDS = ["basic-a", "basic-b", "basic-k"];
   const EXPRESSION_FIELD_IDS = ["basic-expression", "basic-expression-k"];
   const EXPRESSION_SANDBOX_FIELD_IDS = ["basic-sandbox-k"];
   const ERROR_FIELD_IDS = ["error-exact", "error-approx"];
   const POLY_FIELD_IDS = ["poly-expression", "poly-x", "poly-k"];
+  const IEEE_DECIMAL_FIELD_IDS = ["ieee-decimal-input"];
+  const IEEE_BINARY_FIELD_IDS = ["ieee-binary-input"];
   const PREVIEW_FIELDS = [
     { inputId: "basic-expression", previewId: "basic-expression-preview", allowVariable: false, className: "math-preview math-preview-wide" },
     { inputId: "error-exact", previewId: "error-exact-preview", allowVariable: false, className: "math-preview math-preview-inline" },
@@ -171,6 +190,7 @@
     errorSourceKind: "manual",
     errorComputed: false,
     polyComparison: null,
+    ieeeResult: null,
     onboardingGuidePreference: null,
     onboardingComplete: false,
     theme: "light",
@@ -353,6 +373,13 @@
     showError("poly-error-msg", "");
   }
 
+  function clearIEEEFeedback() {
+    clearInvalid(IEEE_DECIMAL_FIELD_IDS, "ieee-decimal-error");
+    clearInvalid(IEEE_BINARY_FIELD_IDS, "ieee-binary-error");
+    showError("ieee-decimal-error", "");
+    showError("ieee-binary-error", "");
+  }
+
   function renderErrorSource() {
     setContent("error-source", state.errorSource, false);
   }
@@ -531,6 +558,10 @@
       return button.classList.contains("active");
     });
     const tab = activeButton ? activeButton.dataset.tab : "basic";
+
+    if (tab === "ieee754") {
+      return "ieee";
+    }
 
     if (tab === "basic") {
       if (state.expressionComparison && state.expressionComparison.path === "calc") {
@@ -1087,6 +1118,364 @@
     renderEmptyPolySteps();
     clearStatus("poly-status-msg");
     syncOnboardingUI();
+  }
+
+  function renderEmptyIEEESteps() {
+    const body = byId("ieee-steps-body");
+    body.innerHTML = "";
+
+    const row = document.createElement("tr");
+    row.className = "empty-row";
+
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+    cell.textContent = "No conversion steps yet.";
+    row.appendChild(cell);
+    body.appendChild(row);
+  }
+
+  function resetIEEEResults() {
+    for (const id of IEEE_RESULT_IDS) {
+      setText(id, EMPTY_VALUE);
+    }
+    setContent("ieee-source-label", "Most recent input", false);
+    state.ieeeResult = null;
+    setHidden("ieee-empty", false);
+    setHidden("ieee-result-stage", true);
+    setHidden("ieee-steps-panel", true);
+    renderEmptyIEEESteps();
+    clearStatus("ieee-status-msg");
+  }
+
+  function formatIEEEValue(value) {
+    if (Number.isNaN(value)) {
+      return "NaN";
+    }
+    if (value === Number.POSITIVE_INFINITY) {
+      return "Infinity";
+    }
+    if (value === Number.NEGATIVE_INFINITY) {
+      return "-Infinity";
+    }
+    if (Object.is(value, -0)) {
+      return "-0";
+    }
+    return String(value);
+  }
+
+  function formatIEEEGroupedBits(bits) {
+    return '<span class="ieee-bit-string">'
+      + '<span class="ieee-bit-field ieee-bit-field-sign">' + bits.slice(0, 1) + '</span>'
+      + '<span class="ieee-bit-divider">|</span>'
+      + '<span class="ieee-bit-field ieee-bit-field-exponent">' + bits.slice(1, 12) + '</span>'
+      + '<span class="ieee-bit-divider">|</span>'
+      + '<span class="ieee-bit-field ieee-bit-field-mantissa">' + bits.slice(12) + '</span>'
+      + '</span>';
+  }
+
+  function setHTMLContent(id, html, isEmpty) {
+    const el = byId(id);
+    el.innerHTML = html;
+    el.classList.toggle("is-empty", Boolean(isEmpty));
+  }
+
+  function classifyIEEEResult(decoded) {
+    if (decoded.specialType) {
+      return decoded.specialType;
+    }
+    if (decoded.biasedExp === 0) {
+      return decoded.mantissaBits.includes("1") ? "Subnormal" : "Zero";
+    }
+    return "Normal";
+  }
+
+  function describeSignBit(signBit) {
+    return signBit === "1" || signBit === 1 ? "1 (negative)" : "0 (positive)";
+  }
+
+  function describeMantissa(decoded, classification) {
+    if (classification === "NaN") {
+      return "NaN payload: exponent is all ones and mantissa is non-zero.";
+    }
+    if (classification === "Infinity") {
+      return "All mantissa bits are zero, so the all-ones exponent represents infinity.";
+    }
+    if (classification === "Zero") {
+      return "All mantissa bits are zero, so the stored value is exactly zero.";
+    }
+    if (classification === "Subnormal") {
+      return "Significand = 0." + decoded.mantissaBits + " (no implicit leading 1).";
+    }
+    return "Significand = 1." + decoded.mantissaBits + " (implicit leading 1).";
+  }
+
+  function describeNormalization(decoded, classification) {
+    if (classification === "NaN") {
+      return "NaN does not use a real-number normalization formula; it is identified by exponent bits of all ones and a non-zero mantissa.";
+    }
+    if (classification === "Infinity") {
+      return "Infinity is stored with exponent bits of all ones and a zero mantissa, so it bypasses normal binary scientific notation.";
+    }
+    if (classification === "Zero") {
+      return "Zero uses exponent bits of all zeros and a zero mantissa. The sign bit distinguishes +0 from -0.";
+    }
+    if (classification === "Subnormal") {
+      return "This is subnormal: exponent bits are all zeros, so the significand starts at 0. and the scale stays anchored near 2^-1022.";
+    }
+    return "Normalized form: (-1)^" + decoded.signBit + " x 2^(" + decoded.trueExp + ") x (1." + decoded.mantissaBits + ").";
+  }
+
+  function describeInterval(interval, classification) {
+    if (!interval || classification === "Infinity" || classification === "NaN") {
+      return "A standard ULP interval is not used for this value class.";
+    }
+    if (classification === "Zero") {
+      return "Zero sits at the boundary of the smallest magnitudes. Local spacing follows the subnormal step size " + interval.gapDelta + ".";
+    }
+    return "Spacing / ULP step: " + interval.gapDelta + ". Interval model: " + interval.equation + ".";
+  }
+
+  function trueExponentDisplay(decoded, classification) {
+    if (classification === "NaN" || classification === "Infinity") {
+      return "N/A";
+    }
+    return String(decoded.trueExp);
+  }
+
+  function buildEncodeSteps(input, encoded, decoded, classification) {
+    const stepList = [];
+    stepList.push({
+      stage: "Read input",
+      explanation: "Start from decimal input " + input + " and set the sign bit to " + encoded.sign + "."
+    });
+
+    if (classification === "NaN" || classification === "Infinity" || classification === "Zero") {
+      stepList.push({
+        stage: "Special case",
+        explanation: "This value is treated as " + classification + ", so the exponent and mantissa fields follow the special IEEE-754 pattern for that class."
+      });
+    } else {
+      stepList.push({
+        stage: "Integer path",
+        explanation: "Integer conversion used " + encoded.integerSteps.length + " repeated-division step(s) before normalization."
+      });
+      stepList.push({
+        stage: "Fraction path",
+        explanation: "Fraction conversion used " + encoded.fractionSteps.length + " repeated-multiplication step(s) to expose binary digits."
+      });
+      stepList.push({
+        stage: "Normalize",
+        explanation: "The binary scientific form uses exponent " + encoded.exponent + " before biasing."
+      });
+    }
+
+    stepList.push({
+      stage: "Bias exponent",
+      explanation: "The stored exponent field is " + decoded.expBits + ", which equals " + decoded.biasedExp + " in decimal."
+    });
+    stepList.push({
+      stage: "Assemble bits",
+      explanation: "Final 64-bit layout = sign | exponent | mantissa = "
+        + encoded.final64Bit.slice(0, 1) + " | "
+        + encoded.final64Bit.slice(1, 12) + " | "
+        + encoded.final64Bit.slice(12) + "."
+    });
+    return stepList;
+  }
+
+  function buildDecodeSteps(cleanBits, decoded, classification) {
+    const stepList = [
+      {
+        stage: "Clean input",
+        explanation: "Normalize the entered bit string to exactly 64 bits."
+      },
+      {
+        stage: "Split fields",
+        explanation: "Read sign = " + cleanBits.slice(0, 1) + ", exponent = " + cleanBits.slice(1, 12) + ", mantissa = " + cleanBits.slice(12) + "."
+      }
+    ];
+
+    if (classification === "NaN" || classification === "Infinity") {
+      stepList.push({
+        stage: "Special classification",
+        explanation: "Exponent bits are all ones, so the pattern represents " + classification + "."
+      });
+    } else if (classification === "Zero") {
+      stepList.push({
+        stage: "Zero classification",
+        explanation: "Exponent and mantissa are all zeros, so the stored value is signed zero."
+      });
+    } else if (classification === "Subnormal") {
+      stepList.push({
+        stage: "Subnormal scale",
+        explanation: "Exponent bits are all zeros with a non-zero mantissa, so the value is subnormal and uses exponent -1022 without an implicit leading 1."
+      });
+    } else {
+      stepList.push({
+        stage: "Exponent decode",
+        explanation: "Convert biased exponent " + decoded.biasedExp + " to true exponent " + decoded.trueExp + " by subtracting 1023."
+      });
+    }
+
+    stepList.push({
+      stage: "Significand",
+      explanation: describeMantissa(decoded, classification)
+    });
+    stepList.push({
+      stage: "Final value",
+      explanation: "The decoded numeric value is " + formatIEEEValue(decoded.finalValue) + "."
+    });
+    return stepList;
+  }
+
+  function renderIEEESteps(steps) {
+    const body = byId("ieee-steps-body");
+    body.innerHTML = "";
+
+    steps.forEach(function renderStep(step, index) {
+      const row = document.createElement("tr");
+      const cells = [
+        String(index + 1),
+        step.stage,
+        step.explanation
+      ];
+
+      cells.forEach(function addCell(value, cellIndex) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        cell.setAttribute("data-label", cellIndex === 0 ? "#" : (cellIndex === 1 ? "Stage" : "Explanation"));
+        row.appendChild(cell);
+      });
+
+      body.appendChild(row);
+    });
+  }
+
+  function renderIEEEResult(result) {
+    state.ieeeResult = result;
+    setHidden("ieee-empty", true);
+    setHidden("ieee-result-stage", false);
+    setHidden("ieee-steps-panel", false);
+
+    setContent("ieee-source-label", result.source === "decimal" ? "Decimal input" : "Binary input", false);
+    setContent("ieee-source-value", result.inputDisplay, false);
+    setContent("ieee-decoded-value", result.decodedDisplay, false);
+    setContent("ieee-classification", result.classification, false);
+    setContent("ieee-sign-bit", describeSignBit(result.decoded.signBit), false);
+    setContent("ieee-biased-exponent", result.decoded.biasedExp + " (" + result.decoded.expBits + ")", false);
+    setContent("ieee-true-exponent", trueExponentDisplay(result.decoded, result.classification), false);
+    setHTMLContent("ieee-bit-pattern", formatIEEEGroupedBits(result.bits), false);
+    setHTMLContent("ieee-grouped-bits", formatIEEEGroupedBits(result.bits), false);
+    setContent("ieee-exponent-bits", result.decoded.expBits, false);
+    setContent("ieee-mantissa-bits", result.decoded.mantissaBits, false);
+    setContent("ieee-mantissa-meaning", describeMantissa(result.decoded, result.classification), false);
+    setContent("ieee-normalized-note", describeNormalization(result.decoded, result.classification), false);
+    setContent("ieee-special-note", result.specialNote, false);
+    setContent("ieee-interval-note", describeInterval(result.interval, result.classification), false);
+
+    renderIEEESteps(result.steps);
+  }
+
+  function handleIEEEError(message, fieldIds, errorId) {
+    resetIEEEResults();
+    markInvalid(fieldIds, errorId);
+    showError(errorId, message);
+    byId(fieldIds[0]).focus();
+  }
+
+  function normalizeIEEETextInput(rawValue) {
+    const value = String(rawValue || "").trim();
+    if (!value) {
+      throw new Error("Enter a decimal value, Infinity, or NaN.");
+    }
+    const lowered = value.toLowerCase();
+    if (lowered === "nan") {
+      return "NaN";
+    }
+    if (lowered === "infinity" || lowered === "+infinity") {
+      return "Infinity";
+    }
+    if (lowered === "-infinity") {
+      return "-Infinity";
+    }
+    return value;
+  }
+
+  function normalizeIEEEEncodeResult(inputValue, encoded) {
+    const decoded = I.ieeeToDecimal(encoded.final64Bit);
+    const classification = encoded.specialReason || classifyIEEEResult(decoded);
+    return {
+      source: "decimal",
+      inputDisplay: inputValue,
+      bits: encoded.final64Bit,
+      decoded,
+      decodedDisplay: formatIEEEValue(decoded.finalValue),
+      classification,
+      interval: I.getMachineNumberInterval(encoded.final64Bit),
+      specialNote: classification === "Normal"
+        ? "This is a normal finite double-precision number."
+        : "Stored as the IEEE-754 special case " + classification + ".",
+      steps: buildEncodeSteps(inputValue, encoded, decoded, classification)
+    };
+  }
+
+  function normalizeIEEEDecodeResult(decoded) {
+    const classification = classifyIEEEResult(decoded);
+    return {
+      source: "binary",
+      inputDisplay: decoded.cleanBin,
+      bits: decoded.cleanBin,
+      decoded,
+      decodedDisplay: formatIEEEValue(decoded.finalValue),
+      classification,
+      interval: I.getMachineNumberInterval(decoded.cleanBin),
+      specialNote: classification === "Normal"
+        ? "This bit pattern decodes to a normal finite double-precision number."
+        : "This bit pattern decodes to the IEEE-754 special class " + classification + ".",
+      steps: buildDecodeSteps(decoded.cleanBin, decoded, classification)
+    };
+  }
+
+  function computeIEEEFromDecimal() {
+    clearIEEEFeedback();
+
+    let normalizedInput;
+    try {
+      normalizedInput = normalizeIEEETextInput(byId("ieee-decimal-input").value);
+    } catch (error) {
+      handleIEEEError(error.message, IEEE_DECIMAL_FIELD_IDS, "ieee-decimal-error");
+      return;
+    }
+
+    try {
+      const encoded = I.decimalToIEEE(normalizedInput);
+      const result = normalizeIEEEEncodeResult(normalizedInput, encoded);
+      renderIEEEResult(result);
+      announceStatus("ieee-status-msg", "IEEE-754 encoding updated. Stored bits begin " + result.bits.slice(0, 12) + ".");
+      syncStatusStrip();
+    } catch (error) {
+      handleIEEEError(error.message, IEEE_DECIMAL_FIELD_IDS, "ieee-decimal-error");
+    }
+  }
+
+  function computeIEEEFromBinary() {
+    clearIEEEFeedback();
+
+    const rawInput = byId("ieee-binary-input").value.trim();
+    if (!rawInput) {
+      handleIEEEError("Enter exactly 64 bits to decode.", IEEE_BINARY_FIELD_IDS, "ieee-binary-error");
+      return;
+    }
+
+    try {
+      const decoded = I.ieeeToDecimal(rawInput);
+      const result = normalizeIEEEDecodeResult(decoded);
+      renderIEEEResult(result);
+      announceStatus("ieee-status-msg", "IEEE-754 decoding updated. Classification: " + result.classification + ".");
+      syncStatusStrip();
+    } catch (error) {
+      handleIEEEError(error.message, IEEE_BINARY_FIELD_IDS, "ieee-binary-error");
+    }
   }
 
   let cachedTabButtons = null;
@@ -2583,6 +2972,9 @@
       resetPolyResults();
     });
 
+    byId("ieee-encode").addEventListener("click", computeIEEEFromDecimal);
+    byId("ieee-decode").addEventListener("click", computeIEEEFromBinary);
+
     var debouncedExpressionReset = debounce(function () {
       clearExpressionFeedback();
       resetExpressionResults();
@@ -2619,6 +3011,12 @@
     }, 60);
     byId("poly-expression").addEventListener("input", debouncedPolyReset);
     byId("poly-x").addEventListener("input", debouncedPolyReset);
+    var debouncedIEEEReset = debounce(function () {
+      clearIEEEFeedback();
+      resetIEEEResults();
+    }, 60);
+    byId("ieee-decimal-input").addEventListener("input", debouncedIEEEReset);
+    byId("ieee-binary-input").addEventListener("input", debouncedIEEEReset);
 
     function onEnterKey(inputId, computeFn) {
       byId(inputId).addEventListener("keydown", function onKeyDown(e) {
@@ -2642,6 +3040,8 @@
     onEnterKey("poly-expression", computePolynomialModule);
     onEnterKey("poly-x", computePolynomialModule);
     onEnterKey("poly-k", computePolynomialModule);
+    onEnterKey("ieee-decimal-input", computeIEEEFromDecimal);
+    onEnterKey("ieee-binary-input", computeIEEEFromBinary);
   }
 
   document.addEventListener("DOMContentLoaded", function onReady() {
@@ -2693,6 +3093,7 @@
     resetBasicResults();
     resetErrorResults();
     resetPolyResults();
+    resetIEEEResults();
     activateTab("basic");
     setErrorSource("Entered manually", "manual");
     setContent("basic-preset-note", "Select an example to populate the inputs.", true);
