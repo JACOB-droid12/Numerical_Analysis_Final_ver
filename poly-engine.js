@@ -456,11 +456,42 @@
     return output;
   }
 
+  function evaluateComparison(poly, xValue, config, options) {
+    validateMachineConfig(config);
+    const exact = evaluateExact(poly, xValue);
+    const hornerStep = evaluateApprox(poly, xValue, config, "horner");
+    const directStep = evaluateApprox(poly, xValue, config, "direct");
+    const finalRun = evaluateApproxFinal(poly, xValue, config);
+    const canonical = formatPolynomial(poly);
+    const path = C.isRationalValue(exact) ? "exact" : "calc";
+
+    return {
+      expression: options && options.expression ? options.expression : canonical,
+      canonical,
+      poly,
+      xValue,
+      k: config.k,
+      mode: config.mode,
+      path,
+      exactCompatible: path === "exact",
+      reference: exact,
+      exact,
+      final: finalRun,
+      horner: {
+        step: hornerStep
+      },
+      direct: {
+        step: directStep
+      }
+    };
+  }
+
   globalScope.PolyEngine = {
     parsePolynomial,
     evaluateExact,
     evaluateApprox,
     evaluateApproxFinal,
+    evaluateComparison,
     formatPolynomial
   };
 })(window);

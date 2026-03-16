@@ -1579,16 +1579,6 @@
     body.appendChild(fragment);
   }
 
-  function buildExpressionComparison(ast, expression, k, mode) {
-    const exactCompatible = E.isExactCompatible(ast, { angleMode: state.angleMode });
-    const reference = exactCompatible
-      ? E.evaluateExact(ast, { angleMode: state.angleMode })
-      : E.evaluateValue(ast, { angleMode: state.angleMode });
-    const stepRun = E.evaluateStepwise(ast, { k, mode }, { angleMode: state.angleMode });
-    const finalData = C.machineApproxValue(reference, k, mode);
-    return { expression, ast, exactCompatible, reference, stepRun, finalData, k, mode };
-  }
-
   function describeExpressionSandboxChange(currentK, currentMode, altK, altMode, changedValue) {
     const changes = [];
     if (altK !== currentK) {
@@ -1662,16 +1652,21 @@
     const altMode = byId("basic-sandbox-mode").value;
 
     try {
-      const run = buildExpressionComparison(state.expressionComparison.ast, state.expressionComparison.expression, altK, altMode);
-      const stepData = C.machineApproxValue(run.stepRun.approx, altK, altMode);
-      const changedValue = !valuesEquivalent(state.expressionComparison.step.approx, run.stepRun.approx);
+      const run = E.evaluateComparison(
+        state.expressionComparison.ast,
+        { k: altK, mode: altMode },
+        { angleMode: state.angleMode },
+        { expression: state.expressionComparison.expression }
+      );
+      const changedValue = !valuesEquivalent(state.expressionComparison.step.approx, run.step.approx);
       const note = describeExpressionSandboxChange(state.expressionComparison.k, state.expressionComparison.mode, altK, altMode, changedValue);
 
       state.expressionSandbox = {
         k: altK,
         mode: altMode,
-        approx: stepData.approx,
-        scientific: stepData.scientific,
+        approx: run.step.approx,
+        scientific: run.step.scientific,
+        normalized: run.step.normalized,
         note
       };
 
@@ -1680,7 +1675,7 @@
       setHidden("basic-sandbox-result", false);
 
       if (shouldAnnounce !== false) {
-        announceStatus("basic-status-msg", "Sensitivity comparison updated. Sandbox p* = " + shortValue(stepData.approx, 16, 10) + ".");
+        announceStatus("basic-status-msg", "Sensitivity comparison updated. Sandbox p* = " + shortValue(run.step.approx, 16, 10) + ".");
       }
     } catch (error) {
       clearExpressionSandboxResult();
@@ -1693,32 +1688,32 @@
     }
   }
 
-  function renderExpressionResults(ast, reference, stepRun, finalData, k, mode, exactCompatible) {
-    updateExpressionFinalLabel(mode);
+  function renderExpressionResults(comparison) {
+    updateExpressionFinalLabel(comparison.mode);
     const basicReferenceLabel = document.getElementById("basic-expression-reference-label");
     if (basicReferenceLabel) {
-      basicReferenceLabel.textContent = exactCompatible ? "Exact value p" : "Reference value";
+      basicReferenceLabel.textContent = comparison.exactCompatible ? "Exact value p" : "Reference value";
     }
-    setContent("basic-expression-stepwise", machineValueFromData(C.machineApproxValue(stepRun.approx, k, mode)), false);
-    setContent("basic-expression-final", machineValueFromData(finalData), false);
-    setContent("basic-expression-exact", inlineValue(reference, 24, 14), false);
-    setContent("basic-expression-canonical", stepRun.canonical, false);
-    renderTextbookValue("basic-expression-exact", reference, { decimalFirst: true, previewDigits: 18, scientificDigits: 12 });
-    renderTextbookExpressionAst("basic-expression-canonical", ast);
-    setContent("basic-expression-ops", String(stepRun.opCount) + " arithmetic operations", false);
-    setContent("basic-expression-bound", formatBound(k, mode, !exactCompatible), false);
+    setContent("basic-expression-stepwise", machineValueFromData(comparison.step), false);
+    setContent("basic-expression-final", machineValueFromData(comparison.final), false);
+    setContent("basic-expression-exact", inlineValue(comparison.reference, 24, 14), false);
+    setContent("basic-expression-canonical", comparison.canonical, false);
+    renderTextbookValue("basic-expression-exact", comparison.reference, { decimalFirst: true, previewDigits: 18, scientificDigits: 12 });
+    renderTextbookExpressionAst("basic-expression-canonical", comparison.ast);
+    setContent("basic-expression-ops", String(comparison.step.opCount) + " arithmetic operations", false);
+    setContent("basic-expression-bound", formatBound(comparison.k, comparison.mode, !comparison.exactCompatible), false);
 
     let comparisonNote;
-    if (valuesEquivalent(stepRun.approx, finalData.approx)) {
-      comparisonNote = "The stepwise p* and final-only p* match here. Intermediate " + machineRuleGerund(mode) + " does not change the final stored value for this expression at the chosen precision.";
+    if (valuesEquivalent(comparison.step.approx, comparison.final.approx)) {
+      comparisonNote = "The stepwise p* and final-only p* match here. Intermediate " + machineRuleGerund(comparison.mode) + " does not change the final stored value for this expression at the chosen precision.";
     } else {
-      comparisonNote = "The stepwise p* and final-only p* differ here. Intermediate " + machineRuleGerund(mode) + " changes the arithmetic before the final stored value is reached.";
+      comparisonNote = "The stepwise p* and final-only p* differ here. Intermediate " + machineRuleGerund(comparison.mode) + " changes the arithmetic before the final stored value is reached.";
     }
-    if (!exactCompatible) {
+    if (!comparison.exactCompatible) {
       comparisonNote += " This expression uses calculator-style approximation, so the reference value is already an approximate complex/scientific-calculator value.";
     }
     setContent("basic-expression-note", comparisonNote, false);
-    renderBasicExpressionSteps(stepRun.steps);
+    renderBasicExpressionSteps(comparison.step.steps);
   }
 
   function handleExpressionError(message, invalidIds) {
@@ -1754,29 +1749,15 @@
       const priorSandbox = state.expressionSandbox
         ? { k: state.expressionSandbox.k, mode: state.expressionSandbox.mode }
         : null;
-      const run = buildExpressionComparison(ast, expression, k, mode);
-      const stepData = C.machineApproxValue(run.stepRun.approx, k, mode);
+      const run = E.evaluateComparison(
+        ast,
+        { k, mode },
+        { angleMode: state.angleMode },
+        { expression }
+      );
 
-      renderExpressionResults(run.ast, run.reference, run.stepRun, run.finalData, k, mode, run.exactCompatible);
-      state.expressionComparison = {
-        expression,
-        ast: run.ast,
-        canonical: run.stepRun.canonical,
-        exact: run.reference,
-        k,
-        mode,
-        path: run.exactCompatible ? "exact" : "calc",
-        step: {
-          approx: stepData.approx,
-          scientific: stepData.scientific,
-          steps: run.stepRun.steps,
-          opCount: run.stepRun.opCount
-        },
-        final: {
-          approx: run.finalData.approx,
-          scientific: run.finalData.scientific
-        }
-      };
+      renderExpressionResults(run);
+      state.expressionComparison = run;
       byId("basic-send-step").disabled = false;
       byId("basic-send-final").disabled = false;
       byId("basic-open-trace").disabled = false;
@@ -1790,7 +1771,7 @@
       syncOnboardingUI();
       announceStatus(
         "basic-status-msg",
-        "Expression results updated. Stepwise p* = " + shortValue(run.stepRun.approx, 16, 10) + ". Final-only p* = " + shortValue(run.finalData.approx, 16, 10) + "."
+        "Expression results updated. Stepwise p* = " + shortValue(run.step.approx, 16, 10) + ". Final-only p* = " + shortValue(run.final.approx, 16, 10) + "."
       );
     } catch (error) {
       handleExpressionError(error.message === "Division by zero." ? "The expression cannot divide by 0." : formatExpressionInputError(error), ["basic-expression"]);
@@ -2351,50 +2332,39 @@
     const mode = byId("poly-mode").value;
 
     try {
-      const exact = P.evaluateExact(poly, xValue);
-      const hornerStep = P.evaluateApprox(poly, xValue, { k, mode }, "horner");
-      const directStep = P.evaluateApprox(poly, xValue, { k, mode }, "direct");
-      const finalRun = P.evaluateApproxFinal(poly, xValue, { k, mode });
+      const run = P.evaluateComparison(poly, xValue, { k, mode }, { expression });
+      const hornerStepMetrics = computeErrorMetrics(run.exact, run.horner.step.approx);
+      const directStepMetrics = computeErrorMetrics(run.exact, run.direct.step.approx);
+      const finalMetrics = computeErrorMetrics(run.exact, run.final.approx);
+      const hornerCounts = countOperations(run.horner.step.steps, "horner");
+      const directCounts = countOperations(run.direct.step.steps, "direct");
 
-      const hornerStepMetrics = computeErrorMetrics(exact, hornerStep.approx);
-      const directStepMetrics = computeErrorMetrics(exact, directStep.approx);
-      const finalMetrics = computeErrorMetrics(exact, finalRun.approx);
-      const hornerCounts = countOperations(hornerStep.steps, "horner");
-      const directCounts = countOperations(directStep.steps, "direct");
-      const exactCompatible = isRationalValue(exact);
-
-      updatePolyFinalLabels(mode);
+      updatePolyFinalLabels(run.mode);
       const polyReferenceLabel = document.getElementById("poly-reference-label");
       if (polyReferenceLabel) {
-        polyReferenceLabel.textContent = exactCompatible ? "Exact polynomial value f(x)" : "Reference polynomial value f(x)";
+        polyReferenceLabel.textContent = run.exactCompatible ? "Exact polynomial value f(x)" : "Reference polynomial value f(x)";
       }
-      setContent("poly-canonical", P.formatPolynomial(poly), false);
-      setContent("poly-exact", shortValue(exact, 20, 12), false);
-      renderTextbookExpressionString("poly-canonical", P.formatPolynomial(poly), true);
-      renderTextbookValue("poly-exact", exact, { decimalFirst: true, previewDigits: 18, scientificDigits: 12 });
-      setContent("poly-xapprox", machineDetailFromData({ approx: hornerStep.xApprox, scientific: hornerStep.xApproxScientific }, k, 12), false);
+      setContent("poly-canonical", run.canonical, false);
+      setContent("poly-exact", shortValue(run.exact, 20, 12), false);
+      renderTextbookExpressionString("poly-canonical", run.canonical, true);
+      renderTextbookValue("poly-exact", run.exact, { decimalFirst: true, previewDigits: 18, scientificDigits: 12 });
+      setContent("poly-xapprox", machineDetailFromData({ approx: run.horner.step.xApprox, scientific: run.horner.step.xApproxScientific }, run.k, 12), false);
 
-      setContent("poly-final-shared", machineValue(finalRun.approx, k), false);
-      renderMethodMetrics("poly-horner", hornerStepMetrics, finalMetrics, hornerStep.approx, hornerCounts, k);
-      renderMethodMetrics("poly-direct", directStepMetrics, finalMetrics, directStep.approx, directCounts, k);
-      renderPolyConclusion(hornerStepMetrics, directStepMetrics, finalMetrics, hornerCounts, directCounts, mode);
+      setContent("poly-final-shared", machineValue(run.final.approx, run.k), false);
+      renderMethodMetrics("poly-horner", hornerStepMetrics, finalMetrics, run.horner.step.approx, hornerCounts, run.k);
+      renderMethodMetrics("poly-direct", directStepMetrics, finalMetrics, run.direct.step.approx, directCounts, run.k);
+      renderPolyConclusion(hornerStepMetrics, directStepMetrics, finalMetrics, hornerCounts, directCounts, run.mode);
 
       state.polyComparison = {
-        exact,
-        k,
-        mode,
-        path: exactCompatible ? "exact" : "calc",
-        expression,
+        ...run,
         xInput: byId("poly-x").value,
-        xValue,
-        final: finalRun,
         horner: {
-          step: hornerStep,
+          ...run.horner,
           stepMetrics: hornerStepMetrics,
           counts: hornerCounts
         },
         direct: {
-          step: directStep,
+          ...run.direct,
           stepMetrics: directStepMetrics,
           counts: directCounts
         }
@@ -2403,7 +2373,7 @@
       renderSelectedPolySteps();
       markOnboardingComplete();
       syncOnboardingUI();
-      announceStatus("poly-status-msg", "Polynomial comparison updated. Final-only p* = " + shortValue(finalRun.approx, 14, 8) + ". Horner stepwise p* = " + shortValue(hornerStep.approx, 14, 8) + ". Direct stepwise p* = " + shortValue(directStep.approx, 14, 8) + ".");
+      announceStatus("poly-status-msg", "Polynomial comparison updated. Final-only p* = " + shortValue(run.final.approx, 14, 8) + ". Horner stepwise p* = " + shortValue(run.horner.step.approx, 14, 8) + ". Direct stepwise p* = " + shortValue(run.direct.step.approx, 14, 8) + ".");
     } catch (error) {
       handlePolyError(error.message === "Division by zero." ? "The polynomial cannot divide by 0 at the chosen value of x." : error.message, ["poly-expression", "poly-x"]);
     }
