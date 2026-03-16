@@ -7,6 +7,7 @@ $files = @(
   "index.html",
   "styles.css",
   "app.js",
+  "ieee754.js",
   "math-engine.js",
   "expression-engine.js",
   "calc-engine.js",

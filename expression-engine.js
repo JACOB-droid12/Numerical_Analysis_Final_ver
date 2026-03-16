@@ -646,6 +646,48 @@
     };
   }
 
+  function evaluateComparison(ast, config, context, options) {
+    if (!config || !Number.isInteger(config.k) || config.k < 1) {
+      throw new Error("Machine config requires positive integer k.");
+    }
+    if (config.mode !== "chop" && config.mode !== "round") {
+      throw new Error("Machine config mode must be 'chop' or 'round'.");
+    }
+
+    const env = context || {};
+    const exactCompatible = isExactCompatible(ast, env);
+    const reference = exactCompatible
+      ? evaluateExact(ast, env)
+      : evaluateValue(ast, env);
+    const stepRun = evaluateStepwise(ast, config, env);
+    const stepData = C.machineApproxValue(stepRun.approx, config.k, config.mode);
+    const finalData = C.machineApproxValue(reference, config.k, config.mode);
+
+    return {
+      expression: options && options.expression ? options.expression : formatExpression(ast),
+      ast,
+      canonical: stepRun.canonical,
+      path: exactCompatible ? "exact" : "calc",
+      exactCompatible,
+      reference,
+      exact: reference,
+      k: config.k,
+      mode: config.mode,
+      step: {
+        approx: stepData.approx,
+        scientific: stepData.scientific,
+        normalized: stepData.normalized,
+        steps: stepRun.steps,
+        opCount: stepRun.opCount
+      },
+      final: {
+        approx: finalData.approx,
+        scientific: finalData.scientific,
+        normalized: finalData.normalized
+      }
+    };
+  }
+
   globalScope.ExpressionEngine = {
     parseExpression,
     containsVariable,
@@ -653,6 +695,7 @@
     evaluateExact,
     evaluateValue,
     evaluateStepwise,
+    evaluateComparison,
     formatExpression
   };
 })(window);
