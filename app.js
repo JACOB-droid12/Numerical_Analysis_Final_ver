@@ -7,8 +7,10 @@
   const E = globalScope.ExpressionEngine;
   const D = globalScope.MathDisplay;
   const P = globalScope.PolyEngine;
-  if (!I || !M || !C || !E || !D || !P) {
-    throw new Error("IEEE754, MathEngine, CalcEngine, ExpressionEngine, MathDisplay, and PolyEngine must be loaded before app.js.");
+  const R = globalScope.RootEngine;
+  const RU = globalScope.RootUI;
+  if (!I || !M || !C || !E || !D || !P || !R || !RU) {
+    throw new Error("IEEE754, MathEngine, CalcEngine, ExpressionEngine, MathDisplay, PolyEngine, RootEngine, and RootUI must be loaded before app.js.");
   }
 
   const EMPTY_VALUE = "Not calculated yet.";
@@ -113,7 +115,13 @@
     { inputId: "error-exact", previewId: "error-exact-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "error-approx", previewId: "error-approx-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "poly-expression", previewId: "poly-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "poly-x", previewId: "poly-x-preview", allowVariable: false, className: "math-preview math-preview-inline" }
+    { inputId: "poly-x", previewId: "poly-x-preview", allowVariable: false, className: "math-preview math-preview-inline" },
+    { inputId: "root-bis-expression", previewId: "root-bis-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
+    { inputId: "root-newton-expression", previewId: "root-newton-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
+    { inputId: "root-newton-df", previewId: "root-newton-df-preview", allowVariable: true, className: "math-preview math-preview-wide" },
+    { inputId: "root-secant-expression", previewId: "root-secant-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
+    { inputId: "root-fp-expression", previewId: "root-fp-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
+    { inputId: "root-fpi-expression", previewId: "root-fpi-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" }
   ];
   const TWO = M.makeRational(1, 2n, 1n);
   const HUNDRED = M.makeRational(1, 100n, 1n);
@@ -548,9 +556,11 @@
     if (state.polyComparison) {
       computePolynomialModule();
     }
+    RU.recompute();
     clearStatus("basic-status-msg");
     clearStatus("error-status-msg");
     clearStatus("poly-status-msg");
+    clearStatus("root-status-msg");
   }
 
   function currentEngineMode() {
@@ -2790,10 +2800,18 @@
 
   function debounce(fn, delay) {
     var timer = null;
-    return function debounced() {
+    function debounced() {
       if (timer) { clearTimeout(timer); }
       timer = setTimeout(function run() { timer = null; fn(); }, delay);
+    }
+    debounced.cancel = function cancelDebounced() {
+      if (!timer) {
+        return;
+      }
+      clearTimeout(timer);
+      timer = null;
     };
+    return debounced;
   }
 
   function initSidebar() {
@@ -3094,6 +3112,19 @@
     resetErrorResults();
     resetPolyResults();
     resetIEEEResults();
+    RU.init({
+      byId: byId,
+      setContent: setContent,
+      setHidden: setHidden,
+      showError: showError,
+      markInvalid: markInvalid,
+      clearInvalid: clearInvalid,
+      announceStatus: announceStatus,
+      clearStatus: clearStatus,
+      debounce: debounce,
+      syncMathPreviews: syncMathPreviews,
+      getAngleMode: function () { return state.angleMode; }
+    });
     activateTab("basic");
     setErrorSource("Entered manually", "manual");
     setContent("basic-preset-note", "Select an example to populate the inputs.", true);
@@ -3102,31 +3133,6 @@
     syncOnboardingUI();
   });
 })(window);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

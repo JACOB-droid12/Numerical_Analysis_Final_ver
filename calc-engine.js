@@ -26,6 +26,13 @@
     if (!Number.isFinite(value)) {
       return value;
     }
+    return Object.is(value, -0) ? 0 : value;
+  }
+
+  function displayNumber(value) {
+    if (!Number.isFinite(value)) {
+      return value;
+    }
     if (Math.abs(value) < EPS) {
       return 0;
     }
@@ -184,6 +191,59 @@
     return result;
   }
 
+  function isNonNegativeIntegerRational(value) {
+    return isRationalValue(value) && value.sign >= 0 && value.den === 1n;
+  }
+
+  function isIntegerRational(value) {
+    return isRationalValue(value) && value.den === 1n;
+  }
+
+  function powRationalInteger(base, exponent) {
+    if (!isRationalValue(base) || !isIntegerRational(exponent)) {
+      throw new Error("Expected rational integer power arguments.");
+    }
+
+    if (M.isZero(base)) {
+      if (exponent.sign < 0) {
+        throw new Error("Division by zero.");
+      }
+      if (exponent.sign === 0) {
+        return M.ONE;
+      }
+      return M.ZERO;
+    }
+
+    const magnitude = exponent.num;
+    if (magnitude > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error("Exponent is too large to evaluate safely.");
+    }
+
+    const n = Number(magnitude);
+    const powered = M.powRational(base, n);
+    if (exponent.sign < 0) {
+      return M.div(M.ONE, powered);
+    }
+    return powered;
+  }
+
+  function powValue(base, exponent) {
+    if (isRationalValue(base) && isIntegerRational(exponent)) {
+      return powRationalInteger(base, exponent);
+    }
+
+    if (isNonNegativeIntegerRational(exponent)) {
+      return powInt(base, exponent);
+    }
+
+    const baseReal = requireRealNumber(base, "Base");
+    const exponentReal = requireRealNumber(exponent, "Exponent");
+    if (baseReal < 0 && !Number.isInteger(exponentReal)) {
+      throw new Error("Fractional powers of negative bases are not supported.");
+    }
+    return makeCalc(Math.pow(baseReal, exponentReal), 0);
+  }
+
   function sqrtValue(value) {
     const calc = ensureCalc(value);
     if (Math.abs(calc.im) < EPS && calc.re >= 0) {
@@ -195,6 +255,36 @@
     const imaginarySeed = Math.max((magnitudeValue - calc.re) / 2, 0);
     const imaginary = (calc.im < 0 ? -1 : 1) * Math.sqrt(imaginarySeed);
     return makeCalc(real, imaginary);
+  }
+
+  function sinValue(value, angleMode) {
+    const theta = toRadians(requireRealNumber(value, "Sine input"), angleMode);
+    return makeCalc(Math.sin(theta), 0);
+  }
+
+  function cosValue(value, angleMode) {
+    const theta = toRadians(requireRealNumber(value, "Cosine input"), angleMode);
+    return makeCalc(Math.cos(theta), 0);
+  }
+
+  function tanValue(value, angleMode) {
+    const theta = toRadians(requireRealNumber(value, "Tangent input"), angleMode);
+    if (Math.abs(Math.cos(theta)) < EPS) {
+      throw new Error("Tangent is undefined at this angle.");
+    }
+    return makeCalc(Math.tan(theta), 0);
+  }
+
+  function expValue(value) {
+    return makeCalc(Math.exp(requireRealNumber(value, "Exponential input")), 0);
+  }
+
+  function lnValue(value) {
+    const real = requireRealNumber(value, "Natural logarithm input");
+    if (real <= 0) {
+      throw new Error("Natural logarithm input must be greater than 0.");
+    }
+    return makeCalc(Math.log(real), 0);
   }
 
   function toRadians(angle, angleMode) {
@@ -239,7 +329,7 @@
   }
 
   function formatReal(value, digits) {
-    const n = cleanNumber(value);
+    const n = displayNumber(value);
     if (!Number.isFinite(n)) {
       return String(n);
     }
@@ -261,15 +351,15 @@
       return M.rationalToDecimalString(value, digits || 16);
     }
 
-    const re = cleanNumber(value.re);
-    const im = cleanNumber(value.im);
+    const re = displayNumber(value.re);
+    const im = displayNumber(value.im);
     const reText = formatReal(re, digits);
     const imText = formatReal(Math.abs(im), digits);
 
-    if (Math.abs(im) < EPS) {
+    if (im === 0) {
       return reText;
     }
-    if (Math.abs(re) < EPS) {
+    if (re === 0) {
       return (im < 0 ? "-" : "") + (imText === "1" ? "i" : imText + "i");
     }
     return reText + (im < 0 ? " - " : " + ") + (imText === "1" ? "i" : imText + "i");
@@ -433,18 +523,20 @@
     }
 
     const calc = ensureCalc(data.approx || data);
+    const re = displayNumber(calc.re);
+    const im = displayNumber(calc.im);
     const reText = machineDecimalFromNormalized(data.normalized ? data.normalized.re : approximateRealComponent(calc.re, 8, "chop").normalized);
     const imText = machineDecimalFromNormalized(data.normalized ? data.normalized.im : approximateRealComponent(calc.im, 8, "chop").normalized);
     if ((displayMode || "rect") === "polar") {
       return polarString(calc, angleMode || "deg", 10);
     }
-    if (Math.abs(calc.im) < EPS) {
+    if (im === 0) {
       return reText;
     }
-    if (Math.abs(calc.re) < EPS) {
-      return (calc.im < 0 ? "-" : "") + (imText.replace(/^-/, "") === "1" ? "i" : imText.replace(/^-/, "") + "i");
+    if (re === 0) {
+      return (im < 0 ? "-" : "") + (imText.replace(/^-/, "") === "1" ? "i" : imText.replace(/^-/, "") + "i");
     }
-    return reText + (calc.im < 0 ? " - " : " + ") + (imText.replace(/^-/, "") === "1" ? "i" : imText.replace(/^-/, "") + "i");
+    return reText + (im < 0 ? " - " : " + ") + (imText.replace(/^-/, "") === "1" ? "i" : imText.replace(/^-/, "") + "i");
   }
 
   globalScope.CalcEngine = {
@@ -464,6 +556,12 @@
     mul,
     div,
     powInt,
+    powValue,
+    sinValue,
+    cosValue,
+    tanValue,
+    expValue,
+    lnValue,
     sqrtValue,
     fromPolar,
     magnitude,

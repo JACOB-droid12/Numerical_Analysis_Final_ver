@@ -403,6 +403,49 @@
     throw new Error("Unsupported identifier: " + name);
   }
 
+  function integerLiteralValue(ast) {
+    if (ast.kind === "number") {
+      const value = M.parseRational(ast.value);
+      if (value.den !== 1n) {
+        return null;
+      }
+      const magnitude = Number(value.num);
+      if (!Number.isSafeInteger(magnitude)) {
+        return null;
+      }
+      return value.sign < 0 ? -magnitude : magnitude;
+    }
+    if (ast.kind === "unary") {
+      const inner = integerLiteralValue(ast.expr);
+      if (inner === null) {
+        return null;
+      }
+      if (ast.op === "+") {
+        return inner;
+      }
+      if (ast.op === "-") {
+        return -inner;
+      }
+    }
+    return null;
+  }
+
+  function exactCompatiblePower(ast, env) {
+    if (!isExactCompatible(ast.left, env)) {
+      return false;
+    }
+
+    const exponent = integerLiteralValue(ast.right);
+    if (exponent === null) {
+      return false;
+    }
+    if (exponent < 0) {
+      const base = evaluateValue(ast.left, env);
+      return !C.isZeroValue(base);
+    }
+    return true;
+  }
+
   function isExactCompatible(ast, context) {
     const env = context || {};
     if (ast.kind === "number") {
@@ -421,6 +464,9 @@
       return isExactCompatible(ast.expr, env);
     }
     if (ast.kind === "binary") {
+      if (ast.op === "^") {
+        return exactCompatiblePower(ast, env);
+      }
       return isExactCompatible(ast.left, env) && isExactCompatible(ast.right, env);
     }
     return false;
@@ -451,6 +497,36 @@
           throw new Error("sqrt() expects exactly one argument.");
         }
         return C.sqrtValue(evaluateValue(ast.args[0], env));
+      }
+      if (name === "sin") {
+        if (ast.args.length !== 1) {
+          throw new Error("sin() expects exactly one argument.");
+        }
+        return C.sinValue(evaluateValue(ast.args[0], env), env.angleMode || "deg");
+      }
+      if (name === "cos") {
+        if (ast.args.length !== 1) {
+          throw new Error("cos() expects exactly one argument.");
+        }
+        return C.cosValue(evaluateValue(ast.args[0], env), env.angleMode || "deg");
+      }
+      if (name === "tan") {
+        if (ast.args.length !== 1) {
+          throw new Error("tan() expects exactly one argument.");
+        }
+        return C.tanValue(evaluateValue(ast.args[0], env), env.angleMode || "deg");
+      }
+      if (name === "exp") {
+        if (ast.args.length !== 1) {
+          throw new Error("exp() expects exactly one argument.");
+        }
+        return C.expValue(evaluateValue(ast.args[0], env));
+      }
+      if (name === "ln") {
+        if (ast.args.length !== 1) {
+          throw new Error("ln() expects exactly one argument.");
+        }
+        return C.lnValue(evaluateValue(ast.args[0], env));
       }
       if (name === "polar") {
         if (ast.args.length !== 2) {
@@ -492,7 +568,7 @@
         return C.div(left, right);
       }
       if (ast.op === "^") {
-        return C.powInt(left, right);
+        return C.powValue(left, right);
       }
       throw new Error("Unsupported binary operator: " + ast.op);
     }
@@ -543,7 +619,7 @@
       return C.div(left, right);
     }
     if (op === "^") {
-      return C.powInt(left, right);
+      return C.powValue(left, right);
     }
     throw new Error("Unsupported binary operator: " + op);
   }
@@ -606,7 +682,7 @@
         const exactWhole = applyUnaryStored(node.op, child.exactWhole);
         const exactStored = applyUnaryStored(node.op, child.approx);
         const data = C.machineApproxValue(exactStored, config.k, config.mode);
-        recordStep(steps, stepIndex, "unary", "Apply " + node.op + " to " + child.label, exactStored, data, formatExpression(node));
+        recordStep(steps, stepIndex, "unary", "Apply " + node.op + " to " + child.label, exactWhole, data, formatExpression(node));
         stepIndex += 1;
         operationCount += 1;
         return {
@@ -622,7 +698,7 @@
         const exactWhole = applyBinaryStored(node.op, left.exactWhole, right.exactWhole);
         const exactStored = applyBinaryStored(node.op, left.approx, right.approx);
         const data = C.machineApproxValue(exactStored, config.k, config.mode);
-        recordStep(steps, stepIndex, "binary", "Evaluate " + formatExpression(node), exactStored, data, formatExpression(node));
+        recordStep(steps, stepIndex, "binary", "Evaluate " + formatExpression(node), exactWhole, data, formatExpression(node));
         stepIndex += 1;
         operationCount += 1;
         return {

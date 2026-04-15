@@ -53,6 +53,10 @@
           <span class="sidebar-icon">f(x)</span>
           <span class="sidebar-label">Polynomial</span>
         </button>
+        <button id="tab-btn-root" type="button" class="sidebar-nav-item" data-tab="root" role="tab" aria-selected="false" aria-controls="tab-root" aria-label="Bisection Roots" tabindex="-1">
+          <span class="sidebar-icon">√</span>
+          <span class="sidebar-label">Roots</span>
+        </button>
         <button id="tab-btn-ieee754" type="button" class="sidebar-nav-item" data-tab="ieee754" role="tab" aria-selected="false" aria-controls="tab-ieee754" aria-label="IEEE-754 Double Precision" tabindex="-1">
           <span class="sidebar-icon">64</span>
           <span class="sidebar-label">IEEE-754</span>
@@ -844,11 +848,207 @@
       </div>
     </section>
 
+    <section id="tab-root" class="panel" role="tabpanel" aria-labelledby="tab-btn-root" tabindex="0" hidden>
+      <div class="module-shell module-root">
+        <header class="module-header">
+          <div>
+            <p class="module-kicker">Module IV</p>
+            <h2>Root Finding Workbench</h2>
+          </div>
+          <p class="module-copy">
+            Find roots of f(x) = 0 using five methods. Each tab has its own inputs and step-by-step iteration table.
+          </p>
+        </header>
+
+        <!-- Method sub-tab bar -->
+        <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
+          <button class="root-method-tab active" data-method="bisection" role="tab" aria-selected="true">Bisection</button>
+          <button class="root-method-tab" data-method="newton" role="tab" aria-selected="false">Newton&ndash;Raphson</button>
+          <button class="root-method-tab" data-method="secant" role="tab" aria-selected="false">Secant</button>
+          <button class="root-method-tab" data-method="falsePosition" role="tab" aria-selected="false">False Position</button>
+          <button class="root-method-tab" data-method="fixedPoint" role="tab" aria-selected="false">Fixed Point</button>
+        </nav>
+
+        <!-- ── Bisection inputs ── -->
+        <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" aria-label="Bisection controls">
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="root-bis-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+              <button type="button" class="symbol-trigger" data-symbol-target="root-bis-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
+              <button id="root-bis-compute" type="button" class="btn-calculate-omni" aria-label="Run bisection" title="Run bisection">=</button>
+            </div>
+            <p class="input-hint">Enter f(x) as a one-variable expression in x. Try <code>x^2 - 2</code>, <code>sin(x) - x/2</code>, or <code>e^(-x) - x</code>. Trig functions use the current <strong>Angle</strong> setting in the sidebar.</p>
+            <div class="root-config-grid">
+              <label>Left endpoint a<input id="root-bis-a" type="text" value="1"></label>
+              <label>Right endpoint b<input id="root-bis-b" type="text" value="2"></label>
+              <label>Significant digits (k)<input id="root-bis-k" type="number" min="1" max="25" step="1" value="6"></label>
+              <label>Machine rule<select id="root-bis-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+              <label>Stopping mode<select id="root-bis-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
+              <label>Stopping value (n or &epsilon;)<input id="root-bis-stop-value" type="text" value="4"></label>
+            </div>
+            <p class="root-textbook-note focus-note">Textbook default: the next interval is chosen using the usual sign-change rule.</p>
+            <details id="root-bis-advanced" class="root-advanced-options disclosure disclosure-secondary">
+              <summary>Finite-precision sign options (advanced)</summary>
+              <p class="root-sign-guide focus-note">Only change these if your professor asks bisection decisions to follow chopped or rounded signs.</p>
+              <div class="root-advanced-grid">
+                <label>Signs shown in the table<select id="root-bis-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
+                <label>Signs used to choose the next interval<select id="root-bis-decision-basis"><option value="machine">Machine signs decide</option><option value="exact" selected>Exact signs decide</option></select></label>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- ── Newton–Raphson inputs ── -->
+        <section id="root-inputs-newton" class="root-method-inputs control-band control-band-expression" aria-label="Newton&ndash;Raphson controls" hidden>
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="root-newton-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+              <button type="button" class="symbol-trigger" data-symbol-target="root-newton-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
+              <button id="root-newton-compute" type="button" class="btn-calculate-omni" aria-label="Run Newton&ndash;Raphson" title="Run Newton&ndash;Raphson">=</button>
+            </div>
+            <p class="input-hint">Enter f(x) and its derivative f&prime;(x) separately. The derivative must be entered manually. Trig functions use the current <strong>Angle</strong> setting in the sidebar.</p>
+            <div class="root-config-grid">
+              <label>Derivative f&prime;(x)<input id="root-newton-df" type="text" maxlength="300" placeholder="3x^2 - 1" aria-label="Derivative f'(x)"></label>
+              <label>Starting point x&#8320;<input id="root-newton-x0" type="text" value="1"></label>
+              <label>Significant digits (k)<input id="root-newton-k" type="number" min="1" max="25" step="1" value="6"></label>
+              <label>Machine rule<select id="root-newton-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+              <label>Stopping mode<select id="root-newton-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
+              <label>Stopping value (n or &epsilon;)<input id="root-newton-stop-value" type="text" value="4"></label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Secant inputs ── -->
+        <section id="root-inputs-secant" class="root-method-inputs control-band control-band-expression" aria-label="Secant method controls" hidden>
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="root-secant-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+              <button type="button" class="symbol-trigger" data-symbol-target="root-secant-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
+              <button id="root-secant-compute" type="button" class="btn-calculate-omni" aria-label="Run Secant method" title="Run Secant method">=</button>
+            </div>
+            <p class="input-hint">Enter f(x) and two starting points. No derivative needed. Trig functions use the current <strong>Angle</strong> setting in the sidebar.</p>
+            <div class="root-config-grid">
+              <label>First point x&#8320;<input id="root-secant-x0" type="text" value="1"></label>
+              <label>Second point x&#8321;<input id="root-secant-x1" type="text" value="2"></label>
+              <label>Significant digits (k)<input id="root-secant-k" type="number" min="1" max="25" step="1" value="6"></label>
+              <label>Machine rule<select id="root-secant-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+              <label>Stopping mode<select id="root-secant-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
+              <label>Stopping value (n or &epsilon;)<input id="root-secant-stop-value" type="text" value="4"></label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── False Position inputs ── -->
+        <section id="root-inputs-falseposition" class="root-method-inputs control-band control-band-expression" aria-label="False position controls" hidden>
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="root-fp-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+              <button type="button" class="symbol-trigger" data-symbol-target="root-fp-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
+              <button id="root-fp-compute" type="button" class="btn-calculate-omni" aria-label="Run false position" title="Run false position">=</button>
+            </div>
+            <p class="input-hint">Like bisection, but uses linear interpolation: c = b &minus; f(b)(b&minus;a)/(f(b)&minus;f(a)). Trig functions use the current <strong>Angle</strong> setting in the sidebar.</p>
+            <div class="root-config-grid">
+              <label>Left endpoint a<input id="root-fp-a" type="text" value="1"></label>
+              <label>Right endpoint b<input id="root-fp-b" type="text" value="2"></label>
+              <label>Significant digits (k)<input id="root-fp-k" type="number" min="1" max="25" step="1" value="6"></label>
+              <label>Machine rule<select id="root-fp-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+              <label>Stopping mode<select id="root-fp-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
+              <label>Stopping value (n or &epsilon;)<input id="root-fp-stop-value" type="text" value="4"></label>
+            </div>
+            <details id="root-fp-advanced" class="root-advanced-options disclosure disclosure-secondary" hidden>
+              <summary>Finite-precision sign options (advanced)</summary>
+              <div class="root-advanced-grid">
+                <label>Signs shown in the table<select id="root-fp-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
+                <label>Signs used to choose the next interval<select id="root-fp-decision-basis"><option value="machine">Machine signs decide</option><option value="exact" selected>Exact signs decide</option></select></label>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- ── Fixed Point inputs ── -->
+        <section id="root-inputs-fixedpoint" class="root-method-inputs control-band control-band-expression" aria-label="Fixed point controls" hidden>
+          <div class="omnipotent-search-bar calculator-band">
+            <div class="field-shell field-shell-expression search-shell">
+              <input id="root-fpi-expression" type="text" maxlength="300" placeholder="cos(x)" aria-label="Iteration function g(x)">
+              <button type="button" class="symbol-trigger" data-symbol-target="root-fpi-expression" aria-label="Open symbols" title="Open symbols">g(x)</button>
+              <button id="root-fpi-compute" type="button" class="btn-calculate-omni" aria-label="Run fixed-point iteration" title="Run fixed-point iteration">=</button>
+            </div>
+            <p class="input-hint">Enter g(x) such that x = g(x) at the root. The iteration is x&#8345;&#8330;&#8321; = g(x&#8345;). Converges when |g&prime;(x)| &lt; 1. Trig functions use the current <strong>Angle</strong> setting in the sidebar.</p>
+            <div class="root-config-grid">
+              <label>Starting point x&#8320;<input id="root-fpi-x0" type="text" value="1"></label>
+              <label>Significant digits (k)<input id="root-fpi-k" type="number" min="1" max="25" step="1" value="6"></label>
+              <label>Machine rule<select id="root-fpi-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+              <label>Stopping mode<select id="root-fpi-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
+              <label>Stopping value (n or &epsilon;)<input id="root-fpi-stop-value" type="text" value="4"></label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Shared error + status -->
+        <p id="root-error-msg" class="inline-error" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
+        <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <!-- Empty state -->
+        <section id="root-empty" class="empty-state">
+          <p class="result-label">Try a root-finding run</p>
+          <h3 class="empty-title">Select a method, enter a function, and click = to run.</h3>
+        </section>
+
+        <!-- Shared result stage -->
+        <section id="root-result-stage" class="result-stage" hidden>
+          <div class="root-summary-grid">
+            <div class="answer-hero answer-hero-major"><p class="result-label">Approximate root</p><p id="root-approx" class="answer-value is-empty">Not calculated yet.</p></div>
+            <div class="answer-hero answer-hero-major"><p class="result-label">Stopping result</p><p id="root-stopping-result" class="answer-value is-empty">Not calculated yet.</p></div>
+            <div class="answer-hero answer-hero-major"><p class="result-label">Stopping parameters</p><p id="root-convergence" class="answer-value is-empty">Not calculated yet.</p></div>
+          </div>
+          <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
+
+          <!-- Bracket-method only -->
+          <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
+            <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value is-empty">Not calculated yet.</p></div>
+            <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value is-empty">Not calculated yet.</p></div>
+            <div class="answer-hero"><p class="result-label">Decision basis</p><p id="root-decision-summary" class="answer-value is-empty">Not calculated yet.</p></div>
+          </div>
+
+          <!-- Convergence graph -->
+          <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
+
+          <!-- Convergence rate -->
+          <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
+
+          <!-- Solution panel -->
+          <section class="root-solution-panel answer-hero" aria-label="Solution steps">
+            <div class="root-solution-header">
+              <div>
+                <p class="result-label">Solution steps</p>
+                <h3>Classroom-style explanation</h3>
+              </div>
+              <button id="root-copy-solution" type="button" class="ghost">Copy solution</button>
+            </div>
+            <ol id="root-solution-steps" class="root-solution-steps">
+              <li>Run the method to see steps.</li>
+            </ol>
+            <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
+          </section>
+
+          <!-- Iteration table -->
+          <div class="table-wrap">
+            <table class="root-iteration-table">
+              <thead id="root-iteration-thead"></thead>
+              <tbody id="root-iteration-body">
+                <tr class="empty-row"><td colspan="13">No steps yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+
     <section id="tab-ieee754" class="panel" role="tabpanel" aria-labelledby="tab-btn-ieee754" tabindex="0" hidden>
       <div class="module-shell module-ieee754">
         <header class="module-header">
           <div>
-            <p class="module-kicker">Module IV</p>
+            <p class="module-kicker">Module V</p>
             <h2>IEEE-754 Double Precision Lab</h2>
           </div>
           <p class="module-copy">
@@ -1079,26 +1279,17 @@
     <button type="button" class="symbol-btn" data-symbol-insert="∠" aria-label="Insert angle symbol">∠</button>
   </div>
   <script src="math-engine.js?v=cw1"></script>
-  <script src="calc-engine.js?v=cw1"></script>
-  <script src="expression-engine.js?v=cw1"></script>
+  <script src="calc-engine.js?v=cw2"></script>
+  <script src="expression-engine.js?v=cw2"></script>
   <script src="poly-engine.js?v=cw1"></script>
+  <script src="root-engine.js?v=root3"></script>
+  <script src="root-ui.js?v=root3"></script>
   <script src="ieee754.js?v=ieee1"></script>
   <script src="math-display.js?v=nat1"></script>
   <script src="app.js?v=student4"></script>
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
 
 
 

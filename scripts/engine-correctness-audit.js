@@ -54,6 +54,14 @@ function makeReporter() {
   };
 }
 
+function captureRun(fn) {
+  try {
+    return { run: fn(), error: null };
+  } catch (error) {
+    return { run: null, error };
+  }
+}
+
 function rationalDecimal(M, value, digits = 20) {
   return M.rationalToDecimalString(value, digits);
 }
@@ -129,6 +137,42 @@ function run() {
       "8.1017913",
       rationalDecimal(M, comparison.final.approx),
       rationalDecimal(M, comparison.final.approx) === "8.1017913"
+    );
+  }
+
+  {
+    const comparison = E.evaluateComparison(
+      E.parseExpression("sin(x) - x/2", { allowVariable: true }),
+      { k: 6, mode: "round" },
+      { x: M.parseRational("1"), angleMode: "rad" },
+      { expression: "sin(x) - x/2" }
+    );
+
+    report.check(
+      "sin(x) - x/2 real part at x=1",
+      "Transcendental expression support",
+      "0.341471",
+      comparison.step.approx.re.toFixed(6),
+      Math.abs(comparison.step.approx.re - 0.341471) < 1e-12,
+      "This should evaluate in radians for the root-finding examples."
+    );
+  }
+
+  {
+    const comparison = E.evaluateComparison(
+      E.parseExpression("e^(-x) - x", { allowVariable: true }),
+      { k: 6, mode: "round" },
+      { x: M.parseRational("1"), angleMode: "rad" },
+      { expression: "e^(-x) - x" }
+    );
+
+    report.check(
+      "e^(-x) - x real part at x=1",
+      "Transcendental expression support",
+      "-0.632120",
+      comparison.step.approx.re.toFixed(6),
+      Math.abs(comparison.step.approx.re + 0.632120) < 1e-12,
+      "This should preserve the approved exponential example for bisection."
     );
   }
 
@@ -394,7 +438,12 @@ function run() {
       "Polynomial consistency",
       "non-empty Horner and Direct approximations",
       `Horner ${rationalDecimal(M, horner.approx)} | Direct ${rationalDecimal(M, direct.approx)}`,
-      Boolean(horner && horner.approx && direct && direct.approx),
+      Boolean(
+        horner &&
+        Object.prototype.hasOwnProperty.call(horner, "approx") &&
+        direct &&
+        Object.prototype.hasOwnProperty.call(direct, "approx")
+      ),
       "First harness pass records both stepwise methods before tighter semantic checks."
     );
   }
@@ -460,6 +509,46 @@ function run() {
       `Horner ${rationalDecimal(M, horner.approx)} | Direct ${rationalDecimal(M, direct.approx)}`,
       rationalDecimal(M, horner.approx) === "0" && rationalDecimal(M, direct.approx) === "0",
       "This records the current loss-of-significance behavior under low precision."
+    );
+  }
+
+  {
+    const result = captureRun(() => C.requireRealNumber(E.evaluateValue(E.parseExpression("tan(pi / 4)", { allowVariable: false }), { angleMode: "rad" }), "tan(pi / 4)"));
+    const actual = result.run !== null ? C.formatReal(result.run, 12) : (result.error && result.error.message ? result.error.message : "unknown error");
+    report.check("tan() evaluates in shared engine", "Expression engine", "1", actual, result.run !== null && Math.abs(result.run - 1) < 1e-12);
+  }
+
+  {
+    const result = captureRun(() => C.requireRealNumber(E.evaluateValue(E.parseExpression("ln(e)", { allowVariable: false }), { angleMode: "rad" }), "ln(e)"));
+    const actual = result.run !== null ? C.formatReal(result.run, 12) : (result.error && result.error.message ? result.error.message : "unknown error");
+    report.check("ln() evaluates in shared engine", "Expression engine", "1", actual, result.run !== null && Math.abs(result.run - 1) < 1e-12);
+  }
+
+  {
+    const result = captureRun(() => {
+      const ast = E.parseExpression("x^3 - 10^(-18)", { allowVariable: true });
+      const value = E.evaluateValue(ast, { x: M.ZERO, angleMode: "rad" });
+      const compatible = E.isExactCompatible(ast, { x: M.ZERO, angleMode: "rad" });
+      return {
+        compatible,
+        value
+      };
+    });
+    const actual = result.run !== null
+      ? (() => {
+          try {
+            return String(result.run.compatible) + " / " + rationalFraction(M, result.run.value);
+          } catch (error) {
+            return error.message;
+          }
+        })()
+      : (result.error && result.error.message ? result.error.message : "unknown error");
+    report.check(
+      "Negative integer powers stay exact when supported",
+      "Expression engine",
+      "exact-compatible nonzero rational",
+      actual,
+      result.run !== null && result.run.compatible && C.isRationalValue(result.run.value) && !M.isZero(result.run.value)
     );
   }
 
