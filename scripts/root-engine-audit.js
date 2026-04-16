@@ -504,6 +504,13 @@ function run() {
       run.rows.length === 13,
       "The professor example stops after 13 iterations under the relative bound."
     );
+    report.check(
+      "Relative tolerance metadata is exposed for reporting",
+      "Bisection stress",
+      "relative",
+      run.stopping.toleranceType,
+      run.stopping.toleranceType === "relative"
+    );
   }
 
   {

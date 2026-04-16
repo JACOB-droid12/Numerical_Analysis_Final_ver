@@ -286,6 +286,12 @@
       ? " (planned iterations = " + plannedIterations + ", actual iterations = " + actualIterations + ")"
       : "";
     if (run.stopping.kind === "epsilon") {
+      if (run.method === "bisection") {
+        const label = run.stopping.toleranceType === "absolute"
+          ? "Absolute tolerance"
+          : "Relative tolerance";
+        return label + " \u03B5 = " + run.stopping.input + iterationNote;
+      }
       if (run.stopping.capReached) {
         return "\u03B5 = " + run.stopping.input + ", stopped after " + run.stopping.maxIterations + " attempts without reaching tolerance" + iterationNote;
       }
@@ -564,6 +570,12 @@
       (run.initial && run.initial.right ? fmtVal(run.initial.right.x, 12) : "unavailable") + "]";
     const basis = run.decisionBasis === "machine" ? "machine" : "exact";
     const prec = run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping");
+    const toleranceMode = run.stopping && run.stopping.kind === "epsilon" && !isFP
+      ? (run.stopping.toleranceType === "absolute" ? "absolute" : "relative")
+      : null;
+    const toleranceSelection = toleranceMode
+      ? "The selected " + toleranceMode + " tolerance was \u03B5 = " + run.stopping.input + "."
+      : null;
     const steps = [
       "Start with f(x) = " + run.canonical + " on the interval " + intervalText + ".",
       "Check the endpoint signs using " + basis + " signs."
@@ -574,9 +586,20 @@
     } else if (run.summary.intervalStatus === "invalid-continuity") {
       steps.push(formatContinuityDetail(run.summary.stopDetail));
     } else if (run.summary.intervalStatus === "root-at-a") {
-      steps.push("The left endpoint is already a root. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The left endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
     } else if (run.summary.intervalStatus === "root-at-b") {
-      steps.push("The right endpoint is already a root. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The right endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
+    } else if (run.summary.intervalStatus === "root-at-midpoint") {
+      steps.push("The midpoint is an exact root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
     } else {
       steps.push("Endpoint signs are opposite — the interval brackets a root. Use " + formula + " and keep the bracketed subinterval with the sign change.");
       if (isFP) {
@@ -587,9 +610,21 @@
           steps.push("For n = " + run.stopping.input + " iterations, the final |c\u2099 - c\u2099\u208B\u2081| is " + fmtErr(run.stopping.epsilonBound) + ".");
         }
       } else {
-        steps.push(run.stopping.kind === "epsilon"
-          ? "For tolerance \u03B5 = " + run.stopping.input + ", the required iterations is n = " + run.stopping.iterationsRequired + "."
-          : "For n = " + run.stopping.input + " iterations, the error bound is \u03B5 \u2264 " + C.formatReal(run.stopping.epsilonBound, 8) + ".");
+        if (run.stopping.kind === "epsilon") {
+          if (run.stopping.toleranceType === "relative") {
+            steps.push(
+              "For relative tolerance \u03B5 = " + run.stopping.input +
+              ", stop when the current bracket gives a relative error bound below \u03B5."
+            );
+          } else {
+            steps.push(
+              "For absolute tolerance \u03B5 = " + run.stopping.input +
+              ", stop when the current Bisection bound is below \u03B5."
+            );
+          }
+        } else {
+          steps.push("For n = " + run.stopping.input + " iterations, the error bound is \u03B5 \u2264 " + C.formatReal(run.stopping.epsilonBound, 8) + ".");
+        }
       }
       steps.push("The approximate root after the final step is " + fmtVal(run.summary.approximation, 18) + ".");
     }
