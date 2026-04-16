@@ -388,21 +388,21 @@ function run() {
 
   {
     const run = R.runNewtonRaphson({
-      expression: "x^2 + 0.000000000000001",
-      dfExpression: "2x",
-      x0: "0.00000001",
+      expression: "sin(x)",
+      dfExpression: "cos(x)",
+      x0: "1e-20",
       machine: { k: 12, mode: "round" },
       stopping: { kind: "iterations", value: 4 },
       angleMode: "rad"
     });
 
     report.check(
-      "Newton near-zero threshold does not claim exact zero",
+      "Newton accepts machine-zero only when the step is stable",
       "Correctness contract",
-      "machine-zero",
-      run.summary.stopReason,
-      run.summary.stopReason === "machine-zero",
-      "The current positive reference residual is tiny and nonzero, so the stop is a numerical threshold rather than an exact root."
+      "machine-zero with tiny final step",
+      run.summary.stopReason + " with error " + C.formatReal(run.summary.error, 12),
+      run.summary.stopReason === "machine-zero" && run.summary.error < C.EPS,
+      "The residual is tiny and the Newton step is also tiny, so machine-zero is a safe numerical stop."
     );
   }
 
@@ -456,6 +456,91 @@ function run() {
       "true",
       String(run.stopping.capReached),
       run.stopping.capReached === true
+    );
+  }
+
+  {
+    const run = R.runNewtonRaphson({
+      expression: "(x - 1)^20",
+      dfExpression: "20*(x - 1)^19",
+      x0: "1.5",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-6" },
+      angleMode: "rad"
+    });
+    const approx = C.requireRealNumber(run.summary.approximation, "Newton flat-valley approximation");
+
+    report.check(
+      "Newton rejects flat-valley machine-zero false success",
+      "Correctness guardrails",
+      "iteration-cap, not machine-zero",
+      run.summary.stopReason + " at " + C.formatReal(approx, 12),
+      run.summary.stopReason === "iteration-cap" && Math.abs(approx - 1) > 0.001,
+      "The residual can become tiny while the Newton step is still too large to verify the root."
+    );
+  }
+
+  {
+    const run = R.runNewtonRaphson({
+      expression: "(x - 1)^2",
+      dfExpression: "2*(x - 1)",
+      x0: "1",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-6" },
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Newton exact root wins before zero derivative",
+      "Correctness guardrails",
+      "exact-zero in 1 row",
+      run.summary.stopReason + " in " + run.rows.length + " row(s)",
+      run.summary.stopReason === "exact-zero" && run.rows.length === 1,
+      "If f(x0) is exactly zero, Newton should not report derivative-zero first."
+    );
+  }
+
+  {
+    const run = R.runFixedPoint({
+      gExpression: "x",
+      x0: "7",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-7" },
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Fixed Point exact fixed value stops as exact-zero",
+      "Correctness guardrails",
+      "exact-zero in 1 row",
+      run.summary.stopReason + " in " + run.rows.length + " row(s)",
+      run.summary.stopReason === "exact-zero" && run.rows.length === 1,
+      "g(x) = x is an exact fixed-point hit, not merely a tolerance accident."
+    );
+  }
+
+  {
+    const run = R.runFixedPoint({
+      gExpression: "x + 1e-8",
+      x0: "0",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-7" },
+      angleMode: "rad"
+    });
+    const firstError = run.rows[0] ? run.rows[0].error : null;
+    const acceptedFirstTinyStep = run.summary.stopReason === "tolerance-reached"
+      && run.rows.length === 1
+      && typeof firstError === "number"
+      && firstError > 0
+      && firstError < 1e-7;
+
+    report.check(
+      "Fixed Point rejects constant tiny-step pseudo-convergence",
+      "Correctness guardrails",
+      "not first-step tolerance-reached on a tiny nonzero step",
+      run.summary.stopReason + " after " + run.rows.length + " row(s)",
+      !acceptedFirstTinyStep,
+      "A constant nonzero step below epsilon is drift, not convergence."
     );
   }
 
