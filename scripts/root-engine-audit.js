@@ -224,6 +224,26 @@ function run() {
   }
 
   {
+    const run = captureRun(() => R.runNewtonRaphson({
+      expression: "exp(x) - 1",
+      dfExpression: "exp(x)",
+      x0: "-50",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "iterations", value: 12 },
+      angleMode: "rad"
+    }));
+
+    report.check(
+      "Newton tiny-derivative case returns a guarded stop",
+      "Correctness guardrails",
+      "derivative-zero without crashing",
+      run.error ? run.error.message : run.run.summary.stopReason,
+      !run.error && run.run.summary.stopReason === "derivative-zero",
+      "A machine-zero derivative should stop the iteration before any Newton division is attempted."
+    );
+  }
+
+  {
     const run = R.runSecant({
       expression: "x^2 - 2",
       x0: "1",

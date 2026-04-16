@@ -293,7 +293,7 @@
         return label + " \u03B5 = " + run.stopping.input + iterationNote;
       }
       if (run.stopping.capReached) {
-        return "\u03B5 = " + run.stopping.input + ", stopped after " + run.stopping.maxIterations + " attempts without reaching tolerance" + iterationNote;
+        return "\u03B5 = " + run.stopping.input + ", stopped after " + run.stopping.maxIterations + " attempts; convergence was not verified before the cap" + iterationNote;
       }
       const suffix = run.summary.stopReason === "tolerance-reached"
         ? ", iterations = " + run.stopping.iterationsRequired

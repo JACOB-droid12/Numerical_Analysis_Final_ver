@@ -159,7 +159,14 @@
       }
 
       const stepDenominator = Math.abs(dfVal) < C.EPS && !isStrictZeroValue(dfn.exact) ? dfn.exact : dfn.approx;
-      const stepExact = C.div(fn.approx, stepDenominator);
+      let stepExact;
+      try {
+        stepExact = C.div(fn.approx, stepDenominator);
+      } catch (err) {
+        finalStopReason = "derivative-zero";
+        rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext: null, error: null, note: "f\u2032(x) \u2248 0, method cannot continue" });
+        break;
+      }
       const stepStored = machineStore(stepExact, machine);
       const xNextExact = C.sub(xn, stepStored);
       const xNext = machineStore(xNextExact, machine);
