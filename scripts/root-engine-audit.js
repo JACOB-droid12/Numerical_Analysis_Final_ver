@@ -485,6 +485,54 @@ function run() {
     );
   }
 
+  {
+    const run = R.runBisection({
+      expression: "x^3 + 4*x^2 - 10",
+      interval: { a: "1", b: "2" },
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "0.0001", toleranceType: "relative" },
+      decisionBasis: "exact",
+      signDisplay: "both",
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Lecture-style relative tolerance uses 13 bisection rows",
+      "Bisection stress",
+      "13",
+      String(run.rows.length),
+      run.rows.length === 13,
+      "The professor example stops after 13 iterations under the relative bound."
+    );
+  }
+
+  {
+    const run = R.runBisection({
+      expression: "x^3 + 4*x^2 - 10",
+      interval: { a: "1", b: "2" },
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "0.0001", toleranceType: "absolute" },
+      decisionBasis: "exact",
+      signDisplay: "both",
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Absolute tolerance keeps the 14-iteration interpretation",
+      "Bisection stress",
+      "14",
+      String(run.rows.length),
+      run.rows.length === 14
+    );
+    report.check(
+      "Bisection stopping metadata reports tolerance type",
+      "Bisection stress",
+      "absolute",
+      run.stopping.toleranceType,
+      run.stopping.toleranceType === "absolute"
+    );
+  }
+
   const stressCases = [
     {
       name: "Tiny constant is not endpoint root",
