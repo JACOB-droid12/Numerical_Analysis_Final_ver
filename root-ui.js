@@ -261,14 +261,14 @@
     return map[status] || status || EMPTY_VALUE;
   }
 
-  function formatStopReason(reason) {
+  function formatStopReason(reason, method) {
     const map = {
       "iteration-limit": "Completed the requested iterations",
       "iteration-cap": "Stopped at the safety iteration cap",
       "tolerance-reached": "Reached the requested tolerance",
       "tolerance-already-met": "Initial interval already satisfies the tolerance",
       "endpoint-root": "An endpoint is already a root",
-      "exact-zero": "Reference value is exactly zero",
+      "exact-zero": method === "fixedPoint" ? "The iteration reached an exact fixed point" : "Reference value is exactly zero",
       "machine-zero": "Machine value is zero or near zero",
       "invalid-starting-interval": "Not a valid bisection bracket",
       "discontinuity-detected": "Stopped at a discontinuity or singularity",
@@ -414,7 +414,7 @@
       ? "N/A"
       : fmtVal(run.summary.approximation, 18);
     setContent("root-approx", approxText);
-    setContent("root-stopping-result", formatStopReason(run.summary.stopReason));
+    setContent("root-stopping-result", formatStopReason(run.summary.stopReason, run.method));
 
     setContent("root-convergence", formatStoppingDetails(run));
     renderDiagnostics(run);
@@ -635,6 +635,12 @@
     return steps;
   }
 
+  function openMethodLimitText(run, noun) {
+    const reason = run.summary && run.summary.stopReason;
+    if (reason !== "iteration-cap" && reason !== "iteration-limit") return null;
+    return "The method stopped without verifying convergence; the last iterate is " + noun + " \u2248 " + fmtVal(run.summary.approximation, 18) + ".";
+  }
+
   function buildNewtonSteps(run) {
     const prec = run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping");
     return [
@@ -646,8 +652,8 @@
       run.summary.stopReason === "derivative-zero"
         ? "The method stopped early because f\u2032(x\u2099) \u2248 0."
         : run.summary.stopReason === "machine-zero"
-          ? "The method stopped because the machine-computed f(x\u2099) was zero or below the numerical threshold."
-          : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          ? "The method stopped because the machine-computed f(x\u2099) was near zero and the Newton step was stable."
+          : openMethodLimitText(run, "x") || "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -680,8 +686,10 @@
       run.summary.stopReason === "diverged"
         ? "The iteration diverged (|x| exceeded 10\u2078). Try a different g(x) or starting point."
         : run.summary.stopReason === "iteration-cap"
-          ? "The iteration reached the safety cap before satisfying the tolerance. Try a different g(x), starting point, or tolerance."
-          : "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          ? "The iteration reached the safety cap before verifying convergence. Try a different g(x), starting point, or tolerance."
+          : run.summary.stopReason === "exact-zero"
+            ? "The method stopped because g(x\u2099) equals x\u2099 exactly."
+            : openMethodLimitText(run, "x") || "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
