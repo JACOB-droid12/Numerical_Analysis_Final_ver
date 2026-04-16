@@ -3104,6 +3104,11 @@ select {
   padding: var(--space-3) var(--space-3) 0;
 }
 
+#root-bis-tolerance-type-wrap[hidden],
+#root-bis-tolerance-note[hidden] {
+  display: none !important;
+}
+
 .module-root .root-advanced-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--root-summary-min)), 1fr));

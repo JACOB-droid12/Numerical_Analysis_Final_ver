@@ -48,8 +48,8 @@
       name: "bisection",
       label: "Bisection",
       panelId: "root-inputs-bisection",
-      fieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value"],
-      resetFieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-decision-basis"],
+      fieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-tolerance-type"],
+      resetFieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-tolerance-type", "root-bis-decision-basis"],
       previewIds: [{ inputId: "root-bis-expression", allowVariable: true }]
     },
     {
@@ -109,7 +109,11 @@
       expression: byId("root-bis-expression").value,
       interval: { a: byId("root-bis-a").value, b: byId("root-bis-b").value },
       machine: { k: Number(byId("root-bis-k").value), mode: byId("root-bis-mode").value },
-      stopping: { kind: byId("root-bis-stop-kind").value, value: byId("root-bis-stop-value").value },
+      stopping: {
+        kind: byId("root-bis-stop-kind").value,
+        value: byId("root-bis-stop-value").value,
+        toleranceType: byId("root-bis-tolerance-type").value
+      },
       decisionBasis: byId("root-bis-decision-basis").value,
       signDisplay: byId("root-bis-sign-display").value,
       angleMode: getAngleMode()
@@ -858,6 +862,12 @@
     if (run) { run.signDisplay = byId("root-fp-sign-display").value; renderRun(run); }
   }
 
+  function syncBisectionToleranceControls() {
+    const epsilonMode = byId("root-bis-stop-kind").value === "epsilon";
+    setHidden("root-bis-tolerance-type-wrap", !epsilonMode);
+    setHidden("root-bis-tolerance-note", !epsilonMode);
+  }
+
   function isPresentationOnlyRootControl(target) {
     return !!target && (
       target.id === "root-bis-sign-display" ||
@@ -889,6 +899,10 @@
     if (bisSD) bisSD.addEventListener("change", handleBisSignDisplayChange);
     const fpSD = byId("root-fp-sign-display");
     if (fpSD) fpSD.addEventListener("change", handleFPSignDisplayChange);
+    const bisStopKind = byId("root-bis-stop-kind");
+    if (bisStopKind) {
+      bisStopKind.addEventListener("change", syncBisectionToleranceControls);
+    }
 
     // Debounced resets — use event delegation on the root tab panel
     const rootPanel = byId("tab-root");
@@ -899,6 +913,7 @@
         showError("root-error-msg", "");
         state.runs[state.activeMethod] = null;
         resetResults();
+        syncBisectionToleranceControls();
         if (h.syncMathPreviews) h.syncMathPreviews();
       }, DEBOUNCE_MS);
       rootPanel.addEventListener("input", function(e) {
@@ -927,6 +942,7 @@
   function init(appHelpers) {
     h = appHelpers;
     wireEvents();
+    syncBisectionToleranceControls();
     activateMethod("bisection");
   }
 

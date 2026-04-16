@@ -885,7 +885,17 @@
               <label>Machine rule<select id="root-bis-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
               <label>Stopping mode<select id="root-bis-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance &epsilon;</option></select></label>
               <label>Stopping value (n or &epsilon;)<input id="root-bis-stop-value" type="text" value="4"></label>
+              <label id="root-bis-tolerance-type-wrap" hidden>
+                Tolerance type
+                <select id="root-bis-tolerance-type">
+                  <option value="relative" selected>Relative tolerance</option>
+                  <option value="absolute">Absolute tolerance</option>
+                </select>
+              </label>
             </div>
+            <p id="root-bis-tolerance-note" class="root-textbook-note focus-note" hidden>
+              Relative tolerance is the default for Bisection because it matches the lecture-style stopping rule.
+            </p>
             <p class="root-textbook-note focus-note">Textbook default: the next interval is chosen using the usual sign-change rule.</p>
             <details id="root-bis-advanced" class="root-advanced-options disclosure disclosure-secondary">
               <summary>Finite-precision sign options (advanced)</summary>
@@ -1290,7 +1300,6 @@
 </body>
 
 </html>
-
 
 
 
