@@ -596,7 +596,10 @@
         steps.push(toleranceSelection);
       }
     } else if (run.summary.intervalStatus === "root-at-midpoint") {
-      steps.push("The midpoint is an exact root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      const midpointStopText = run.summary.stopReason === "exact-zero"
+        ? "The midpoint is an exact root"
+        : "The midpoint has a zero or near-zero machine value";
+      steps.push(midpointStopText + ", so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The approximation is x = " + fmtVal(run.summary.approximation, 18) + ".");
       if (toleranceSelection) {
         steps.push(toleranceSelection);
       }
@@ -619,7 +622,7 @@
           } else {
             steps.push(
               "For absolute tolerance \u03B5 = " + run.stopping.input +
-              ", stop when the current Bisection bound is below \u03B5."
+              ", stop when the current Bisection bound is at or below \u03B5."
             );
           }
         } else {
