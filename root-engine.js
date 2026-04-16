@@ -62,6 +62,32 @@
       : "machine-zero";
   }
 
+  function stepTolerance(stopping) {
+    return stopping && stopping.kind === "epsilon" ? stopping.epsilon : C.EPS;
+  }
+
+  function relativeStepError(error, nextValue) {
+    const nextReal = realNumber(nextValue, "Next iterate");
+    return error / Math.max(1, Math.abs(nextReal));
+  }
+
+  function stepIsStableForConvergence(error, nextValue, stopping) {
+    const tolerance = stepTolerance(stopping);
+    return error <= tolerance || relativeStepError(error, nextValue) <= tolerance;
+  }
+
+  function exactDifferenceIsZero(left, right) {
+    return isStrictZeroValue(C.sub(left, right));
+  }
+
+  function fixedPointStepIsShrinking(error, previousError) {
+    if (previousError == null) {
+      return false;
+    }
+    const scale = Math.max(1, previousError);
+    return error < previousError && Math.abs(previousError - error) > C.EPS * scale;
+  }
+
   function summaryPackage(approximation, intervalStatus, stopReason, diagnostics) {
     return Object.assign({
       approximation,
