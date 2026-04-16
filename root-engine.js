@@ -419,6 +419,7 @@
     const rows = [];
     let finalStopReason = initialOpenStopReason(stopping);
     const DIVERGE_LIMIT = 1e8;
+    let previousError = null;
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
       const gn = evaluateFn(gAst, xn, machine, options.angleMode);
@@ -426,20 +427,34 @@
       const xnReal = realNumber(xn, "x\u2099");
       const xNextReal = realNumber(xNext, "g(x\u2099)");
       const error = Math.abs(xNextReal - xnReal);
+      const exactFixedPoint = exactDifferenceIsZero(xNext, xn);
 
       rows.push({ iteration: iter, xn, gxn: xNext, error, note: "" });
+
+      if (exactFixedPoint) {
+        finalStopReason = "exact-zero";
+        rows[rows.length - 1].note = "g(x\u2099) equals x\u2099 exactly";
+        break;
+      }
 
       if (Math.abs(xNextReal) > DIVERGE_LIMIT) {
         finalStopReason = "diverged";
         break;
       }
 
-      xn = xNext;
-
       if (stopping.kind === "epsilon" && error < stopping.epsilon) {
-        finalStopReason = "tolerance-reached";
-        break;
+        if (fixedPointStepIsShrinking(error, previousError)) {
+          finalStopReason = "tolerance-reached";
+          xn = xNext;
+          break;
+        }
+        rows[rows.length - 1].note = previousError == null
+          ? "step is below epsilon on the first iteration, but convergence is not verified yet"
+          : "step is below epsilon but is not shrinking, so convergence is not verified";
       }
+
+      previousError = error;
+      xn = xNext;
     }
 
     const finalRow = lastRow(rows);
