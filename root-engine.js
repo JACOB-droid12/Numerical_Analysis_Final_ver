@@ -142,16 +142,24 @@
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
       const fn = evaluateFn(fAst, xn, machine, options.angleMode);
+
+      if (isStrictZeroValue(fn.exact)) {
+        finalStopReason = "exact-zero";
+        rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: null, xNext: xn, error: 0, note: "f(x\u2099) is exactly zero" });
+        break;
+      }
+
       const dfn = evaluateFn(dfAst, xn, machine, options.angleMode);
       const dfVal = realNumber(dfn.approx, "f'(x\u2099)");
 
-      if (Math.abs(dfVal) < C.EPS) {
+      if (isStrictZeroValue(dfn.exact)) {
         finalStopReason = "derivative-zero";
         rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext: null, error: null, note: "f\u2032(x) \u2248 0, method cannot continue" });
         break;
       }
 
-      const stepExact = C.div(fn.approx, dfn.approx);
+      const stepDenominator = Math.abs(dfVal) < C.EPS && !isStrictZeroValue(dfn.exact) ? dfn.exact : dfn.approx;
+      const stepExact = C.div(fn.approx, stepDenominator);
       const stepStored = machineStore(stepExact, machine);
       const xNextExact = C.sub(xn, stepStored);
       const xNext = machineStore(xNextExact, machine);
@@ -161,9 +169,13 @@
 
       const fnVal = realNumber(fn.approx, "f(x\u2099)");
       if (Math.abs(fnVal) < C.EPS) {
-        finalStopReason = zeroStopReasonForValue(fn.exact);
-        xn = xNext;
-        break;
+        if (stepIsStableForConvergence(error, xNext, stopping)) {
+          finalStopReason = "machine-zero";
+          xn = xNext;
+          break;
+        }
+
+        rows[rows.length - 1].note = "f(x\u2099) is near zero, but the Newton step is still too large to verify convergence";
       }
 
       xn = xNext;
