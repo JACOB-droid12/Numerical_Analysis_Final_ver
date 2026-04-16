@@ -907,22 +907,26 @@
       const nextLeft = keepLeftHalf ? left : midpoint;
       const nextRight = keepLeftHalf ? midpoint : right;
       let bound;
-      try {
-        bound = relativeMode
-          ? bisectionRelativeBound(nextLeft, nextRight)
-          : toleranceFromIterations(initialLeft, initialRight, iteration);
-      } catch (err) {
-        addWarning(warnings, "relative-tolerance-invalid", err.message);
-        return bisectionResult(options, ast, machine, leftPoint, rightPoint, stopping, summaryPackage(
-          null,
-          "valid-bracket",
-          "relative-tolerance-invalid",
-          {
-            stopDetail: err.message,
-            residualBasis: "unavailable",
-            error
-          }
-        ), rows, warnings);
+      if (midSign === 0) {
+        bound = relativeMode ? 0 : toleranceFromIterations(initialLeft, initialRight, iteration);
+      } else {
+        try {
+          bound = relativeMode
+            ? bisectionRelativeBound(nextLeft, nextRight)
+            : toleranceFromIterations(initialLeft, initialRight, iteration);
+        } catch (err) {
+          addWarning(warnings, "relative-tolerance-invalid", err.message);
+          return bisectionResult(options, ast, machine, leftPoint, rightPoint, stopping, summaryPackage(
+            null,
+            "valid-bracket",
+            "relative-tolerance-invalid",
+            {
+              stopDetail: err.message,
+              residualBasis: "unavailable",
+              error
+            }
+          ), rows, warnings);
+        }
       }
 
       rows.push({

@@ -603,6 +603,22 @@ function run() {
       }
     },
     {
+      name: "Relative epsilon still reports an exact midpoint root",
+      run: () => R.runBisection({ expression: "x", interval: { a: "-1", b: "1" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.1", toleranceType: "relative" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      check: (result) => {
+        const summary = result && result.run && result.run.summary ? result.run.summary : null;
+        return Boolean(summary) && summary.intervalStatus === "root-at-midpoint";
+      },
+      expected: "root-at-midpoint",
+      actual: (result) => {
+        const summary = result && result.run && result.run.summary ? result.run.summary : null;
+        if (!summary) {
+          return "missing summary";
+        }
+        return summary.intervalStatus;
+      }
+    },
+    {
       name: "Singular midpoint returns continuity result",
       run: () => R.runBisection({ expression: "1/x", interval: { a: "-1", b: "1" }, machine: { k: 12, mode: "round" }, stopping: { kind: "iterations", value: "4" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
