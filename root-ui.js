@@ -48,8 +48,8 @@
       name: "bisection",
       label: "Bisection",
       panelId: "root-inputs-bisection",
-      fieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value"],
-      resetFieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-decision-basis"],
+      fieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-tolerance-type"],
+      resetFieldIds: ["root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k", "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value", "root-bis-tolerance-type", "root-bis-decision-basis"],
       previewIds: [{ inputId: "root-bis-expression", allowVariable: true }]
     },
     {
@@ -109,7 +109,11 @@
       expression: byId("root-bis-expression").value,
       interval: { a: byId("root-bis-a").value, b: byId("root-bis-b").value },
       machine: { k: Number(byId("root-bis-k").value), mode: byId("root-bis-mode").value },
-      stopping: { kind: byId("root-bis-stop-kind").value, value: byId("root-bis-stop-value").value },
+      stopping: {
+        kind: byId("root-bis-stop-kind").value,
+        value: byId("root-bis-stop-value").value,
+        toleranceType: byId("root-bis-tolerance-type").value
+      },
       decisionBasis: byId("root-bis-decision-basis").value,
       signDisplay: byId("root-bis-sign-display").value,
       angleMode: getAngleMode()
@@ -257,14 +261,14 @@
     return map[status] || status || EMPTY_VALUE;
   }
 
-  function formatStopReason(reason) {
+  function formatStopReason(reason, method) {
     const map = {
       "iteration-limit": "Completed the requested iterations",
       "iteration-cap": "Stopped at the safety iteration cap",
       "tolerance-reached": "Reached the requested tolerance",
       "tolerance-already-met": "Initial interval already satisfies the tolerance",
       "endpoint-root": "An endpoint is already a root",
-      "exact-zero": "Reference value is exactly zero",
+      "exact-zero": method === "fixedPoint" ? "The iteration reached an exact fixed point" : "Reference value is exactly zero",
       "machine-zero": "Machine value is zero or near zero",
       "invalid-starting-interval": "Not a valid bisection bracket",
       "discontinuity-detected": "Stopped at a discontinuity or singularity",
@@ -282,8 +286,14 @@
       ? " (planned iterations = " + plannedIterations + ", actual iterations = " + actualIterations + ")"
       : "";
     if (run.stopping.kind === "epsilon") {
+      if (run.method === "bisection") {
+        const label = run.stopping.toleranceType === "absolute"
+          ? "Absolute tolerance"
+          : "Relative tolerance";
+        return label + " \u03B5 = " + run.stopping.input + iterationNote;
+      }
       if (run.stopping.capReached) {
-        return "\u03B5 = " + run.stopping.input + ", stopped after " + run.stopping.maxIterations + " attempts without reaching tolerance" + iterationNote;
+        return "\u03B5 = " + run.stopping.input + ", stopped after " + run.stopping.maxIterations + " attempts; convergence was not verified before the cap" + iterationNote;
       }
       const suffix = run.summary.stopReason === "tolerance-reached"
         ? ", iterations = " + run.stopping.iterationsRequired
@@ -404,7 +414,7 @@
       ? "N/A"
       : fmtVal(run.summary.approximation, 18);
     setContent("root-approx", approxText);
-    setContent("root-stopping-result", formatStopReason(run.summary.stopReason));
+    setContent("root-stopping-result", formatStopReason(run.summary.stopReason, run.method));
 
     setContent("root-convergence", formatStoppingDetails(run));
     renderDiagnostics(run);
@@ -560,6 +570,12 @@
       (run.initial && run.initial.right ? fmtVal(run.initial.right.x, 12) : "unavailable") + "]";
     const basis = run.decisionBasis === "machine" ? "machine" : "exact";
     const prec = run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping");
+    const toleranceMode = run.stopping && run.stopping.kind === "epsilon" && !isFP
+      ? (run.stopping.toleranceType === "absolute" ? "absolute" : "relative")
+      : null;
+    const toleranceSelection = toleranceMode
+      ? "The selected " + toleranceMode + " tolerance was \u03B5 = " + run.stopping.input + "."
+      : null;
     const steps = [
       "Start with f(x) = " + run.canonical + " on the interval " + intervalText + ".",
       "Check the endpoint signs using " + basis + " signs."
@@ -570,9 +586,23 @@
     } else if (run.summary.intervalStatus === "invalid-continuity") {
       steps.push(formatContinuityDetail(run.summary.stopDetail));
     } else if (run.summary.intervalStatus === "root-at-a") {
-      steps.push("The left endpoint is already a root. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The left endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
     } else if (run.summary.intervalStatus === "root-at-b") {
-      steps.push("The right endpoint is already a root. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The right endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
+    } else if (run.summary.intervalStatus === "root-at-midpoint") {
+      const midpointStopText = run.summary.stopReason === "exact-zero"
+        ? "The midpoint is an exact root"
+        : "The midpoint has a zero or near-zero machine value";
+      steps.push(midpointStopText + ", so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The approximation is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      if (toleranceSelection) {
+        steps.push(toleranceSelection);
+      }
     } else {
       steps.push("Endpoint signs are opposite — the interval brackets a root. Use " + formula + " and keep the bracketed subinterval with the sign change.");
       if (isFP) {
@@ -583,14 +613,32 @@
           steps.push("For n = " + run.stopping.input + " iterations, the final |c\u2099 - c\u2099\u208B\u2081| is " + fmtErr(run.stopping.epsilonBound) + ".");
         }
       } else {
-        steps.push(run.stopping.kind === "epsilon"
-          ? "For tolerance \u03B5 = " + run.stopping.input + ", the required iterations is n = " + run.stopping.iterationsRequired + "."
-          : "For n = " + run.stopping.input + " iterations, the error bound is \u03B5 \u2264 " + C.formatReal(run.stopping.epsilonBound, 8) + ".");
+        if (run.stopping.kind === "epsilon") {
+          if (run.stopping.toleranceType === "relative") {
+            steps.push(
+              "For relative tolerance \u03B5 = " + run.stopping.input +
+              ", stop when the current bracket gives a relative error bound below \u03B5."
+            );
+          } else {
+            steps.push(
+              "For absolute tolerance \u03B5 = " + run.stopping.input +
+              ", stop when the current Bisection bound is at or below \u03B5."
+            );
+          }
+        } else {
+          steps.push("For n = " + run.stopping.input + " iterations, the error bound is \u03B5 \u2264 " + C.formatReal(run.stopping.epsilonBound, 8) + ".");
+        }
       }
       steps.push("The approximate root after the final step is " + fmtVal(run.summary.approximation, 18) + ".");
     }
     steps.push("Machine values use " + prec + ".");
     return steps;
+  }
+
+  function openMethodLimitText(run, noun) {
+    const reason = run.summary && run.summary.stopReason;
+    if (reason !== "iteration-cap" && reason !== "iteration-limit") return null;
+    return "The method stopped without verifying convergence; the last iterate is " + noun + " \u2248 " + fmtVal(run.summary.approximation, 18) + ".";
   }
 
   function buildNewtonSteps(run) {
@@ -604,8 +652,8 @@
       run.summary.stopReason === "derivative-zero"
         ? "The method stopped early because f\u2032(x\u2099) \u2248 0."
         : run.summary.stopReason === "machine-zero"
-          ? "The method stopped because the machine-computed f(x\u2099) was zero or below the numerical threshold."
-          : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          ? "The method stopped because the machine-computed f(x\u2099) was near zero and the Newton step was stable."
+          : openMethodLimitText(run, "x") || "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -638,8 +686,10 @@
       run.summary.stopReason === "diverged"
         ? "The iteration diverged (|x| exceeded 10\u2078). Try a different g(x) or starting point."
         : run.summary.stopReason === "iteration-cap"
-          ? "The iteration reached the safety cap before satisfying the tolerance. Try a different g(x), starting point, or tolerance."
-          : "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          ? "The iteration reached the safety cap before verifying convergence. Try a different g(x), starting point, or tolerance."
+          : run.summary.stopReason === "exact-zero"
+            ? "The method stopped because g(x\u2099) equals x\u2099 exactly."
+            : openMethodLimitText(run, "x") || "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -858,6 +908,12 @@
     if (run) { run.signDisplay = byId("root-fp-sign-display").value; renderRun(run); }
   }
 
+  function syncBisectionToleranceControls() {
+    const epsilonMode = byId("root-bis-stop-kind").value === "epsilon";
+    setHidden("root-bis-tolerance-type-wrap", !epsilonMode);
+    setHidden("root-bis-tolerance-note", !epsilonMode);
+  }
+
   function isPresentationOnlyRootControl(target) {
     return !!target && (
       target.id === "root-bis-sign-display" ||
@@ -889,6 +945,10 @@
     if (bisSD) bisSD.addEventListener("change", handleBisSignDisplayChange);
     const fpSD = byId("root-fp-sign-display");
     if (fpSD) fpSD.addEventListener("change", handleFPSignDisplayChange);
+    const bisStopKind = byId("root-bis-stop-kind");
+    if (bisStopKind) {
+      bisStopKind.addEventListener("change", syncBisectionToleranceControls);
+    }
 
     // Debounced resets — use event delegation on the root tab panel
     const rootPanel = byId("tab-root");
@@ -899,6 +959,7 @@
         showError("root-error-msg", "");
         state.runs[state.activeMethod] = null;
         resetResults();
+        syncBisectionToleranceControls();
         if (h.syncMathPreviews) h.syncMathPreviews();
       }, DEBOUNCE_MS);
       rootPanel.addEventListener("input", function(e) {
@@ -927,6 +988,7 @@
   function init(appHelpers) {
     h = appHelpers;
     wireEvents();
+    syncBisectionToleranceControls();
     activateMethod("bisection");
   }
 

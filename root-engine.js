@@ -62,6 +62,32 @@
       : "machine-zero";
   }
 
+  function stepTolerance(stopping) {
+    return stopping && stopping.kind === "epsilon" ? stopping.epsilon : C.EPS;
+  }
+
+  function relativeStepError(error, nextValue) {
+    const nextReal = realNumber(nextValue, "Next iterate");
+    return error / Math.max(1, Math.abs(nextReal));
+  }
+
+  function stepIsStableForConvergence(error, nextValue, stopping) {
+    const tolerance = stepTolerance(stopping);
+    return error <= tolerance || relativeStepError(error, nextValue) <= tolerance;
+  }
+
+  function exactDifferenceIsZero(left, right) {
+    return isStrictZeroValue(C.sub(left, right));
+  }
+
+  function fixedPointStepIsShrinking(error, previousError) {
+    if (previousError == null) {
+      return false;
+    }
+    const scale = Math.max(1, previousError);
+    return error < previousError && Math.abs(previousError - error) > C.EPS * scale;
+  }
+
   function summaryPackage(approximation, intervalStatus, stopReason, diagnostics) {
     return Object.assign({
       approximation,
@@ -116,16 +142,31 @@
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
       const fn = evaluateFn(fAst, xn, machine, options.angleMode);
+
+      if (isStrictZeroValue(fn.exact)) {
+        finalStopReason = "exact-zero";
+        rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: null, xNext: xn, error: 0, note: "f(x\u2099) is exactly zero" });
+        break;
+      }
+
       const dfn = evaluateFn(dfAst, xn, machine, options.angleMode);
       const dfVal = realNumber(dfn.approx, "f'(x\u2099)");
 
-      if (Math.abs(dfVal) < C.EPS) {
+      if (isStrictZeroValue(dfn.exact)) {
         finalStopReason = "derivative-zero";
         rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext: null, error: null, note: "f\u2032(x) \u2248 0, method cannot continue" });
         break;
       }
 
-      const stepExact = C.div(fn.approx, dfn.approx);
+      const stepDenominator = Math.abs(dfVal) < C.EPS && !isStrictZeroValue(dfn.exact) ? dfn.exact : dfn.approx;
+      let stepExact;
+      try {
+        stepExact = C.div(fn.approx, stepDenominator);
+      } catch (err) {
+        finalStopReason = "derivative-zero";
+        rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext: null, error: null, note: "f\u2032(x) \u2248 0, method cannot continue" });
+        break;
+      }
       const stepStored = machineStore(stepExact, machine);
       const xNextExact = C.sub(xn, stepStored);
       const xNext = machineStore(xNextExact, machine);
@@ -135,9 +176,13 @@
 
       const fnVal = realNumber(fn.approx, "f(x\u2099)");
       if (Math.abs(fnVal) < C.EPS) {
-        finalStopReason = zeroStopReasonForValue(fn.exact);
-        xn = xNext;
-        break;
+        if (stepIsStableForConvergence(error, xNext, stopping)) {
+          finalStopReason = "machine-zero";
+          xn = xNext;
+          break;
+        }
+
+        rows[rows.length - 1].note = "f(x\u2099) is near zero, but the Newton step is still too large to verify convergence";
       }
 
       xn = xNext;
@@ -381,6 +426,7 @@
     const rows = [];
     let finalStopReason = initialOpenStopReason(stopping);
     const DIVERGE_LIMIT = 1e8;
+    let previousError = null;
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
       const gn = evaluateFn(gAst, xn, machine, options.angleMode);
@@ -388,20 +434,34 @@
       const xnReal = realNumber(xn, "x\u2099");
       const xNextReal = realNumber(xNext, "g(x\u2099)");
       const error = Math.abs(xNextReal - xnReal);
+      const exactFixedPoint = exactDifferenceIsZero(gn.exact, xn);
 
       rows.push({ iteration: iter, xn, gxn: xNext, error, note: "" });
+
+      if (exactFixedPoint) {
+        finalStopReason = "exact-zero";
+        rows[rows.length - 1].note = "g(x\u2099) equals x\u2099 exactly";
+        break;
+      }
 
       if (Math.abs(xNextReal) > DIVERGE_LIMIT) {
         finalStopReason = "diverged";
         break;
       }
 
-      xn = xNext;
-
       if (stopping.kind === "epsilon" && error < stopping.epsilon) {
-        finalStopReason = "tolerance-reached";
-        break;
+        if (fixedPointStepIsShrinking(error, previousError)) {
+          finalStopReason = "tolerance-reached";
+          xn = xNext;
+          break;
+        }
+        rows[rows.length - 1].note = previousError == null
+          ? "step is below epsilon on the first iteration, but convergence is not verified yet"
+          : "step is below epsilon but is not shrinking, so convergence is not verified";
       }
+
+      previousError = error;
+      xn = xNext;
     }
 
     const finalRow = lastRow(rows);
@@ -467,6 +527,20 @@
 
   function distanceNumber(left, right, label) {
     return Math.abs(realNumber(C.sub(left, right), label));
+  }
+
+  function absNumber(value) {
+    return Math.abs(realNumber(value, "Absolute value"));
+  }
+
+  function bisectionRelativeBound(left, right) {
+    const leftMag = absNumber(left);
+    const rightMag = absNumber(right);
+    const denom = Math.min(leftMag, rightMag);
+    if (!(denom > 0)) {
+      throw new Error("Relative tolerance needs a bracket whose endpoints stay away from 0.");
+    }
+    return distanceNumber(right, left, "Relative tolerance width") / denom;
   }
 
   function finiteDistanceOrMachine(left, right, machine, label) {
@@ -734,17 +808,29 @@
     return { changes, failed };
   }
 
+  function normalizeBisectionToleranceType(stopping) {
+    return stopping && stopping.toleranceType === "absolute" ? "absolute" : "relative";
+  }
+
   function buildStopping(options, left, right) {
     if (options.stopping.kind === "epsilon") {
       const epsilonValue = parseScalarInput(options.stopping.value, "Tolerance epsilon");
-      const plannedIterations = iterationsFromTolerance(left, right, epsilonValue);
+      const toleranceType = options.method === "bisection"
+        ? normalizeBisectionToleranceType(options.stopping)
+        : "absolute";
+      const plannedIterations = toleranceType === "absolute"
+        ? iterationsFromTolerance(left, right, epsilonValue)
+        : null;
+
       return {
         kind: "epsilon",
         input: String(options.stopping.value),
+        toleranceType,
         plannedIterations,
         actualIterations: 0,
         iterationsRequired: plannedIterations,
-        epsilonBound: realNumber(epsilonValue, "Tolerance epsilon")
+        epsilonBound: realNumber(epsilonValue, "Tolerance epsilon"),
+        maxIterations: MAX_OPEN_ITER
       };
     }
 
@@ -778,7 +864,7 @@
 
     let left = iterationValue(leftInput, machine, basis);
     let right = iterationValue(rightInput, machine, basis);
-    const stopping = buildStopping(options, left, right);
+    const stopping = buildStopping(Object.assign({}, options, { method: "bisection" }), left, right);
     const initialLeft = left;
     const initialRight = right;
     let leftPoint;
@@ -836,7 +922,10 @@
       addWarning(warnings, "possible-multiple-roots", "Sampled signs changed more than once inside the interval; bisection may converge to one of multiple roots.");
     }
 
-    if (stopping.kind === "epsilon" && stopping.iterationsRequired === 0) {
+    const relativeMode = stopping.kind === "epsilon" && stopping.toleranceType === "relative";
+    const absoluteMode = stopping.kind === "epsilon" && stopping.toleranceType === "absolute";
+
+    if (absoluteMode && stopping.iterationsRequired === 0) {
       const midpoint = C.div(C.add(left, right), TWO);
       let midpointPoint;
       try {
@@ -859,7 +948,8 @@
 
     const rows = [];
     let prevC = null;
-    for (let iteration = 1; iteration <= stopping.iterationsRequired; iteration += 1) {
+    const loopLimit = relativeMode ? stopping.maxIterations : stopping.iterationsRequired;
+    for (let iteration = 1; iteration <= loopLimit; iteration += 1) {
       const midpointExact = C.div(C.add(left, right), TWO);
       const midpoint = iterationValue(midpointExact, machine, basis);
       const aPoint = evaluatePoint(ast, left, machine, options.angleMode);
@@ -874,6 +964,30 @@
       const midSign = decisionSign(cPoint, basis);
       const keepLeftHalf = currentLeftSign === 0 || currentLeftSign * midSign <= 0;
       const error = prevC != null ? Math.abs(realNumber(C.sub(midpoint, prevC), "Bisection error")) : null;
+      const nextLeft = keepLeftHalf ? left : midpoint;
+      const nextRight = keepLeftHalf ? midpoint : right;
+      let bound;
+      if (midSign === 0) {
+        bound = relativeMode ? 0 : toleranceFromIterations(initialLeft, initialRight, iteration);
+      } else {
+        try {
+          bound = relativeMode
+            ? bisectionRelativeBound(nextLeft, nextRight)
+            : toleranceFromIterations(initialLeft, initialRight, iteration);
+        } catch (err) {
+          addWarning(warnings, "relative-tolerance-invalid", err.message);
+          return bisectionResult(options, ast, machine, leftPoint, rightPoint, stopping, summaryPackage(
+            null,
+            "valid-bracket",
+            "relative-tolerance-invalid",
+            {
+              stopDetail: err.message,
+              residualBasis: "unavailable",
+              error
+            }
+          ), rows, warnings);
+        }
+      }
 
       rows.push({
         iteration,
@@ -887,7 +1001,7 @@
         machineSigns: { a: aPoint.machineSign, b: bPoint.machineSign, c: cPoint.machineSign },
         decision: keepLeftHalf ? "left" : "right",
         width: Math.abs(realNumber(C.sub(right, left), "Interval width")),
-        bound: toleranceFromIterations(initialLeft, initialRight, iteration),
+        bound,
         error,
         note: formatDisagreementNote(disagreementLabels(
           ["a", "b", "c"],
@@ -912,6 +1026,24 @@
         ), rows, warnings);
       }
 
+      if (relativeMode && bound < stopping.epsilonBound) {
+        const residualData = pointResidual(cPoint, basis);
+        return bisectionResult(options, ast, machine, leftPoint, rightPoint, Object.assign({}, stopping, {
+          iterationsRequired: iteration,
+          epsilonBound: stopping.epsilonBound
+        }), summaryPackage(
+          midpoint,
+          "valid-bracket",
+          "tolerance-reached",
+          {
+            residual: residualData.residual,
+            residualBasis: residualData.residualBasis,
+            error,
+            bound
+          }
+        ), rows, warnings);
+      }
+
       if (keepLeftHalf) {
         right = midpoint;
       } else {
@@ -924,7 +1056,7 @@
     return bisectionResult(options, ast, machine, leftPoint, rightPoint, stopping, summaryPackage(
       finalBracketRow ? finalBracketRow.c : C.div(C.add(left, right), TWO),
       "valid-bracket",
-      options.stopping.kind === "epsilon" ? "tolerance-reached" : "iteration-limit",
+      relativeMode ? "iteration-cap" : (options.stopping.kind === "epsilon" ? "tolerance-reached" : "iteration-limit"),
       {
         residual: residualData.residual,
         residualBasis: residualData.residualBasis,

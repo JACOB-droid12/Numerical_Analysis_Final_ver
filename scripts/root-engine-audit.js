@@ -94,7 +94,7 @@ function run() {
       expression: "x^2 - 2",
       interval: { a: "1", b: "2" },
       machine: { k: 6, mode: "round" },
-      stopping: { kind: "epsilon", value: "0.125" },
+      stopping: { kind: "epsilon", value: "0.125", toleranceType: "absolute" },
       decisionBasis: "exact",
       signDisplay: "exact",
       angleMode: "rad"
@@ -220,6 +220,26 @@ function run() {
       approx,
       approx === "1.41421356237",
       "Independent sequence: 1.5, 1.41666666667, 1.41421568627, 1.41421356237."
+    );
+  }
+
+  {
+    const run = captureRun(() => R.runNewtonRaphson({
+      expression: "exp(x) - 1",
+      dfExpression: "exp(x)",
+      x0: "-50",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "iterations", value: 12 },
+      angleMode: "rad"
+    }));
+
+    report.check(
+      "Newton tiny-derivative case returns a guarded stop",
+      "Correctness guardrails",
+      "derivative-zero without crashing",
+      run.error ? run.error.message : run.run.summary.stopReason,
+      !run.error && run.run.summary.stopReason === "derivative-zero",
+      "A machine-zero derivative should stop the iteration before any Newton division is attempted."
     );
   }
 
@@ -388,21 +408,21 @@ function run() {
 
   {
     const run = R.runNewtonRaphson({
-      expression: "x^2 + 0.000000000000001",
-      dfExpression: "2x",
-      x0: "0.00000001",
+      expression: "sin(x)",
+      dfExpression: "cos(x)",
+      x0: "1e-20",
       machine: { k: 12, mode: "round" },
       stopping: { kind: "iterations", value: 4 },
       angleMode: "rad"
     });
 
     report.check(
-      "Newton near-zero threshold does not claim exact zero",
+      "Newton accepts machine-zero only when the step is stable",
       "Correctness contract",
-      "machine-zero",
-      run.summary.stopReason,
-      run.summary.stopReason === "machine-zero",
-      "The current positive reference residual is tiny and nonzero, so the stop is a numerical threshold rather than an exact root."
+      "machine-zero with tiny final step",
+      run.summary.stopReason + " with error " + C.formatReal(run.summary.error, 12),
+      run.summary.stopReason === "machine-zero" && run.summary.error < C.EPS,
+      "The residual is tiny and the Newton step is also tiny, so machine-zero is a safe numerical stop."
     );
   }
 
@@ -461,6 +481,91 @@ function run() {
 
   {
     const run = R.runNewtonRaphson({
+      expression: "(x - 1)^20",
+      dfExpression: "20*(x - 1)^19",
+      x0: "1.5",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-6" },
+      angleMode: "rad"
+    });
+    const approx = C.requireRealNumber(run.summary.approximation, "Newton flat-valley approximation");
+
+    report.check(
+      "Newton rejects flat-valley machine-zero false success",
+      "Correctness guardrails",
+      "iteration-cap, not machine-zero",
+      run.summary.stopReason + " at " + C.formatReal(approx, 12),
+      run.summary.stopReason === "iteration-cap" && Math.abs(approx - 1) > 0.001,
+      "The residual can become tiny while the Newton step is still too large to verify the root."
+    );
+  }
+
+  {
+    const run = R.runNewtonRaphson({
+      expression: "(x - 1)^2",
+      dfExpression: "2*(x - 1)",
+      x0: "1",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-6" },
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Newton exact root wins before zero derivative",
+      "Correctness guardrails",
+      "exact-zero in 1 row",
+      run.summary.stopReason + " in " + run.rows.length + " row(s)",
+      run.summary.stopReason === "exact-zero" && run.rows.length === 1,
+      "If f(x0) is exactly zero, Newton should not report derivative-zero first."
+    );
+  }
+
+  {
+    const run = R.runFixedPoint({
+      gExpression: "x",
+      x0: "7",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-7" },
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Fixed Point exact fixed value stops as exact-zero",
+      "Correctness guardrails",
+      "exact-zero in 1 row",
+      run.summary.stopReason + " in " + run.rows.length + " row(s)",
+      run.summary.stopReason === "exact-zero" && run.rows.length === 1,
+      "g(x) = x is an exact fixed-point hit, not merely a tolerance accident."
+    );
+  }
+
+  {
+    const run = R.runFixedPoint({
+      gExpression: "x + 1e-8",
+      x0: "0",
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "1e-7" },
+      angleMode: "rad"
+    });
+    const firstError = run.rows[0] ? run.rows[0].error : null;
+    const acceptedFirstTinyStep = run.summary.stopReason === "tolerance-reached"
+      && run.rows.length === 1
+      && typeof firstError === "number"
+      && firstError > 0
+      && firstError < 1e-7;
+
+    report.check(
+      "Fixed Point rejects constant tiny-step pseudo-convergence",
+      "Correctness guardrails",
+      "not first-step tolerance-reached on a tiny nonzero step",
+      run.summary.stopReason + " after " + run.rows.length + " row(s)",
+      !acceptedFirstTinyStep,
+      "A constant nonzero step below epsilon is drift, not convergence."
+    );
+  }
+
+  {
+    const run = R.runNewtonRaphson({
       expression: "x^2 - 2",
       dfExpression: "2x",
       x0: "1",
@@ -485,10 +590,65 @@ function run() {
     );
   }
 
+  {
+    const run = R.runBisection({
+      expression: "x^3 + 4*x^2 - 10",
+      interval: { a: "1", b: "2" },
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "0.0001", toleranceType: "relative" },
+      decisionBasis: "exact",
+      signDisplay: "both",
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Lecture-style relative tolerance uses 13 bisection rows",
+      "Bisection stress",
+      "13",
+      String(run.rows.length),
+      run.rows.length === 13,
+      "The professor example stops after 13 iterations under the relative bound."
+    );
+    report.check(
+      "Relative tolerance metadata is exposed for reporting",
+      "Bisection stress",
+      "relative",
+      run.stopping.toleranceType,
+      run.stopping.toleranceType === "relative"
+    );
+  }
+
+  {
+    const run = R.runBisection({
+      expression: "x^3 + 4*x^2 - 10",
+      interval: { a: "1", b: "2" },
+      machine: { k: 12, mode: "round" },
+      stopping: { kind: "epsilon", value: "0.0001", toleranceType: "absolute" },
+      decisionBasis: "exact",
+      signDisplay: "both",
+      angleMode: "rad"
+    });
+
+    report.check(
+      "Absolute tolerance keeps the 14-iteration interpretation",
+      "Bisection stress",
+      "14",
+      String(run.rows.length),
+      run.rows.length === 14
+    );
+    report.check(
+      "Bisection stopping metadata reports tolerance type",
+      "Bisection stress",
+      "absolute",
+      run.stopping.toleranceType,
+      run.stopping.toleranceType === "absolute"
+    );
+  }
+
   const stressCases = [
     {
       name: "Tiny constant is not endpoint root",
-      run: () => R.runBisection({ expression: "x^3 - 10^(-18)", interval: { a: "0", b: "10^(-4)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-8)" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x^3 - 10^(-18)", interval: { a: "0", b: "10^(-4)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-8)", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         return Boolean(summary) && summary.intervalStatus !== "root-at-a";
@@ -504,7 +664,7 @@ function run() {
     },
     {
       name: "Tiny exponential target converges near true root",
-      run: () => R.runBisection({ expression: "e^(-1000x) - 10^(-12)", interval: { a: "0", b: "0.1" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-6)" }, decisionBasis: "machine", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "e^(-1000x) - 10^(-12)", interval: { a: "0", b: "0.1" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-6)", toleranceType: "absolute" }, decisionBasis: "machine", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         if (!summary) {
@@ -524,7 +684,7 @@ function run() {
     },
     {
       name: "Epsilon metadata separates actual and planned iterations",
-      run: () => R.runBisection({ expression: "x^3 - 8", interval: { a: "0", b: "4" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.001" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x^3 - 8", interval: { a: "0", b: "4" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.001", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const stopping = result && result.run && result.run.stopping ? result.run.stopping : null;
         return Boolean(stopping) && stopping.actualIterations === 1 && stopping.plannedIterations === 12;
@@ -540,7 +700,23 @@ function run() {
     },
     {
       name: "Positive subnormal epsilon is not rejected as zero",
-      run: () => R.runBisection({ expression: "x", interval: { a: "-10^(-300)", b: "10^(-300)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-320)" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x", interval: { a: "-10^(-300)", b: "10^(-300)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-320)", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      check: (result) => {
+        const summary = result && result.run && result.run.summary ? result.run.summary : null;
+        return Boolean(summary) && summary.intervalStatus === "root-at-midpoint";
+      },
+      expected: "root-at-midpoint",
+      actual: (result) => {
+        const summary = result && result.run && result.run.summary ? result.run.summary : null;
+        if (!summary) {
+          return "missing summary";
+        }
+        return summary.intervalStatus;
+      }
+    },
+    {
+      name: "Relative epsilon still reports an exact midpoint root",
+      run: () => R.runBisection({ expression: "x", interval: { a: "-1", b: "1" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.1", toleranceType: "relative" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         return Boolean(summary) && summary.intervalStatus === "root-at-midpoint";
