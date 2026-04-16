@@ -427,7 +427,7 @@
       const xnReal = realNumber(xn, "x\u2099");
       const xNextReal = realNumber(xNext, "g(x\u2099)");
       const error = Math.abs(xNextReal - xnReal);
-      const exactFixedPoint = exactDifferenceIsZero(xNext, xn);
+      const exactFixedPoint = exactDifferenceIsZero(gn.exact, xn);
 
       rows.push({ iteration: iter, xn, gxn: xNext, error, note: "" });
 
