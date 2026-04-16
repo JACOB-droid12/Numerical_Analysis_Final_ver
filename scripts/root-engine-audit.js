@@ -94,7 +94,7 @@ function run() {
       expression: "x^2 - 2",
       interval: { a: "1", b: "2" },
       machine: { k: 6, mode: "round" },
-      stopping: { kind: "epsilon", value: "0.125" },
+      stopping: { kind: "epsilon", value: "0.125", toleranceType: "absolute" },
       decisionBasis: "exact",
       signDisplay: "exact",
       angleMode: "rad"
@@ -536,7 +536,7 @@ function run() {
   const stressCases = [
     {
       name: "Tiny constant is not endpoint root",
-      run: () => R.runBisection({ expression: "x^3 - 10^(-18)", interval: { a: "0", b: "10^(-4)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-8)" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x^3 - 10^(-18)", interval: { a: "0", b: "10^(-4)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-8)", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         return Boolean(summary) && summary.intervalStatus !== "root-at-a";
@@ -552,7 +552,7 @@ function run() {
     },
     {
       name: "Tiny exponential target converges near true root",
-      run: () => R.runBisection({ expression: "e^(-1000x) - 10^(-12)", interval: { a: "0", b: "0.1" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-6)" }, decisionBasis: "machine", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "e^(-1000x) - 10^(-12)", interval: { a: "0", b: "0.1" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-6)", toleranceType: "absolute" }, decisionBasis: "machine", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         if (!summary) {
@@ -572,7 +572,7 @@ function run() {
     },
     {
       name: "Epsilon metadata separates actual and planned iterations",
-      run: () => R.runBisection({ expression: "x^3 - 8", interval: { a: "0", b: "4" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.001" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x^3 - 8", interval: { a: "0", b: "4" }, machine: { k: 12, mode: "round" }, stopping: { kind: "epsilon", value: "0.001", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const stopping = result && result.run && result.run.stopping ? result.run.stopping : null;
         return Boolean(stopping) && stopping.actualIterations === 1 && stopping.plannedIterations === 12;
@@ -588,7 +588,7 @@ function run() {
     },
     {
       name: "Positive subnormal epsilon is not rejected as zero",
-      run: () => R.runBisection({ expression: "x", interval: { a: "-10^(-300)", b: "10^(-300)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-320)" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
+      run: () => R.runBisection({ expression: "x", interval: { a: "-10^(-300)", b: "10^(-300)" }, machine: { k: 16, mode: "round" }, stopping: { kind: "epsilon", value: "10^(-320)", toleranceType: "absolute" }, decisionBasis: "exact", signDisplay: "both", angleMode: "rad" }),
       check: (result) => {
         const summary = result && result.run && result.run.summary ? result.run.summary : null;
         return Boolean(summary) && summary.intervalStatus === "root-at-midpoint";
