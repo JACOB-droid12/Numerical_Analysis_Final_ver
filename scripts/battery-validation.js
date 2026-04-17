@@ -326,6 +326,12 @@ runTest("V20", "Fixed Point detects the g(x) = 1 - x cycle", () => {
     machine: { k: 6, mode: "round" },
     stopping: { kind: "epsilon", value: "1e-6" }
   });
+  const lowPrecisionChopResult = R.runFixedPoint({
+    gExpression: "1 + 1/x",
+    x0: "1",
+    machine: { k: 3, mode: "chop" },
+    stopping: { kind: "iterations", value: 10 }
+  });
 
   assert.strictEqual(cycleResult.summary.stopReason, "cycle-detected");
   assert.strictEqual(cycleResult.summary.cyclePeriod, 2);
@@ -335,6 +341,9 @@ runTest("V20", "Fixed Point detects the g(x) = 1 - x cycle", () => {
   assert.strictEqual(alternatingResult.summary.cyclePeriod, undefined);
   assert.notStrictEqual(freezeResult.summary.stopReason, "cycle-detected");
   assert.notStrictEqual(freezeResult.summary.stopReason, "iteration-cap");
+  assert.notStrictEqual(lowPrecisionChopResult.summary.stopReason, "cycle-detected");
+  assert.strictEqual(lowPrecisionChopResult.summary.stopReason, "iteration-limit");
+  assert.strictEqual(lowPrecisionChopResult.summary.cyclePeriod, undefined);
 });
 
 console.log(`Summary: ${18 - failures}/${18} passed`);
