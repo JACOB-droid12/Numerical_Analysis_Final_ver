@@ -203,6 +203,27 @@
     return isStrictZeroValue(C.sub(left, right));
   }
 
+  function fixedPointCycleMatchesExactMap(gAst, machine, angleMode, rows, period, closingState) {
+    const cycleStates = [];
+    for (let offset = period; offset >= 1; offset -= 1) {
+      const row = rows[rows.length - offset];
+      if (!row || row.xn == null) {
+        return false;
+      }
+      cycleStates.push(row.xn);
+    }
+    cycleStates.push(closingState);
+
+    for (let index = 0; index < period; index += 1) {
+      const exactStep = safeEvaluate(evaluateFn, gAst, cycleStates[index], machine, angleMode);
+      if (!exactStep.ok || !exactDifferenceIsZero(exactStep.point.exact, cycleStates[index + 1])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   function fixedPointStepIsShrinking(error, previousError) {
     if (previousError == null) {
       return false;
@@ -816,6 +837,10 @@
           }
 
           if (!hasStableCycleWindow) {
+            continue;
+          }
+
+          if (!fixedPointCycleMatchesExactMap(gAst, machine, options.angleMode, rows, period, xNext)) {
             continue;
           }
 
