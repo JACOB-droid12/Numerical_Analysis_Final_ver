@@ -37,6 +37,24 @@
     return String(value);
   }
 
+  function usesMachineIterates(run) {
+    return run && (run.method === "newton" || run.method === "secant" || run.method === "fixedPoint" || run.decisionBasis === "machine");
+  }
+
+  function fmtMachineVal(value, run) {
+    if (value == null) return "—";
+    if (!run || !run.machine) return fmtVal(value, 12);
+    try {
+      return C.machineValueString(C.machineApproxValue(value, run.machine.k, run.machine.mode));
+    } catch (err) {
+      return fmtVal(value, run.machine.k || 12);
+    }
+  }
+
+  function fmtRunVal(value, run, digits) {
+    return usesMachineIterates(run) ? fmtMachineVal(value, run) : fmtVal(value, digits);
+  }
+
   function fmtErr(error) {
     if (error == null) return "—";
     return C.formatReal(error, 8);
@@ -184,7 +202,7 @@
       const run = COMPUTE_FNS[state.activeMethod]();
       state.runs[state.activeMethod] = run;
       renderRun(run);
-      const approxText = run.summary.approximation != null ? fmtVal(run.summary.approximation, 14) : "N/A";
+      const approxText = run.summary.approximation != null ? fmtRunVal(run.summary.approximation, run, 14) : "N/A";
       announceStatus("root-status-msg", "Result updated. Approximate root = " + approxText + ".");
     } catch (err) {
       state.runs[state.activeMethod] = null;
@@ -207,11 +225,11 @@
     return "E(" + formatSign(exactSign) + ") / M(" + formatSign(machineSign) + ")";
   }
 
-  function formatBracketValue(point, signDisplay) {
+  function formatBracketValue(point, signDisplay, run) {
     if (!point) return "—";
     if (signDisplay === "exact") return fmtVal(point.reference, 12);
-    if (signDisplay === "machine") return fmtVal(point.machine, 12);
-    return "E: " + fmtVal(point.reference, 10) + " / M: " + fmtVal(point.machine, 10);
+    if (signDisplay === "machine") return fmtMachineVal(point.machine, run);
+    return "E: " + fmtVal(point.reference, 10) + " / M: " + fmtMachineVal(point.machine, run);
   }
 
   function formatRootError(error) {
@@ -419,7 +437,7 @@
     // Hero boxes
     const approxText = (run.summary.intervalStatus === "invalid-bracket" || run.summary.approximation == null)
       ? "N/A"
-      : fmtVal(run.summary.approximation, 18);
+      : fmtRunVal(run.summary.approximation, run, 18);
     setContent("root-approx", approxText);
     setContent("root-stopping-result", formatStopReason(run.summary.stopReason, run.method));
 
@@ -573,8 +591,8 @@
     const isFP = run.method === "falsePosition";
     const methodName = isFP ? "false position" : "bisection";
     const formula = isFP ? "c = b \u2212 f(b)(b\u2212a)/(f(b)\u2212f(a))" : "c = (a + b) / 2";
-    const intervalText = "[" + (run.initial && run.initial.left ? fmtVal(run.initial.left.x, 12) : "unavailable") + ", " +
-      (run.initial && run.initial.right ? fmtVal(run.initial.right.x, 12) : "unavailable") + "]";
+    const intervalText = "[" + (run.initial && run.initial.left ? fmtRunVal(run.initial.left.x, run, 12) : "unavailable") + ", " +
+      (run.initial && run.initial.right ? fmtRunVal(run.initial.right.x, run, 12) : "unavailable") + "]";
     const basis = run.decisionBasis === "machine" ? "machine" : "exact";
     const prec = run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping");
     const toleranceMode = run.stopping && run.stopping.kind === "epsilon" && !isFP
@@ -593,12 +611,12 @@
     } else if (run.summary.intervalStatus === "invalid-continuity") {
       steps.push(formatContinuityDetail(run.summary.stopDetail));
     } else if (run.summary.intervalStatus === "root-at-a") {
-      steps.push("The left endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The left endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtRunVal(run.summary.approximation, run, 18) + ".");
       if (toleranceSelection) {
         steps.push(toleranceSelection);
       }
     } else if (run.summary.intervalStatus === "root-at-b") {
-      steps.push("The right endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The right endpoint is already a root, so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The root is x = " + fmtRunVal(run.summary.approximation, run, 18) + ".");
       if (toleranceSelection) {
         steps.push(toleranceSelection);
       }
@@ -606,7 +624,7 @@
       const midpointStopText = run.summary.stopReason === "exact-zero"
         ? "The midpoint is an exact root"
         : "The midpoint has a zero or near-zero machine value";
-      steps.push(midpointStopText + ", so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The approximation is x = " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push(midpointStopText + ", so the method stops before any " + (toleranceMode || "selected") + " tolerance test is needed. The approximation is x = " + fmtRunVal(run.summary.approximation, run, 18) + ".");
       if (toleranceSelection) {
         steps.push(toleranceSelection);
       }
@@ -636,7 +654,7 @@
           steps.push("For n = " + run.stopping.input + " iterations, the error bound is \u03B5 \u2264 " + C.formatReal(run.stopping.epsilonBound, 8) + ".");
         }
       }
-      steps.push("The approximate root after the final step is " + fmtVal(run.summary.approximation, 18) + ".");
+      steps.push("The approximate root after the final step is " + fmtRunVal(run.summary.approximation, run, 18) + ".");
     }
     steps.push("Machine values use " + prec + ".");
     return steps;
@@ -645,7 +663,7 @@
   function openMethodLimitText(run, noun) {
     const reason = run.summary && run.summary.stopReason;
     if (reason !== "iteration-cap" && reason !== "iteration-limit") return null;
-    return "The method stopped without verifying convergence; the last iterate is " + noun + " \u2248 " + fmtVal(run.summary.approximation, 18) + ".";
+    return "The method stopped without verifying convergence; the last iterate is " + noun + " \u2248 " + fmtRunVal(run.summary.approximation, run, 18) + ".";
   }
 
   function buildNewtonSteps(run) {
@@ -660,7 +678,7 @@
         ? "The method stopped early because f\u2032(x\u2099) \u2248 0."
         : run.summary.stopReason === "machine-zero"
           ? "The method stopped because the machine-computed f(x\u2099) was near zero and the Newton step was stable."
-          : openMethodLimitText(run, "x") || "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          : openMethodLimitText(run, "x") || "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtRunVal(run.summary.approximation, run, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -677,7 +695,7 @@
         ? "The method stopped because f(x\u2099) and f(x\u2099\u208B\u2081) made the secant denominator zero or near zero."
         : run.summary.stopReason === "machine-zero"
           ? "The method stopped because the machine-computed f(x\u2099) was zero or below the numerical threshold."
-          : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+          : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtRunVal(run.summary.approximation, run, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -696,7 +714,7 @@
           ? "The iteration reached the safety cap before verifying convergence. Try a different g(x), starting point, or tolerance."
           : run.summary.stopReason === "exact-zero"
             ? "The method stopped because g(x\u2099) equals x\u2099 exactly."
-            : openMethodLimitText(run, "x") || "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtVal(run.summary.approximation, 18) + ".",
+            : openMethodLimitText(run, "x") || "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length !== 1 ? "s" : "") + " is x \u2248 " + fmtRunVal(run.summary.approximation, run, 18) + ".",
       "Machine values use " + prec + "."
     ];
   }
@@ -724,8 +742,8 @@
       ", c: " + formatSignPair(sd, row.exactSigns.c, row.machineSigns.c);
     const values = [
       row.iteration,
-      fmtVal(row.a, 12), fmtVal(row.b, 12), fmtVal(row.c, 12),
-      formatBracketValue(row.fa, sd), formatBracketValue(row.fb, sd), formatBracketValue(row.fc, sd),
+      fmtRunVal(row.a, run, 12), fmtRunVal(row.b, run, 12), fmtRunVal(row.c, run, 12),
+      formatBracketValue(row.fa, sd, run), formatBracketValue(row.fb, sd, run), formatBracketValue(row.fc, sd, run),
       signText,
       row.decision === "left" ? "Keep [a, c]" : "Keep [c, b]",
       C.formatReal(row.width, 8),
@@ -745,8 +763,8 @@
   function buildNewtonRow(row, run, tr) {
     const headers = TABLE_CONFIGS.newton.headers;
     const values = [
-      row.iteration, fmtVal(row.xn, 12), fmtVal(row.fxn, 12),
-      fmtVal(row.dfxn, 12), row.xNext != null ? fmtVal(row.xNext, 12) : "—",
+      row.iteration, fmtRunVal(row.xn, run, 12), fmtRunVal(row.fxn, run, 12),
+      fmtRunVal(row.dfxn, run, 12), row.xNext != null ? fmtRunVal(row.xNext, run, 12) : "—",
       fmtErr(row.error), row.note || ""
     ];
     for (let i = 0; i < values.length; i += 1) {
@@ -760,9 +778,9 @@
   function buildSecantRow(row, run, tr) {
     const headers = TABLE_CONFIGS.secant.headers;
     const values = [
-      row.iteration, fmtVal(row.xPrev, 12), fmtVal(row.xn, 12),
-      fmtVal(row.fxPrev, 12), fmtVal(row.fxn, 12),
-      row.xNext != null ? fmtVal(row.xNext, 12) : "—",
+      row.iteration, fmtRunVal(row.xPrev, run, 12), fmtRunVal(row.xn, run, 12),
+      fmtRunVal(row.fxPrev, run, 12), fmtRunVal(row.fxn, run, 12),
+      row.xNext != null ? fmtRunVal(row.xNext, run, 12) : "—",
       fmtErr(row.error), row.note || ""
     ];
     for (let i = 0; i < values.length; i += 1) {
@@ -775,7 +793,7 @@
 
   function buildFixedPointRow(row, run, tr) {
     const headers = TABLE_CONFIGS.fixedPoint.headers;
-    const values = [row.iteration, fmtVal(row.xn, 12), fmtVal(row.gxn, 12), fmtErr(row.error), row.note || ""];
+    const values = [row.iteration, fmtRunVal(row.xn, run, 12), fmtRunVal(row.gxn, run, 12), fmtErr(row.error), row.note || ""];
     for (let i = 0; i < values.length; i += 1) {
       const td = document.createElement("td");
       td.textContent = String(values[i]);

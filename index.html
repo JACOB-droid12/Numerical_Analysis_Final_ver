@@ -896,13 +896,13 @@
             <p id="root-bis-tolerance-note" class="root-textbook-note focus-note" hidden>
               Relative tolerance is the default for Bisection because it matches the lecture-style stopping rule.
             </p>
-            <p class="root-textbook-note focus-note">Textbook default: the next interval is chosen using the usual sign-change rule.</p>
+            <p class="root-textbook-note focus-note">Finite-precision default: the selected k-digit chopping or rounding rule drives the displayed iteration path.</p>
             <details id="root-bis-advanced" class="root-advanced-options disclosure disclosure-secondary">
               <summary>Finite-precision sign options (advanced)</summary>
               <p class="root-sign-guide focus-note">Only change these if your professor asks bisection decisions to follow chopped or rounded signs.</p>
               <div class="root-advanced-grid">
                 <label>Signs shown in the table<select id="root-bis-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
-                <label>Signs used to choose the next interval<select id="root-bis-decision-basis"><option value="machine">Machine signs decide</option><option value="exact" selected>Exact signs decide</option></select></label>
+                <label>Signs used to choose the next interval<select id="root-bis-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
               </div>
             </details>
           </div>
@@ -969,7 +969,7 @@
               <summary>Finite-precision sign options (advanced)</summary>
               <div class="root-advanced-grid">
                 <label>Signs shown in the table<select id="root-fp-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
-                <label>Signs used to choose the next interval<select id="root-fp-decision-basis"><option value="machine">Machine signs decide</option><option value="exact" selected>Exact signs decide</option></select></label>
+                <label>Signs used to choose the next interval<select id="root-fp-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
               </div>
             </details>
           </div>
