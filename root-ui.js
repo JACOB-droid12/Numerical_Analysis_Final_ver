@@ -271,10 +271,17 @@
       "exact-zero": method === "fixedPoint" ? "The iteration reached an exact fixed point" : "Reference value is exactly zero",
       "machine-zero": "Machine value is zero or near zero",
       "invalid-starting-interval": "Not a valid bisection bracket",
+      "invalid-input": "Input was rejected",
       "discontinuity-detected": "Stopped at a discontinuity or singularity",
+      "singularity-encountered": "Evaluator raised an error inside the iteration",
+      "non-finite-evaluation": "Evaluator produced a non-finite value",
       "derivative-zero": "Derivative is zero — method cannot continue",
       "stagnation": "Method stalled (denominator \u2248 0)",
-      "diverged": "Iteration diverged (|x| exceeds 10\u2078)"
+      "diverged": "Iteration diverged (|x| exceeds 10\u2078)",
+      "diverged-step": "Step grew more than 10x without a residual drop",
+      "step-small-residual-large": "Step is below epsilon but |f(x)| is too large to trust",
+      "retained-endpoint-stagnation": "Same endpoint retained for too many iterations without convergence",
+      "cycle-detected": "Iteration fell into a short-period cycle"
     };
     return map[reason] || reason || EMPTY_VALUE;
   }
