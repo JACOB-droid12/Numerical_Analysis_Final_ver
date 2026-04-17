@@ -317,10 +317,10 @@ function run() {
     report.check(
       "False Position epsilon mode waits for actual iterate error",
       "Stopping formulas",
-      "iteration-cap with final error above epsilon",
+      "retained-endpoint-stagnation with final error above epsilon",
       run.summary.stopReason + " with final error " + C.formatReal(last.error, 8),
-      run.summary.stopReason === "iteration-cap" && last.error > 0.000001,
-      "The bisection interval-halving count is not a valid False Position convergence guarantee."
+      run.summary.stopReason === "retained-endpoint-stagnation" && last.error > 0.000001,
+      "False Position must not claim tolerance success just because the iteration limit was reached; it should stop via the stagnation guard when the iterate error is still above epsilon."
     );
   }
 

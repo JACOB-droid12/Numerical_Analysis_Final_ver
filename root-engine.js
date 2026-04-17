@@ -10,6 +10,97 @@
 
   const TWO = M.makeRational(1, 2n, 1n);
   const MAX_OPEN_ITER = 100;
+  const NEWTON_STEP_BLOWUP_RATIO = 10;
+  const NEWTON_RESIDUAL_BOUND = 1e-10;
+  const FP_STAGNATION_WINDOW = 20;
+  const FP_CYCLE_PERIODS = [2, 3, 4];
+
+  function valueHasNonFinite(value) {
+    if (value == null) {
+      return false;
+    }
+    if (C.isRationalValue(value)) {
+      return false;
+    }
+    if (C.isCalcValue(value)) {
+      return !Number.isFinite(value.re) || !Number.isFinite(value.im);
+    }
+    if (typeof value === "number") {
+      return !Number.isFinite(value);
+    }
+    if (typeof value === "object") {
+      if (Object.prototype.hasOwnProperty.call(value, "approx")) {
+        return valueHasNonFinite(value.approx);
+      }
+      if (Object.prototype.hasOwnProperty.call(value, "machine")) {
+        return valueHasNonFinite(value.machine);
+      }
+      if (Object.prototype.hasOwnProperty.call(value, "reference")) {
+        return valueHasNonFinite(value.reference);
+      }
+    }
+    return false;
+  }
+
+  function safeEvaluate(evalFn, ...args) {
+    try {
+      const point = evalFn(...args);
+      if (point && (valueHasNonFinite(point.approx) || valueHasNonFinite(point.machine))) {
+        return { ok: false, reason: "non-finite-evaluation", message: "Evaluation produced a non-finite result." };
+      }
+      return { ok: true, point };
+    } catch (error) {
+      return { ok: false, reason: "singularity-encountered", message: error.message };
+    }
+  }
+
+  function validateAndParseOpenStopping(options) {
+    try {
+      return { ok: true, value: parseOpenStopping(options) };
+    } catch (error) {
+      return { ok: false, reason: "invalid-input", message: error.message };
+    }
+  }
+
+  function validateAndParseStartingScalar(text, label) {
+    try {
+      return { ok: true, value: parseScalarInput(text, label) };
+    } catch (error) {
+      return { ok: false, reason: "invalid-input", message: error.message };
+    }
+  }
+
+  function buildInvalidInputResult(options, method, rejection) {
+    const expression = options && Object.prototype.hasOwnProperty.call(options, "expression")
+      ? options.expression
+      : (options && Object.prototype.hasOwnProperty.call(options, "gExpression")
+        ? options.gExpression
+        : null);
+    const stoppingInput = options && options.stopping && Object.prototype.hasOwnProperty.call(options.stopping, "value")
+      ? options.stopping.value
+      : null;
+    return {
+      method,
+      expression,
+      canonical: "",
+      machine: options && options.machine ? options.machine : null,
+      stopping: {
+        kind: options && options.stopping && Object.prototype.hasOwnProperty.call(options.stopping, "kind") ? options.stopping.kind : null,
+        input: stoppingInput,
+        iterationsRequired: 0,
+        epsilonBound: null,
+        maxIterations: 0,
+        capReached: false
+      },
+      summary: summaryPackage(null, null, "invalid-input", {
+        stopDetail: rejection && rejection.message ? rejection.message : ""
+      }),
+      initial: null,
+      decisionBasis: null,
+      signDisplay: null,
+      rows: []
+    };
+  }
 
   function parseOpenStopping(options) {
     if (options.stopping.kind === "epsilon") {
@@ -24,6 +115,38 @@
       throw new Error("Enter a whole number of iterations, 1 or greater.");
     }
     return { kind: "iterations", input: n, epsilon: null, maxIterations: n };
+  }
+
+  function validateBisectionStopping(options) {
+    if (!options || !options.stopping) {
+      return { ok: false, reason: "invalid-input", message: "Stopping rule is required." };
+    }
+    if (options.stopping.kind === "epsilon") {
+      try {
+        const epsilonValue = parseScalarInput(options.stopping.value, "Tolerance epsilon");
+        if (C.isRationalValue(epsilonValue)) {
+          if (M.isZero(epsilonValue) || epsilonValue.sign <= 0) {
+            return { ok: false, reason: "invalid-input", message: "Enter a tolerance epsilon greater than 0." };
+          }
+          return { ok: true, value: options.stopping };
+        }
+        const epsilon = C.requireRealNumber(epsilonValue, "Tolerance epsilon");
+        if (!Number.isFinite(epsilon) || !(epsilon > 0)) {
+          return { ok: false, reason: "invalid-input", message: "Enter a tolerance epsilon greater than 0." };
+        }
+        return { ok: true, value: options.stopping };
+      } catch (error) {
+        return { ok: false, reason: "invalid-input", message: "Enter a tolerance epsilon greater than 0." };
+      }
+    }
+    if (options.stopping.kind === "iterations") {
+      const iterations = Number(options.stopping.value);
+      if (!Number.isInteger(iterations) || iterations < 1) {
+        return { ok: false, reason: "invalid-input", message: "Enter a whole number of iterations, 1 or greater." };
+      }
+      return { ok: true, value: options.stopping };
+    }
+    return { ok: false, reason: "invalid-input", message: "Unknown stopping rule." };
   }
 
   function fmtStopResult(stopping, rows, stopReason) {
@@ -121,6 +244,9 @@
   function evaluateFn(ast, xValue, machine, angleMode) {
     const env = { x: xValue, angleMode: angleMode || "rad" };
     const exact = E.evaluateValue(ast, env);
+    if (valueHasNonFinite(exact)) {
+      return { exact, approx: exact };
+    }
     const data = C.machineApproxValue(exact, machine.k, machine.mode);
     return { exact, approx: data.approx };
   }
@@ -129,19 +255,33 @@
     if (!options || !options.machine) {
       throw new Error("Newton options require a machine configuration.");
     }
+    const machine = options.machine;
+    const stoppingValidation = validateAndParseOpenStopping(options);
+    if (!stoppingValidation.ok) {
+      return buildInvalidInputResult(options, "newton", stoppingValidation);
+    }
+    const x0Validation = validateAndParseStartingScalar(options.x0, "Starting point x\u2080");
+    if (!x0Validation.ok) {
+      return buildInvalidInputResult(options, "newton", x0Validation);
+    }
     const fAst = E.parseExpression(String(options.expression || ""), { allowVariable: true });
     const dfAst = E.parseExpression(String(options.dfExpression || ""), { allowVariable: true });
-    const machine = options.machine;
-    const stopping = parseOpenStopping(options);
-
-    const x0Value = parseScalarInput(options.x0, "Starting point x\u2080");
+    const stopping = stoppingValidation.value;
+    const x0Value = x0Validation.value;
     let xn = machineStore(x0Value, machine);
 
     const rows = [];
     let finalStopReason = initialOpenStopReason(stopping);
+    let previousError = null;
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
-      const fn = evaluateFn(fAst, xn, machine, options.angleMode);
+      const fnResult = safeEvaluate(evaluateFn, fAst, xn, machine, options.angleMode);
+      if (!fnResult.ok) {
+        finalStopReason = fnResult.reason;
+        rows.push({ iteration: iter, xn, fxn: null, dfxn: null, xNext: null, error: null, note: fnResult.message });
+        break;
+      }
+      const fn = fnResult.point;
 
       if (isStrictZeroValue(fn.exact)) {
         finalStopReason = "exact-zero";
@@ -149,7 +289,13 @@
         break;
       }
 
-      const dfn = evaluateFn(dfAst, xn, machine, options.angleMode);
+      const dfnResult = safeEvaluate(evaluateFn, dfAst, xn, machine, options.angleMode);
+      if (!dfnResult.ok) {
+        finalStopReason = dfnResult.reason;
+        rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: null, xNext: null, error: null, note: dfnResult.message });
+        break;
+      }
+      const dfn = dfnResult.point;
       const dfVal = realNumber(dfn.approx, "f'(x\u2099)");
 
       if (isStrictZeroValue(dfn.exact)) {
@@ -174,6 +320,13 @@
 
       rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext, error, note: "" });
 
+      const referenceStep = previousError != null ? previousError : Math.max(Math.abs(realNumber(xn, "x\u2099")), 1);
+      if (error > NEWTON_STEP_BLOWUP_RATIO * referenceStep) {
+        finalStopReason = "diverged-step";
+        rows[rows.length - 1].note = "Newton step grew too quickly to trust convergence.";
+        break;
+      }
+
       const fnVal = realNumber(fn.approx, "f(x\u2099)");
       if (Math.abs(fnVal) < C.EPS) {
         if (stepIsStableForConvergence(error, xNext, stopping)) {
@@ -185,17 +338,35 @@
         rows[rows.length - 1].note = "f(x\u2099) is near zero, but the Newton step is still too large to verify convergence";
       }
 
+      previousError = error;
       xn = xNext;
 
       if (stopping.kind === "epsilon" && error < stopping.epsilon) {
-        finalStopReason = "tolerance-reached";
+        const nextResidualResult = safeEvaluate(evaluateFn, fAst, xNext, machine, options.angleMode);
+        if (!nextResidualResult.ok) {
+          finalStopReason = nextResidualResult.reason;
+          rows[rows.length - 1].note = nextResidualResult.message;
+          break;
+        }
+
+        const nextResidual = Math.abs(realNumber(nextResidualResult.point.approx, "f(x\u2099₊₁)"));
+        const currentResidual = Math.abs(fnVal);
+        const residualFloor = NEWTON_RESIDUAL_BOUND * Math.max(1, Math.abs(realNumber(xNext, "x\u2099₊₁")));
+        if (nextResidual < currentResidual || nextResidual <= residualFloor) {
+          finalStopReason = "tolerance-reached";
+          break;
+        }
+
+        finalStopReason = "step-small-residual-large";
+        rows[rows.length - 1].note = "The Newton step is below epsilon, but the residual is still too large to confirm convergence.";
         break;
       }
     }
 
     const finalRow = lastRow(rows);
     const approx = finalRow ? (finalRow.xNext != null ? finalRow.xNext : finalRow.xn) : x0Value;
-    const finalResidual = approx != null ? evaluateFn(fAst, approx, machine, options.angleMode).approx : null;
+    const finalResidualResult = approx != null ? safeEvaluate(evaluateFn, fAst, approx, machine, options.angleMode) : null;
+    const finalResidual = finalResidualResult && finalResidualResult.ok ? finalResidualResult.point.approx : null;
     const finalError = finalRow && finalRow.error != null ? finalRow.error : null;
 
     return {
@@ -222,22 +393,59 @@
     if (!options || !options.machine) {
       throw new Error("Secant options require a machine configuration.");
     }
-    const fAst = E.parseExpression(String(options.expression || ""), { allowVariable: true });
     const machine = options.machine;
-    const stopping = parseOpenStopping(options);
-
-    const x0Value = parseScalarInput(options.x0, "First point x\u2080");
-    const x1Value = parseScalarInput(options.x1, "Second point x\u2081");
+    const stoppingValidation = validateAndParseOpenStopping(options);
+    if (!stoppingValidation.ok) {
+      return buildInvalidInputResult(options, "secant", stoppingValidation);
+    }
+    const x0Validation = validateAndParseStartingScalar(options.x0, "First point x\u2080");
+    if (!x0Validation.ok) {
+      return buildInvalidInputResult(options, "secant", x0Validation);
+    }
+    const x1Validation = validateAndParseStartingScalar(options.x1, "Second point x\u2081");
+    if (!x1Validation.ok) {
+      return buildInvalidInputResult(options, "secant", x1Validation);
+    }
+    const fAst = E.parseExpression(String(options.expression || ""), { allowVariable: true });
+    const stopping = stoppingValidation.value;
+    const x0Value = x0Validation.value;
+    const x1Value = x1Validation.value;
 
     let xPrev = machineStore(x0Value, machine);
     let xn = machineStore(x1Value, machine);
-    let fPrev = evaluateFn(fAst, xPrev, machine, options.angleMode).approx;
+    const fPrevResult = safeEvaluate(evaluateFn, fAst, xPrev, machine, options.angleMode);
+    if (!fPrevResult.ok) {
+      return {
+        method: "secant",
+        expression: options.expression,
+        canonical: E.formatExpression(fAst),
+        machine,
+        stopping: fmtStopResult(stopping, [], fPrevResult.reason),
+        summary: summaryPackage(null, null, fPrevResult.reason, {
+          residual: null,
+          residualBasis: "unavailable",
+          error: null,
+          stopDetail: fPrevResult.message
+        }),
+        initial: null,
+        decisionBasis: null,
+        signDisplay: null,
+        rows: []
+      };
+    }
+    let fPrev = fPrevResult.point.approx;
 
     const rows = [];
     let finalStopReason = initialOpenStopReason(stopping);
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
-      const fn = evaluateFn(fAst, xn, machine, options.angleMode);
+      const fnResult = safeEvaluate(evaluateFn, fAst, xn, machine, options.angleMode);
+      if (!fnResult.ok) {
+        finalStopReason = fnResult.reason;
+        rows.push({ iteration: iter, xPrev, xn, fxPrev: fPrev, fxn: null, xNext: null, error: null, note: fnResult.message });
+        break;
+      }
+      const fn = fnResult.point;
       const denomExact = C.sub(fn.approx, fPrev);
       const denomStored = machineStore(denomExact, machine);
       const denomVal = realNumber(denomStored, "secant denominator");
@@ -277,7 +485,8 @@
 
     const finalRow = lastRow(rows);
     const approx = finalRow ? (finalRow.xNext != null ? finalRow.xNext : finalRow.xn) : x1Value;
-    const finalResidual = approx != null ? evaluateFn(fAst, approx, machine, options.angleMode).approx : null;
+    const finalResidualResult = approx != null ? safeEvaluate(evaluateFn, fAst, approx, machine, options.angleMode) : null;
+    const finalResidual = finalResidualResult && finalResidualResult.ok ? finalResidualResult.point.approx : null;
     const finalError = finalRow && finalRow.error != null ? finalRow.error : null;
 
     return {
@@ -302,24 +511,52 @@
     if (!options || !options.machine) {
       throw new Error("False position options require a machine configuration.");
     }
-    const ast = E.parseExpression(String(options.expression || ""), { allowVariable: true });
     const machine = options.machine;
     const basis = options.decisionBasis === "machine" ? "machine" : "exact";
-    const leftInput = parseScalarInput(options.interval.a, "Left endpoint a");
-    const rightInput = parseScalarInput(options.interval.b, "Right endpoint b");
+    const stoppingValidation = validateAndParseOpenStopping(options);
+    if (!stoppingValidation.ok) {
+      return buildInvalidInputResult(options, "falsePosition", stoppingValidation);
+    }
+    const interval = options.interval;
+    if (!interval || typeof interval !== "object") {
+      return buildInvalidInputResult(options, "falsePosition", {
+        ok: false,
+        reason: "invalid-input",
+        message: "Interval endpoints are required."
+      });
+    }
+    const leftValidation = validateAndParseStartingScalar(interval.a, "Left endpoint a");
+    if (!leftValidation.ok) {
+      return buildInvalidInputResult(options, "falsePosition", leftValidation);
+    }
+    const rightValidation = validateAndParseStartingScalar(interval.b, "Right endpoint b");
+    if (!rightValidation.ok) {
+      return buildInvalidInputResult(options, "falsePosition", rightValidation);
+    }
+    const ast = E.parseExpression(String(options.expression || ""), { allowVariable: true });
+    const leftInput = leftValidation.value;
+    const rightInput = rightValidation.value;
     if (realNumber(leftInput, "Left endpoint a") >= realNumber(rightInput, "Right endpoint b")) {
       throw new Error("Enter an interval with left endpoint a smaller than right endpoint b.");
     }
 
     let left = iterationValue(leftInput, machine, basis);
     let right = iterationValue(rightInput, machine, basis);
-    const stopping = parseOpenStopping(options);
-    const leftPoint = evaluatePoint(ast, left, machine, options.angleMode);
-    const rightPoint = evaluatePoint(ast, right, machine, options.angleMode);
+    const stopping = stoppingValidation.value;
+    const leftPointResult = safeEvaluate(evaluatePoint, ast, left, machine, options.angleMode);
+    if (!leftPointResult.ok) {
+      return earlyResultLikeFalsePosition(options, ast, machine, stopping, null, null, null, leftPointResult.reason, leftPointResult.message, []);
+    }
+    const leftPoint = leftPointResult.point;
+    const rightPointResult = safeEvaluate(evaluatePoint, ast, right, machine, options.angleMode);
+    if (!rightPointResult.ok) {
+      return earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, null, null, rightPointResult.reason, rightPointResult.message, []);
+    }
+    const rightPoint = rightPointResult.point;
     const leftSign = decisionSign(leftPoint, basis);
     const rightSign = decisionSign(rightPoint, basis);
 
-    const earlyResult = function(approximation, intervalStatus, stopReason, rows) {
+    const earlyResult = function(approximation, intervalStatus, stopReason, rows, stopDetail) {
       const resultRows = rows || [];
       const finalBracketRow = lastRow(resultRows);
       const endpointPoint = intervalStatus === "root-at-a" ? leftPoint
@@ -338,7 +575,8 @@
           residual: residualData.residual,
           residualBasis: residualData.residualBasis,
           error: finalBracketRow ? finalBracketRow.error : null,
-          bound: finalBracketRow ? finalBracketRow.bound : null
+          bound: finalBracketRow ? finalBracketRow.bound : null,
+          stopDetail: stopDetail || ""
         }),
         initial: makeInitial(leftPoint, rightPoint),
         decisionBasis: options.decisionBasis,
@@ -353,10 +591,20 @@
 
     const rows = [];
     let prevC = null;
+    let retainedSide = null;
+    let retainedCount = 0;
 
     for (let iteration = 1; iteration <= stopping.maxIterations; iteration += 1) {
-      const aPoint = evaluatePoint(ast, left, machine, options.angleMode);
-      const bPoint = evaluatePoint(ast, right, machine, options.angleMode);
+      const aPointResult = safeEvaluate(evaluatePoint, ast, left, machine, options.angleMode);
+      if (!aPointResult.ok) {
+        return earlyResult(midpointValue(left, right), "valid-bracket", aPointResult.reason, rows, aPointResult.message);
+      }
+      const aPoint = aPointResult.point;
+      const bPointResult = safeEvaluate(evaluatePoint, ast, right, machine, options.angleMode);
+      if (!bPointResult.ok) {
+        return earlyResult(midpointValue(left, right), "valid-bracket", bPointResult.reason, rows, bPointResult.message);
+      }
+      const bPoint = bPointResult.point;
       const denomMachine = C.sub(bPoint.machine, aPoint.machine);
       const denomVal = realNumber(denomMachine, "false position denominator");
 
@@ -370,7 +618,11 @@
         midpoint = iterationValue(C.sub(right, step), machine, basis);
       }
 
-      const cPoint = evaluatePoint(ast, midpoint, machine, options.angleMode);
+      const cPointResult = safeEvaluate(evaluatePoint, ast, midpoint, machine, options.angleMode);
+      if (!cPointResult.ok) {
+        return earlyResult(midpoint, "valid-bracket", cPointResult.reason, rows, cPointResult.message);
+      }
+      const cPoint = cPointResult.point;
       const currentLeftSign = decisionSign(aPoint, basis);
       const midSign = decisionSign(cPoint, basis);
       const keepLeftHalf = currentLeftSign === 0 || currentLeftSign * midSign <= 0;
@@ -401,6 +653,16 @@
       if (stopping.kind === "epsilon" && error != null && error < stopping.epsilon) {
         return earlyResult(midpoint, "valid-bracket", "tolerance-reached", rows);
       }
+      const retainedThisIteration = keepLeftHalf ? "right" : "left";
+      if (retainedSide === retainedThisIteration) {
+        retainedCount += 1;
+      } else {
+        retainedSide = retainedThisIteration;
+        retainedCount = 1;
+      }
+      if (retainedCount >= FP_STAGNATION_WINDOW) {
+        return earlyResult(midpoint, "valid-bracket", "retained-endpoint-stagnation", rows);
+      }
       if (keepLeftHalf) {
         right = midpoint;
       } else {
@@ -412,15 +674,50 @@
     return earlyResult(lastApprox, "valid-bracket", initialOpenStopReason(stopping), rows);
   }
 
+  function midpointValue(left, right) {
+    return C.div(C.add(left, right), TWO);
+  }
+
+  function earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, rightPoint, rows, stopReason, stopDetail, resultRows) {
+    const finalRows = resultRows || [];
+    const finalBracketRow = lastRow(finalRows);
+    return {
+      method: "falsePosition",
+      expression: options.expression,
+      canonical: E.formatExpression(ast),
+      machine,
+      stopping: fmtStopResult(stopping, finalRows, stopReason),
+      summary: summaryPackage(null, "invalid-continuity", stopReason, {
+        residual: null,
+        residualBasis: "unavailable",
+        error: finalBracketRow ? finalBracketRow.error : null,
+        bound: finalBracketRow ? finalBracketRow.bound : null,
+        stopDetail: stopDetail || ""
+      }),
+      initial: makeInitial(leftPoint, rightPoint),
+      decisionBasis: options.decisionBasis,
+      signDisplay: options.signDisplay,
+      rows: finalRows
+    };
+  }
+
   function runFixedPoint(options) {
     if (!options || !options.machine) {
       throw new Error("Fixed point options require a machine configuration.");
     }
-    const gAst = E.parseExpression(String(options.gExpression || ""), { allowVariable: true });
     const machine = options.machine;
-    const stopping = parseOpenStopping(options);
+    const stoppingValidation = validateAndParseOpenStopping(options);
+    if (!stoppingValidation.ok) {
+      return buildInvalidInputResult(options, "fixedPoint", stoppingValidation);
+    }
+    const x0Validation = validateAndParseStartingScalar(options.x0, "Starting point x\u2080");
+    if (!x0Validation.ok) {
+      return buildInvalidInputResult(options, "fixedPoint", x0Validation);
+    }
+    const gAst = E.parseExpression(String(options.gExpression || ""), { allowVariable: true });
+    const stopping = stoppingValidation.value;
 
-    const x0Value = parseScalarInput(options.x0, "Starting point x\u2080");
+    const x0Value = x0Validation.value;
     let xn = machineStore(x0Value, machine);
 
     const rows = [];
@@ -429,7 +726,13 @@
     let previousError = null;
 
     for (let iter = 1; iter <= stopping.maxIterations; iter += 1) {
-      const gn = evaluateFn(gAst, xn, machine, options.angleMode);
+      const gnResult = safeEvaluate(evaluateFn, gAst, xn, machine, options.angleMode);
+      if (!gnResult.ok) {
+        finalStopReason = gnResult.reason;
+        rows.push({ iteration: iter, xn, gxn: null, error: null, note: gnResult.message });
+        break;
+      }
+      const gn = gnResult.point;
       const xNext = machineStore(gn.approx, machine);
       const xnReal = realNumber(xn, "x\u2099");
       const xNextReal = realNumber(xNext, "g(x\u2099)");
@@ -446,6 +749,85 @@
 
       if (Math.abs(xNextReal) > DIVERGE_LIMIT) {
         finalStopReason = "diverged";
+        break;
+      }
+
+      if (stopping.kind === "epsilon" && error === 0) {
+        finalStopReason = "tolerance-reached";
+        rows[rows.length - 1].note = "machine iterate is frozen within the epsilon stopping rule";
+        xn = xNext;
+        break;
+      }
+
+      for (const period of FP_CYCLE_PERIODS) {
+        if (rows.length < period * 2) {
+          continue;
+        }
+
+        const priorRow = rows[rows.length - period];
+        if (!priorRow || priorRow.xn == null) {
+          continue;
+        }
+
+        const priorReal = realNumber(priorRow.xn, "Cycle reference");
+        const scale = Math.max(1, Math.abs(xNextReal), Math.abs(priorReal));
+        const tolerance = stopping.kind === "epsilon"
+          ? Math.max(stopping.epsilon, Number.EPSILON * scale)
+          : Number.EPSILON * scale;
+
+        if (Math.abs(xNextReal - priorReal) <= tolerance) {
+          let hasDistinctInterveningState = false;
+          for (let offset = 1; offset < period; offset += 1) {
+            const interveningRow = rows[rows.length - offset];
+            if (!interveningRow || interveningRow.xn == null) {
+              continue;
+            }
+            const interveningReal = realNumber(interveningRow.xn, "Cycle intervening state");
+            if (Math.abs(interveningReal - xNextReal) > tolerance) {
+              hasDistinctInterveningState = true;
+              break;
+            }
+          }
+
+          if (!hasDistinctInterveningState) {
+            continue;
+          }
+
+          let hasStableCycleWindow = true;
+          for (let offset = 0; offset < period; offset += 1) {
+            const currentWindowRow = rows[rows.length - period + offset];
+            const previousWindowRow = rows[rows.length - 2 * period + offset];
+            if (
+              !currentWindowRow ||
+              !previousWindowRow ||
+              currentWindowRow.error == null ||
+              previousWindowRow.error == null
+            ) {
+              hasStableCycleWindow = false;
+              break;
+            }
+
+            const errorScale = Math.max(1, Math.abs(currentWindowRow.error), Math.abs(previousWindowRow.error));
+            const errorTolerance = Number.EPSILON * errorScale;
+            if (Math.abs(currentWindowRow.error - previousWindowRow.error) > errorTolerance) {
+              hasStableCycleWindow = false;
+              break;
+            }
+          }
+
+          if (!hasStableCycleWindow) {
+            continue;
+          }
+
+          finalStopReason = "cycle-detected";
+          rows[rows.length - 1].note = `Cycle detected with period ${period}.`;
+          rows[rows.length - 1].cyclePeriod = period;
+          xn = xNext;
+          break;
+        }
+      }
+
+      if (finalStopReason === "cycle-detected") {
         break;
       }
 
@@ -467,8 +849,19 @@
     const finalRow = lastRow(rows);
     const approx = finalStopReason === "diverged" ? null
       : (finalRow ? finalRow.gxn : x0Value);
-    const finalResidual = approx != null ? C.sub(evaluateFn(gAst, approx, machine, options.angleMode).approx, approx) : null;
+    const finalResidualResult = approx != null ? safeEvaluate(evaluateFn, gAst, approx, machine, options.angleMode) : null;
+    const finalResidual = finalResidualResult && finalResidualResult.ok
+      ? C.sub(finalResidualResult.point.approx, approx)
+      : null;
     const finalError = finalRow && finalRow.error != null ? finalRow.error : null;
+    const summaryDiagnostics = {
+      residual: finalResidual,
+      residualBasis: finalResidual == null ? "unavailable" : "machine",
+      error: finalError
+    };
+    if (finalRow && finalRow.cyclePeriod != null) {
+      summaryDiagnostics.cyclePeriod = finalRow.cyclePeriod;
+    }
 
     return {
       method: "fixedPoint",
@@ -476,11 +869,7 @@
       canonical: E.formatExpression(gAst),
       machine,
       stopping: fmtStopResult(stopping, rows, finalStopReason),
-      summary: summaryPackage(approx, null, finalStopReason, {
-        residual: finalResidual,
-        residualBasis: finalResidual == null ? "unavailable" : "machine",
-        error: finalError
-      }),
+      summary: summaryPackage(approx, null, finalStopReason, summaryDiagnostics),
       initial: null,
       decisionBasis: null,
       signDisplay: null,
@@ -848,6 +1237,10 @@
   function runBisection(options) {
     if (!options || !options.machine) {
       throw new Error("Bisection options require a machine configuration.");
+    }
+    const stoppingValidation = validateBisectionStopping(options);
+    if (!stoppingValidation.ok) {
+      return buildInvalidInputResult(options, "bisection", stoppingValidation);
     }
     const ast = E.parseExpression(String(options.expression || ""), { allowVariable: true });
     const machine = options.machine;
