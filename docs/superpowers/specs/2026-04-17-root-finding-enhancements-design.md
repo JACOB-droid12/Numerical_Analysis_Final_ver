@@ -238,14 +238,16 @@ Preferred handling order:
 
 The calculator should never crash because of this lecture example.
 
-### Fixed-Point First-Iteration Epsilon Check
+### Fixed-Point First-Iteration Epsilon Guard
 
-Current behavior incorrectly rejects an epsilon stop on the first iteration because there is no previous error to compare against.
+The current engine intentionally rejects a nonzero first-iteration epsilon stop unless the point is an exact fixed point. This protects against pseudo-convergence cases such as `g(x) = x + 1e-8`, where the first step can be smaller than epsilon even though the sequence drifts forever.
 
-Fix:
+Keep this guard in place:
 
-- if the first computed error is already below epsilon, accept it
-- require shrinking behavior only from iteration 2 onward
+- if `g(x_n)` equals `x_n` exactly, stop as an exact fixed point
+- if the first nonzero step is below epsilon, continue until the step trend gives convergence evidence
+- require shrinking behavior from iteration 2 onward before reporting `tolerance-reached`
+- keep the existing `g(x) = x + 1e-8` audit green
 
 ### Lecture-Style Failure Messages
 
@@ -263,7 +265,7 @@ Examples:
 |------|---------|
 | `index.html` | Add preset dropdowns, load buttons, small method hints, and post-result compare trigger |
 | `root-ui.js` | Preset data, load handlers, compare card wiring, note text, and convergence-rate labels |
-| `root-engine.js` | Fixed-point derivative estimate helper, first-iteration epsilon fix, divergence/error handling |
+| `root-engine.js` | Fixed-point derivative estimate helper and divergence/error handling while preserving the first-iteration pseudo-convergence guard |
 | `expression-engine.js` | Only if required for odd-root-of-negative behavior |
 | `styles.css` | Minimal styling for preset controls, short hints, and compact compare card |
 
@@ -283,7 +285,7 @@ Examples:
 3. Verify the Newton sqrt(2) example matches the lecture table: `1.0 -> 1.5 -> 1.416667 -> 1.414216`.
 4. Verify the fixed-point `g1` to `g5` examples produce the expected mix of divergence, undefined behavior, and convergence.
 5. Verify the Newton `x^(1/3)` example reports divergence or failure cleanly instead of crashing.
-6. Verify fixed-point epsilon stopping can succeed on the first iteration when the error is already below epsilon.
+6. Verify fixed-point first-iteration pseudo-convergence remains rejected for `g(x) = x + 1e-8`, `x0 = 0`, and `epsilon = 1e-7`.
 7. Verify the `Compare methods` button stays hidden until a result exists.
 8. Verify comparison stays compact and skips unsupported methods with clear messages.
 9. Run the existing root stress and correctness checks to confirm no regressions.

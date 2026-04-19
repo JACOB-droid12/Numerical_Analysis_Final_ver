@@ -468,8 +468,8 @@
       setContent("root-decision-summary", run.decisionBasis === "machine" ? "Machine signs decide the interval" : "Exact signs decide the interval");
     }
 
-    // Convergence graph
-    renderConvergenceGraph(run);
+    // Convergence graph (tabbed: function plot + error plot)
+    renderGraphTabs(run);
 
     // Convergence rate summary
     renderConvergenceSummary(run);
@@ -481,12 +481,374 @@
     renderTable(run);
   }
 
-  // ─── Convergence Graph ─────────────────────────────────────────────────────
-  function renderConvergenceGraph(run) {
-    const container = byId("root-convergence-graph");
+  // ─── Convergence Graph (tabbed: Function f(x) + Error plot) ────────────────
+
+  // ── helpers for function plot ──
+
+  function toReal(value) {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    try { return C.requireRealNumber(value, "iterate"); } catch (e) { return null; }
+  }
+
+  function extractIteratePoint(row, method) {
+    var ix = row.iteration;
+    var x, y;
+    if (method === "newton" || method === "secant") {
+      x = toReal(row.xn);
+      y = toReal(row.fxn);
+    } else if (method === "bisection" || method === "falsePosition") {
+      x = toReal(row.c);
+      y = row.fc && row.fc.approx != null ? toReal(row.fc.approx) : null;
+    } else if (method === "fixedPoint") {
+      x = toReal(row.xn);
+      var gxn = toReal(row.gxn);
+      y = (x != null && gxn != null) ? gxn - x : null;
+    } else {
+      x = null;
+      y = null;
+    }
+    return { iteration: ix, x: x, y: y };
+  }
+
+  function niceStep(range, targetTicks) {
+    if (range <= 0 || !Number.isFinite(range)) return 1;
+    var rawStep = range / Math.max(targetTicks, 1);
+    var mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    var residual = rawStep / mag;
+    var nice;
+    if (residual <= 1.5) nice = 1;
+    else if (residual <= 3.5) nice = 2;
+    else if (residual <= 7.5) nice = 5;
+    else nice = 10;
+    return nice * mag;
+  }
+
+  function safeSampleFn(ast, xVal, isFixedPoint) {
+    try {
+      var result = E.evaluateValue(ast, { x: M.parseRational(String(xVal)), angleMode: "rad" });
+      var real = C.requireRealNumber(result, "sample");
+      if (!Number.isFinite(real)) return null;
+      return isFixedPoint ? real - xVal : real;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ── tooltip wiring (shared by both plots) ──
+
+  function wireGraphTooltip(svgEl, panelEl) {
+    if (!svgEl || !panelEl) return;
+    var tooltip = document.createElement("div");
+    tooltip.className = "root-graph-tooltip";
+    tooltip.hidden = true;
+    tooltip.setAttribute("role", "tooltip");
+    panelEl.style.position = "relative";
+    panelEl.appendChild(tooltip);
+
+    function showTip(target) {
+      var i = target.getAttribute("data-i");
+      var x = target.getAttribute("data-x");
+      if (i == null || x == null) return;
+      tooltip.textContent = "Iteration " + i + ": x\u2099 = " + x;
+      tooltip.hidden = false;
+      var svgRect = svgEl.getBoundingClientRect();
+      var dotRect = target.getBoundingClientRect();
+      var tipLeft = dotRect.left - svgRect.left + dotRect.width / 2;
+      var tipTop = dotRect.top - svgRect.top - 8;
+      tooltip.style.left = tipLeft + "px";
+      tooltip.style.top = tipTop + "px";
+      tooltip.style.transform = "translate(-50%, -100%)";
+    }
+
+    function hideTip() { tooltip.hidden = true; }
+
+    svgEl.addEventListener("mouseover", function(e) {
+      if (e.target.hasAttribute("data-i")) showTip(e.target);
+    });
+    svgEl.addEventListener("mouseout", function(e) {
+      if (e.target.hasAttribute("data-i")) hideTip();
+    });
+    svgEl.addEventListener("focusin", function(e) {
+      if (e.target.hasAttribute("data-i")) showTip(e.target);
+    });
+    svgEl.addEventListener("focusout", function(e) {
+      if (e.target.hasAttribute("data-i")) hideTip();
+    });
+  }
+
+  // ── tab shell ──
+
+  function renderGraphTabs(run) {
+    var container = byId("root-convergence-graph");
     if (!container) return;
 
-    const errorPoints = run.rows
+    container.innerHTML =
+      '<div class="root-graph-tabs" role="tablist" aria-label="Graph view">' +
+        '<button class="root-graph-tab" role="tab" aria-selected="true" aria-controls="root-graph-panel-function" id="root-graph-tab-function" tabindex="0" data-panel="function">Function f(x)</button>' +
+        '<button class="root-graph-tab" role="tab" aria-selected="false" aria-controls="root-graph-panel-error" id="root-graph-tab-error" tabindex="-1" data-panel="error">Convergence rate</button>' +
+      '</div>' +
+      '<div class="root-graph-panel" role="tabpanel" id="root-graph-panel-function" aria-labelledby="root-graph-tab-function"></div>' +
+      '<div class="root-graph-panel" role="tabpanel" id="root-graph-panel-error" aria-labelledby="root-graph-tab-error" hidden></div>';
+
+    var functionPanel = container.querySelector("#root-graph-panel-function");
+    var errorPanel = container.querySelector("#root-graph-panel-error");
+
+    renderFunctionPlot(run, functionPanel);
+    renderErrorPlot(run, errorPanel);
+
+    // Wire tab keyboard + click
+    var tabs = container.querySelectorAll("[role='tab']");
+    var panels = container.querySelectorAll("[role='tabpanel']");
+
+    function activateTab(tab) {
+      tabs.forEach(function(t) {
+        t.setAttribute("aria-selected", "false");
+        t.setAttribute("tabindex", "-1");
+      });
+      panels.forEach(function(p) { p.hidden = true; });
+      tab.setAttribute("aria-selected", "true");
+      tab.setAttribute("tabindex", "0");
+      tab.focus();
+      var targetId = tab.getAttribute("aria-controls");
+      var targetPanel = container.querySelector("#" + targetId);
+      if (targetPanel) targetPanel.hidden = false;
+    }
+
+    tabs.forEach(function(tab) {
+      tab.addEventListener("click", function() { activateTab(tab); });
+    });
+
+    container.querySelector("[role='tablist']").addEventListener("keydown", function(e) {
+      var tabArr = Array.prototype.slice.call(tabs);
+      var currentIndex = tabArr.indexOf(document.activeElement);
+      if (currentIndex < 0) return;
+      var newIndex = -1;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        newIndex = (currentIndex + 1) % tabArr.length;
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        newIndex = (currentIndex - 1 + tabArr.length) % tabArr.length;
+      } else if (e.key === "Home") {
+        newIndex = 0;
+      } else if (e.key === "End") {
+        newIndex = tabArr.length - 1;
+      }
+      if (newIndex >= 0) {
+        e.preventDefault();
+        activateTab(tabArr[newIndex]);
+      }
+    });
+  }
+
+  // ── function plot: f(x) with iterate markers ──
+
+  function renderFunctionPlot(run, panelEl) {
+    if (!panelEl) return;
+
+    // Determine expression source
+    var exprSource = run.expression || "";
+    if (!exprSource) {
+      panelEl.innerHTML = "<p class='focus-note root-graph-empty'>No expression to plot.</p>";
+      return;
+    }
+
+    var ast;
+    try {
+      ast = E.parseExpression(String(exprSource), { allowVariable: true });
+    } catch (e) {
+      console.warn("renderFunctionPlot: parse failed:", e.message);
+      panelEl.innerHTML = "<p class='focus-note root-graph-empty'>Could not re-parse expression for plot.</p>";
+      return;
+    }
+
+    var isFixedPoint = run.method === "fixedPoint";
+    var isBracket = run.method === "bisection" || run.method === "falsePosition";
+
+    // Extract iterate points
+    var iterates = [];
+    for (var ri = 0; ri < run.rows.length; ri++) {
+      var pt = extractIteratePoint(run.rows[ri], run.method);
+      if (pt.x != null && Number.isFinite(pt.x)) {
+        iterates.push(pt);
+      }
+    }
+
+    // Collect all x-values for window computation
+    var allXs = iterates.map(function(p) { return p.x; });
+    var approxReal = toReal(run.summary.approximation);
+    if (approxReal != null && Number.isFinite(approxReal)) allXs.push(approxReal);
+    if (run.initial) {
+      if (run.initial.left && run.initial.left.x != null) {
+        var lx = toReal(run.initial.left.x);
+        if (lx != null && Number.isFinite(lx)) allXs.push(lx);
+      }
+      if (run.initial.right && run.initial.right.x != null) {
+        var rx = toReal(run.initial.right.x);
+        if (rx != null && Number.isFinite(rx)) allXs.push(rx);
+      }
+    }
+
+    allXs = allXs.filter(Number.isFinite);
+    if (allXs.length === 0) {
+      panelEl.innerHTML = "<p class='focus-note root-graph-empty'>Not enough data to plot.</p>";
+      return;
+    }
+
+    // Window computation (spec §4)
+    allXs.sort(function(a, b) { return a - b; });
+    var xMinRaw = allXs[0];
+    var xMaxRaw = allXs[allXs.length - 1];
+    var span = xMaxRaw - xMinRaw;
+    var median = allXs[Math.floor(allXs.length / 2)];
+    var floor = Math.max(1e-6, 0.01 * Math.abs(median));
+    span = Math.max(span, floor);
+    var xMin = xMinRaw - 0.2 * span;
+    var xMax = xMaxRaw + 0.2 * span;
+    if (xMin === xMax) { xMin -= 0.5; xMax += 0.5; }
+
+    // Sample the curve
+    var SAMPLES = 120;
+    var dx = (xMax - xMin) / SAMPLES;
+    var samples = [];
+    for (var si = 0; si <= SAMPLES; si++) {
+      var sx = xMin + si * dx;
+      var sy = safeSampleFn(ast, sx, isFixedPoint);
+      samples.push({ x: sx, y: sy });
+    }
+
+    // Y-window from iterates (spec §4)
+    var yIterateVals = iterates.map(function(p) { return p.y; }).filter(function(v) { return v != null && Number.isFinite(v); });
+    var yAbsMax = yIterateVals.length > 0 ? Math.max.apply(null, yIterateVals.map(Math.abs)) : 1;
+    var yMax = Math.max(1, yAbsMax * 1.25);
+    var yMin = -yMax;
+
+    // SVG dimensions
+    var W = 480, H = 280, PL = 52, PR = 16, PT = 20, PB = 36;
+    var plotW = W - PL - PR;
+    var plotH = H - PT - PB;
+
+    function xCoord(v) { return PL + ((v - xMin) / (xMax - xMin)) * plotW; }
+    function yCoord(v) { return PT + plotH - ((v - yMin) / (yMax - yMin)) * plotH; }
+
+    // Grid lines
+    var xStep = niceStep(xMax - xMin, 5);
+    var yStep = niceStep(yMax - yMin, 5);
+    var gridHTML = "";
+
+    var xGridStart = Math.ceil(xMin / xStep) * xStep;
+    for (var gx = xGridStart; gx <= xMax; gx += xStep) {
+      var gxc = xCoord(gx).toFixed(1);
+      gridHTML += '<line x1="' + gxc + '" y1="' + PT + '" x2="' + gxc + '" y2="' + (PT + plotH) + '" class="root-graph-grid"/>';
+      gridHTML += '<text x="' + gxc + '" y="' + (H - PB + 14) + '" text-anchor="middle" class="root-graph-label">' + C.formatReal(gx, 4) + '</text>';
+    }
+    var yGridStart = Math.ceil(yMin / yStep) * yStep;
+    for (var gy = yGridStart; gy <= yMax; gy += yStep) {
+      var gyc = yCoord(gy).toFixed(1);
+      gridHTML += '<line x1="' + PL + '" y1="' + gyc + '" x2="' + (PL + plotW) + '" y2="' + gyc + '" class="root-graph-grid"/>';
+      gridHTML += '<text x="' + (PL - 4) + '" y="' + gyc + '" text-anchor="end" dominant-baseline="middle" class="root-graph-label">' + C.formatReal(gy, 4) + '</text>';
+    }
+
+    // Zero line
+    var zeroY = yCoord(0);
+    var zeroLineHTML = "";
+    if (zeroY >= PT && zeroY <= PT + plotH) {
+      zeroLineHTML = '<line x1="' + PL + '" y1="' + zeroY.toFixed(1) + '" x2="' + (PL + plotW) + '" y2="' + zeroY.toFixed(1) + '" class="root-graph-axis"/>';
+    }
+
+    // Bracket shading (bracket methods only)
+    var bracketHTML = "";
+    if (isBracket && run.initial) {
+      var bLeft = run.initial.left ? toReal(run.initial.left.x) : null;
+      var bRight = run.initial.right ? toReal(run.initial.right.x) : null;
+      if (bLeft != null && bRight != null && Number.isFinite(bLeft) && Number.isFinite(bRight)) {
+        var bx1 = Math.max(xCoord(bLeft), PL);
+        var bx2 = Math.min(xCoord(bRight), PL + plotW);
+        if (bx2 > bx1) {
+          bracketHTML = '<rect x="' + bx1.toFixed(1) + '" y="' + PT + '" width="' + (bx2 - bx1).toFixed(1) + '" height="' + plotH + '" class="root-graph-bracket"/>';
+        }
+      }
+    }
+
+    // Curve segments (split at breaks for singularities)
+    var curveHTML = "";
+    var segment = [];
+    for (var ci = 0; ci <= SAMPLES; ci++) {
+      var s = samples[ci];
+      if (s.y != null && Number.isFinite(s.y) && Math.abs(s.y) <= yMax) {
+        segment.push(xCoord(s.x).toFixed(1) + "," + yCoord(s.y).toFixed(1));
+      } else {
+        if (segment.length >= 2) {
+          curveHTML += '<polyline points="' + segment.join(" ") + '" class="root-graph-line"/>';
+        }
+        segment = [];
+      }
+    }
+    if (segment.length >= 2) {
+      curveHTML += '<polyline points="' + segment.join(" ") + '" class="root-graph-line"/>';
+    }
+
+    // Iterate dots with recency fade
+    var iterateHTML = "";
+    var totalIterates = iterates.length;
+    for (var ii = 0; ii < totalIterates; ii++) {
+      var ip = iterates[ii];
+      if (ip.x == null) continue;
+      var recency = totalIterates <= 1 ? 1 : 0.3 + 0.7 * (ii / (totalIterates - 1));
+      var iy = ip.y != null && Number.isFinite(ip.y) ? ip.y : 0;
+      var offscreen = false;
+      var drawX = ip.x;
+      var drawY = iy;
+      if (drawX < xMin) { drawX = xMin; offscreen = true; }
+      if (drawX > xMax) { drawX = xMax; offscreen = true; }
+      if (drawY < yMin) { drawY = yMin; offscreen = true; }
+      if (drawY > yMax) { drawY = yMax; offscreen = true; }
+      var cxStr = xCoord(drawX).toFixed(1);
+      var cyStr = yCoord(drawY).toFixed(1);
+      iterateHTML += '<circle cx="' + cxStr + '" cy="' + cyStr + '" r="3.5" class="root-graph-iterate" style="--recency:' + recency.toFixed(2) + '" tabindex="0" data-i="' + ip.iteration + '" data-x="' + fmtRunVal(ip.x, run, 10) + '"' + (offscreen ? ' data-offscreen="true"' : '') + '/>';
+    }
+
+    // Final root marker
+    var rootMarkerHTML = "";
+    if (approxReal != null && Number.isFinite(approxReal)) {
+      var rmx = xCoord(Math.max(xMin, Math.min(xMax, approxReal)));
+      var rmy = yCoord(0);
+      if (rmy >= PT && rmy <= PT + plotH) {
+        rootMarkerHTML = '<circle cx="' + rmx.toFixed(1) + '" cy="' + rmy.toFixed(1) + '" r="5" class="root-graph-root-marker"/>';
+      }
+    }
+
+    // Axis titles
+    var yAxisLabel = isFixedPoint ? "g(x) \u2212 x" : "f(x)";
+    var axisTitles =
+      '<text x="' + (PL + plotW / 2) + '" y="' + (H - 4) + '" text-anchor="middle" class="root-graph-label">x</text>' +
+      '<text x="' + (PL - 38) + '" y="' + (PT + plotH / 2) + '" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90,' + (PL - 38) + ',' + (PT + plotH / 2) + ')" class="root-graph-label">' + yAxisLabel + '</text>';
+
+    // Assemble SVG
+    var svgTitle = isFixedPoint ? "Fixed-point residual g(x) minus x" : "Function f(x) with iterate markers";
+    var svgDesc = isFixedPoint
+      ? "Plot of g(x) minus x showing iterates converging toward the fixed point."
+      : "Plot of f(x) showing iterates converging toward a root.";
+
+    panelEl.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="root-function-svg" role="img" aria-labelledby="root-fn-plot-title root-fn-plot-desc">' +
+      '<title id="root-fn-plot-title">' + svgTitle + '</title>' +
+      '<desc id="root-fn-plot-desc">' + svgDesc + '</desc>' +
+      '<rect x="' + PL + '" y="' + PT + '" width="' + plotW + '" height="' + plotH + '" class="root-graph-bg"/>' +
+      gridHTML + zeroLineHTML + bracketHTML + curveHTML + iterateHTML + rootMarkerHTML + axisTitles +
+      '</svg>';
+
+    // Wire tooltip
+    var fnSvg = panelEl.querySelector("svg");
+    if (fnSvg) wireGraphTooltip(fnSvg, panelEl);
+  }
+
+  // ── error plot: log₁₀|error| vs iteration (relocated from renderConvergenceGraph) ──
+
+  function renderErrorPlot(run, panelEl) {
+    var container = panelEl;
+    if (!container) return;
+
+    var errorPoints = run.rows
       .map(function(r) { return { iteration: r.iteration, error: r.error }; })
       .filter(function(p) { return p.error != null && p.error > 0; });
     if (errorPoints.length < 2) {
@@ -494,59 +856,63 @@
       return;
     }
 
-    const W = 480, H = 200, PL = 52, PR = 16, PT = 16, PB = 36;
-    const plotW = W - PL - PR;
-    const plotH = H - PT - PB;
+    var W = 480, H = 200, PL = 52, PR = 16, PT = 16, PB = 36;
+    var plotW = W - PL - PR;
+    var plotH = H - PT - PB;
 
-    const logErrors = errorPoints.map(function(p) { return Math.log10(Math.max(p.error, 1e-15)); });
-    const minLog = Math.floor(Math.min.apply(null, logErrors)) - 0.5;
-    const maxLog = Math.ceil(Math.max.apply(null, logErrors)) + 0.5;
-    const logRange = maxLog - minLog || 1;
-    const minIteration = Math.min.apply(null, errorPoints.map(function(p) { return p.iteration; }));
-    const maxIteration = Math.max.apply(null, errorPoints.map(function(p) { return p.iteration; }));
-    const iterationRange = maxIteration - minIteration || 1;
+    var logErrors = errorPoints.map(function(p) { return Math.log10(Math.max(p.error, 1e-15)); });
+    var minLog = Math.floor(Math.min.apply(null, logErrors)) - 0.5;
+    var maxLog = Math.ceil(Math.max.apply(null, logErrors)) + 0.5;
+    var logRange = maxLog - minLog || 1;
+    var minIteration = Math.min.apply(null, errorPoints.map(function(p) { return p.iteration; }));
+    var maxIteration = Math.max.apply(null, errorPoints.map(function(p) { return p.iteration; }));
+    var iterationRange = maxIteration - minIteration || 1;
 
     function xCoord(iteration) { return PL + ((iteration - minIteration) / iterationRange) * plotW; }
     function yCoord(v) { return PT + plotH - ((v - minLog) / logRange) * plotH; }
 
-    const points = errorPoints.map(function(p) {
+    var points = errorPoints.map(function(p) {
       return xCoord(p.iteration).toFixed(1) + "," + yCoord(Math.log10(Math.max(p.error, 1e-15))).toFixed(1);
     }).join(" ");
 
     // Y-axis ticks use integer powers so labels match their gridlines.
-    const firstPower = Math.ceil(minLog);
-    const lastPower = Math.floor(maxLog);
-    const allPowers = [];
-    for (let power = firstPower; power <= lastPower; power += 1) {
+    var firstPower = Math.ceil(minLog);
+    var lastPower = Math.floor(maxLog);
+    var allPowers = [];
+    for (var power = firstPower; power <= lastPower; power += 1) {
       allPowers.push(power);
     }
-    const tickCount = Math.min(5, allPowers.length);
-    const yTicks = [];
-    for (let t = 0; t < tickCount; t += 1) {
-      const sourceIndex = tickCount === 1
+    var tickCount = Math.min(5, allPowers.length);
+    var yTicks = [];
+    for (var t = 0; t < tickCount; t += 1) {
+      var sourceIndex = tickCount === 1
         ? 0
         : Math.round((t / (tickCount - 1)) * (allPowers.length - 1));
-      const logVal = allPowers[sourceIndex];
+      var logVal = allPowers[sourceIndex];
       yTicks.push({ y: yCoord(logVal).toFixed(1), label: "10^" + logVal });
     }
-    const yTicksHTML = yTicks.map(function(t) {
+    var yTicksHTML = yTicks.map(function(t) {
       return '<text x="' + (PL - 4) + '" y="' + t.y + '" text-anchor="end" dominant-baseline="middle" class="root-graph-label">' + t.label + '</text>' +
              '<line x1="' + PL + '" y1="' + t.y + '" x2="' + (PL + plotW) + '" y2="' + t.y + '" class="root-graph-grid"/>';
     }).join("");
 
-    const xTicks = errorPoints.map(function(p, i) {
+    var xTicks = errorPoints.map(function(p, i) {
       if (errorPoints.length <= 10 || i % Math.ceil(errorPoints.length / 8) === 0 || i === errorPoints.length - 1) {
         return '<text x="' + xCoord(p.iteration).toFixed(1) + '" y="' + (H - PB + 14) + '" text-anchor="middle" class="root-graph-label">' + p.iteration + '</text>';
       }
       return "";
     }).join("");
 
-    const circles = errorPoints.map(function(p) {
-      return '<circle cx="' + xCoord(p.iteration).toFixed(1) + '" cy="' + yCoord(Math.log10(Math.max(p.error, 1e-15))).toFixed(1) + '" r="3" class="root-graph-dot"/>';
+    var circles = errorPoints.map(function(p) {
+      var cx = xCoord(p.iteration).toFixed(1);
+      var cy = yCoord(Math.log10(Math.max(p.error, 1e-15))).toFixed(1);
+      return '<circle cx="' + cx + '" cy="' + cy + '" r="3" class="root-graph-dot" tabindex="0" data-i="' + p.iteration + '" data-x="' + C.formatReal(p.error, 8) + '"/>';
     }).join("");
 
     container.innerHTML =
-      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="root-convergence-svg" aria-label="Convergence graph: error vs iteration">' +
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" class="root-convergence-svg" role="img" aria-labelledby="root-error-plot-title root-error-plot-desc">' +
+      '<title id="root-error-plot-title">Convergence rate</title>' +
+      '<desc id="root-error-plot-desc">Log base 10 of the absolute error on each iteration.</desc>' +
       '<rect x="' + PL + '" y="' + PT + '" width="' + plotW + '" height="' + plotH + '" class="root-graph-bg"/>' +
       yTicksHTML +
       '<polyline points="' + points + '" class="root-graph-line"/>' +
@@ -555,6 +921,10 @@
       '<text x="' + (PL + plotW / 2) + '" y="' + (H - 4) + '" text-anchor="middle" class="root-graph-label">Iteration</text>' +
       '<text x="' + (PL - 38) + '" y="' + (PT + plotH / 2) + '" text-anchor="middle" dominant-baseline="middle" transform="rotate(-90,' + (PL - 38) + ',' + (PT + plotH / 2) + ')" class="root-graph-label">log\u2081\u2080 |error|</text>' +
       '</svg>';
+
+    // Wire tooltip
+    var errSvg = container.querySelector("svg");
+    if (errSvg) wireGraphTooltip(errSvg, container);
   }
 
   // ─── Convergence Rate Summary ───────────────────────────────────────────────

@@ -341,8 +341,7 @@
 
       rows.push({ iteration: iter, xn, fxn: fn.approx, dfxn: dfn.approx, xNext, error, note: "" });
 
-      const referenceStep = previousError != null ? previousError : Math.max(Math.abs(realNumber(xn, "x\u2099")), 1);
-      if (error > NEWTON_STEP_BLOWUP_RATIO * referenceStep) {
+      if (previousError != null && error > NEWTON_STEP_BLOWUP_RATIO * previousError) {
         finalStopReason = "diverged-step";
         rows[rows.length - 1].note = "Newton step grew too quickly to trust convergence.";
         break;
@@ -558,7 +557,11 @@
     const leftInput = leftValidation.value;
     const rightInput = rightValidation.value;
     if (realNumber(leftInput, "Left endpoint a") >= realNumber(rightInput, "Right endpoint b")) {
-      throw new Error("Enter an interval with left endpoint a smaller than right endpoint b.");
+      return buildInvalidInputResult(options, "falsePosition", {
+        ok: false,
+        reason: "invalid-input",
+        message: "Enter an interval with left endpoint a smaller than right endpoint b."
+      });
     }
 
     let left = iterationValue(leftInput, machine, basis);
@@ -566,12 +569,12 @@
     const stopping = stoppingValidation.value;
     const leftPointResult = safeEvaluate(evaluatePoint, ast, left, machine, options.angleMode);
     if (!leftPointResult.ok) {
-      return earlyResultLikeFalsePosition(options, ast, machine, stopping, null, null, null, leftPointResult.reason, leftPointResult.message, []);
+      return earlyResultLikeFalsePosition(options, ast, machine, stopping, null, null, leftPointResult.reason, leftPointResult.message, []);
     }
     const leftPoint = leftPointResult.point;
     const rightPointResult = safeEvaluate(evaluatePoint, ast, right, machine, options.angleMode);
     if (!rightPointResult.ok) {
-      return earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, null, null, rightPointResult.reason, rightPointResult.message, []);
+      return earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, null, rightPointResult.reason, rightPointResult.message, []);
     }
     const rightPoint = rightPointResult.point;
     const leftSign = decisionSign(leftPoint, basis);
@@ -699,8 +702,8 @@
     return C.div(C.add(left, right), TWO);
   }
 
-  function earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, rightPoint, rows, stopReason, stopDetail, resultRows) {
-    const finalRows = resultRows || [];
+  function earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, rightPoint, stopReason, stopDetail, rows) {
+    const finalRows = rows || [];
     const finalBracketRow = lastRow(finalRows);
     return {
       method: "falsePosition",
@@ -1274,10 +1277,29 @@
       addWarning(warnings, "angle-mode", "This expression uses trigonometric functions; bisection evaluates them using the selected angle mode.");
     }
     const basis = options.decisionBasis === "machine" ? "machine" : "exact";
-    const leftInput = parseScalarInput(options.interval.a, "Left endpoint a");
-    const rightInput = parseScalarInput(options.interval.b, "Right endpoint b");
+    if (!options.interval || typeof options.interval !== "object") {
+      return buildInvalidInputResult(options, "bisection", {
+        ok: false,
+        reason: "invalid-input",
+        message: "Interval endpoints are required."
+      });
+    }
+    const leftValidation = validateAndParseStartingScalar(options.interval.a, "Left endpoint a");
+    if (!leftValidation.ok) {
+      return buildInvalidInputResult(options, "bisection", leftValidation);
+    }
+    const rightValidation = validateAndParseStartingScalar(options.interval.b, "Right endpoint b");
+    if (!rightValidation.ok) {
+      return buildInvalidInputResult(options, "bisection", rightValidation);
+    }
+    const leftInput = leftValidation.value;
+    const rightInput = rightValidation.value;
     if (compareValues(leftInput, rightInput, "Bisection interval") >= 0) {
-      throw new Error("Enter an interval with left endpoint a smaller than right endpoint b.");
+      return buildInvalidInputResult(options, "bisection", {
+        ok: false,
+        reason: "invalid-input",
+        message: "Enter an interval with left endpoint a smaller than right endpoint b."
+      });
     }
 
     let left = iterationValue(leftInput, machine, basis);

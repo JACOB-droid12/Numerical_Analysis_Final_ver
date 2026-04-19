@@ -414,6 +414,13 @@
     }, 20);
   }
 
+  function focusResult(elementId) {
+    var el = byId(elementId);
+    if (!el) { return; }
+    if (!el.getAttribute("tabindex")) { el.setAttribute("tabindex", "-1"); }
+    el.focus({ preventScroll: false });
+  }
+
   function setErrorSource(text, kind) {
     state.errorSource = text;
     if (kind) {
@@ -927,11 +934,8 @@
         }
       });
 
-      const basicPractice = document.getElementById("tutorial-basic-practice");
-      const helperSection = document.querySelector(".standalone-helper");
-      if (basicPractice && helperSection && helperSection.parentElement !== basicPractice) {
-        basicPractice.appendChild(helperSection);
-      }
+      // Keep the live machine-arithmetic helper in Module I. Moving it into the
+      // hidden tutorial panel makes the chopping/rounding controls unreachable.
 
       const polyPractice = document.getElementById("tutorial-poly-practice");
       const presetBand = document.querySelector(".module-poly .preset-band");
@@ -1463,6 +1467,7 @@
       renderIEEEResult(result);
       announceStatus("ieee-status-msg", "IEEE-754 encoding updated. Stored bits begin " + result.bits.slice(0, 12) + ".");
       syncStatusStrip();
+      focusResult("ieee-decoded-value");
     } catch (error) {
       handleIEEEError(error.message, IEEE_DECIMAL_FIELD_IDS, "ieee-decimal-error");
     }
@@ -1483,6 +1488,7 @@
       renderIEEEResult(result);
       announceStatus("ieee-status-msg", "IEEE-754 decoding updated. Classification: " + result.classification + ".");
       syncStatusStrip();
+      focusResult("ieee-decoded-value");
     } catch (error) {
       handleIEEEError(error.message, IEEE_BINARY_FIELD_IDS, "ieee-binary-error");
     }
@@ -1505,6 +1511,15 @@
     return cachedTabPanels;
   }
 
+  var TAB_HEADINGS = {
+    basic: "Machine Arithmetic and Round-Off Error Lab",
+    error: "Error Analysis Lab",
+    poly: "Polynomial Evaluation Lab",
+    root: "Root-Finding Methods Lab",
+    ieee754: "IEEE-754 Double Precision Lab",
+    tutorial: "Tutorial and Reference"
+  };
+
   function activateTab(tabName) {
     for (const button of getTabButtons()) {
       const isActive = button.dataset.tab === tabName;
@@ -1518,6 +1533,11 @@
       panel.classList.toggle("active", isActive);
       panel.hidden = !isActive;
       panel.tabIndex = isActive ? 0 : -1;
+    }
+
+    var heading = document.querySelector(".masthead-copy h1");
+    if (heading && TAB_HEADINGS[tabName]) {
+      heading.textContent = TAB_HEADINGS[tabName];
     }
 
     syncStatusStrip();
@@ -2172,6 +2192,7 @@
         "basic-status-msg",
         "Expression results updated. Stepwise p* = " + shortValue(run.step.approx, 16, 10) + ". Final-only p* = " + shortValue(run.final.approx, 16, 10) + "."
       );
+      focusResult("basic-expression-final");
     } catch (error) {
       handleExpressionError(error.message === "Division by zero." ? "The expression cannot divide by 0." : formatExpressionInputError(error), ["basic-expression"]);
     }
@@ -2326,6 +2347,7 @@
       markOnboardingComplete();
       syncOnboardingUI();
       announceStatus("basic-status-msg", "Machine answer updated. p* = " + machineValueFromData(approxData) + ".");
+      focusResult("basic-approx-primary");
     } catch (error) {
       handleBasicError(error.message === "Division by zero." ? "Second number cannot be 0 when you divide." : error.message, op === "/" ? ["basic-b"] : ["basic-a", "basic-b"]);
     }
@@ -2543,6 +2565,7 @@
       markOnboardingComplete();
       syncOnboardingUI();
       announceStatus("error-status-msg", (options.sourceStatusPrefix ? options.sourceStatusPrefix + " " : "Error metrics updated. ") + "Relative error = " + shortValue(metrics.relError, 14, 8) + ".");
+      focusResult("error-rel");
     } catch (error) {
       handleErrorModuleFailure(error.message, ERROR_FIELD_IDS);
     }
@@ -2773,6 +2796,7 @@
       markOnboardingComplete();
       syncOnboardingUI();
       announceStatus("poly-status-msg", "Polynomial comparison updated. Final-only p* = " + shortValue(run.final.approx, 14, 8) + ". Horner stepwise p* = " + shortValue(run.horner.step.approx, 14, 8) + ". Direct stepwise p* = " + shortValue(run.direct.step.approx, 14, 8) + ".");
+      focusResult("poly-final-shared");
     } catch (error) {
       handlePolyError(error.message === "Division by zero." ? "The polynomial cannot divide by 0 at the chosen value of x." : error.message, ["poly-expression", "poly-x"]);
     }
@@ -3070,23 +3094,100 @@
     applyExamModeLayout();
     wireEvents();
 
+    /* ── Keyboard shortcuts ──────────────────────────────────────── */
+    var TAB_KEYS = ["basic", "error", "poly", "root", "ieee754", "tutorial"];
+
     document.addEventListener("keydown", function onGlobalKeyDown(e) {
       if (e.key === "Escape") {
         closeSymbolPopover();
+        return;
+      }
+
+      /* Alt+1 through 6 → switch module tabs (Ctrl+N is reserved by the browser) */
+      var isModTab = e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+      if (isModTab) {
+        var num = parseInt(e.key, 10);
+        if (num >= 1 && num <= 6) {
+          e.preventDefault();
+          activateTab(TAB_KEYS[num - 1]);
+          var firstInput = document.querySelector("#tab-" + TAB_KEYS[num - 1] + " input[type='text']");
+          if (firstInput) { firstInput.focus(); }
+          return;
+        }
       }
     });
 
     document.addEventListener("click", function onGlobalClick(event) {
-      const popover = document.getElementById("symbol-popover");
+      var popover = document.getElementById("symbol-popover");
       if (!popover || popover.hidden) {
         return;
       }
-      const trigger = event.target.closest("[data-symbol-target]");
+      var trigger = event.target.closest("[data-symbol-target]");
       if (trigger || popover.contains(event.target)) {
         return;
       }
       closeSymbolPopover();
     });
+
+    /* ── Compute button feedback pulse ─────────────────────────── */
+    document.querySelectorAll(".compute-btn, .search-go").forEach(function (btn) {
+      btn.addEventListener("click", function onComputeClick() {
+        btn.classList.add("is-computing");
+        requestAnimationFrame(function () {
+          setTimeout(function () {
+            btn.classList.remove("is-computing");
+          }, 300);
+        });
+      });
+    });
+
+    /* ── Copy-to-clipboard on answer values ────────────────────── */
+    var clipboardAvailable = typeof navigator !== "undefined"
+      && navigator.clipboard
+      && typeof navigator.clipboard.writeText === "function"
+      && window.isSecureContext;
+    if (clipboardAvailable) {
+      document.querySelectorAll(".answer-value, .answer-hero-value").forEach(function (el) {
+        el.style.cursor = "pointer";
+        el.setAttribute("title", "Click to copy");
+        el.setAttribute("role", "button");
+        el.setAttribute("tabindex", "0");
+
+        var restoreTimer = null;
+        var baseTitle = "Click to copy";
+
+        function doCopy() {
+          var text = el.textContent.replace(/\s+/g, " ").trim();
+          if (!text || text === "—") { return; }
+          el.setAttribute("title", "Copied!");
+          el.classList.add("just-copied");
+          if (restoreTimer) { clearTimeout(restoreTimer); }
+          restoreTimer = setTimeout(function () {
+            el.setAttribute("title", baseTitle);
+            el.classList.remove("just-copied");
+            restoreTimer = null;
+          }, 1200);
+          navigator.clipboard.writeText(text).catch(function () {
+            if (restoreTimer) { clearTimeout(restoreTimer); restoreTimer = null; }
+            el.setAttribute("title", "Copy failed");
+            el.classList.remove("just-copied");
+            setTimeout(function () { el.setAttribute("title", baseTitle); }, 1200);
+          });
+        }
+
+        el.addEventListener("click", function onCopyValue() {
+          var selection = window.getSelection && window.getSelection();
+          if (selection && !selection.isCollapsed) { return; }
+          doCopy();
+        });
+        el.addEventListener("keydown", function onCopyKey(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            doCopy();
+          }
+        });
+      });
+    }
 
     document.querySelectorAll('input[type="text"], input[type="number"]').forEach(function (input) {
       input.addEventListener('focus', function () {
@@ -3133,7 +3234,6 @@
     syncOnboardingUI();
   });
 })(window);
-
 
 
 

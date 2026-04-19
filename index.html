@@ -25,10 +25,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style"
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap"
     onload="this.rel='stylesheet'">
   <noscript><link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"></noscript>
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="styles.css?v=student4" />
 </head>
 
@@ -41,27 +41,27 @@
       </button>
 
       <nav class="sidebar-nav" aria-label="Core modules" role="tablist">
-        <button id="tab-btn-basic" type="button" class="sidebar-nav-item active" data-tab="basic" role="tab" aria-selected="true" aria-controls="tab-basic" aria-label="Machine Arithmetic" tabindex="0">
+        <button id="tab-btn-basic" type="button" class="sidebar-nav-item active" data-tab="basic" role="tab" aria-selected="true" aria-controls="tab-basic" aria-label="Machine Arithmetic" title="Calculation" tabindex="0">
           <span class="sidebar-icon">∑</span>
           <span class="sidebar-label">Calculation</span>
         </button>
-        <button id="tab-btn-error" type="button" class="sidebar-nav-item" data-tab="error" role="tab" aria-selected="false" aria-controls="tab-error" aria-label="Error Analysis" tabindex="-1">
+        <button id="tab-btn-error" type="button" class="sidebar-nav-item" data-tab="error" role="tab" aria-selected="false" aria-controls="tab-error" aria-label="Error Analysis" title="Error Analysis" tabindex="-1">
           <span class="sidebar-icon">Δ</span>
           <span class="sidebar-label">Errors</span>
         </button>
-        <button id="tab-btn-poly" type="button" class="sidebar-nav-item" data-tab="poly" role="tab" aria-selected="false" aria-controls="tab-poly" aria-label="Polynomial Methods" tabindex="-1">
+        <button id="tab-btn-poly" type="button" class="sidebar-nav-item" data-tab="poly" role="tab" aria-selected="false" aria-controls="tab-poly" aria-label="Polynomial Methods" title="Polynomial" tabindex="-1">
           <span class="sidebar-icon">f(x)</span>
           <span class="sidebar-label">Polynomial</span>
         </button>
-        <button id="tab-btn-root" type="button" class="sidebar-nav-item" data-tab="root" role="tab" aria-selected="false" aria-controls="tab-root" aria-label="Bisection Roots" tabindex="-1">
+        <button id="tab-btn-root" type="button" class="sidebar-nav-item" data-tab="root" role="tab" aria-selected="false" aria-controls="tab-root" aria-label="Root Finding" title="Roots" tabindex="-1">
           <span class="sidebar-icon">√</span>
           <span class="sidebar-label">Roots</span>
         </button>
-        <button id="tab-btn-ieee754" type="button" class="sidebar-nav-item" data-tab="ieee754" role="tab" aria-selected="false" aria-controls="tab-ieee754" aria-label="IEEE-754 Double Precision" tabindex="-1">
+        <button id="tab-btn-ieee754" type="button" class="sidebar-nav-item" data-tab="ieee754" role="tab" aria-selected="false" aria-controls="tab-ieee754" aria-label="IEEE-754 Double Precision" title="IEEE-754" tabindex="-1">
           <span class="sidebar-icon">64</span>
           <span class="sidebar-label">IEEE-754</span>
         </button>
-        <button id="tab-btn-tutorial" type="button" class="sidebar-nav-item" data-tab="tutorial" role="tab" aria-selected="false" aria-controls="tab-tutorial" aria-label="Tutorial" tabindex="-1">
+        <button id="tab-btn-tutorial" type="button" class="sidebar-nav-item" data-tab="tutorial" role="tab" aria-selected="false" aria-controls="tab-tutorial" aria-label="Tutorial" title="Tutorial" tabindex="-1">
           <span class="sidebar-icon">?</span>
           <span class="sidebar-label">Tutorial</span>
         </button>
@@ -112,8 +112,8 @@
 
     <details id="welcome-strip" class="welcome-strip" aria-label="Quick start guide">
       <summary>
-        <span class="module-kicker">Quick guide</span>
-        <span class="welcome-title">Quick start</span>
+        <span class="welcome-heading"><span class="module-kicker">Quick guide</span> <span class="welcome-title">Quick start</span></span>
+        <span class="welcome-chevron" aria-hidden="true">&#x25BE;</span>
       </summary>
       <div class="welcome-body">
         <p class="summary-paragraph">
@@ -224,7 +224,8 @@
   </div>
 </section>
 
-        <section id="basic-sandbox" class="sensitivity-sandbox" aria-label="Module I sensitivity sandbox" hidden>
+        <details id="basic-sandbox" class="disclosure sensitivity-sandbox" aria-label="Module I sensitivity sandbox" hidden>
+          <summary>Sensitivity sandbox — try an alternate machine setting</summary>
           <div class="sandbox-header">
             <div>
               <p class="module-kicker">Sensitivity sandbox</p>
@@ -268,9 +269,10 @@
               <p id="basic-sandbox-note" class="result-caption is-empty">Not calculated yet.</p>
             </div>
           </div>
-        </section>
+        </details>
 
-        <section class="standalone-helper" aria-label="Single operation helper">
+        <details class="disclosure standalone-helper" aria-label="Single operation helper" open>
+          <summary>Single operation helper — detailed inspection tool</summary>
           <div class="utility-stack">
             <div>
               <p class="module-kicker" style="margin-bottom: var(--space-1);">Detailed Inspection Tool</p>
@@ -449,7 +451,7 @@
               </div>
             </details>
           </div>
-        </section>
+        </details>
 
 
         <details class="disclosure disclosure-secondary" aria-label="Module I expression trace showing step-by-step computation">
@@ -1288,20 +1290,18 @@
     <button type="button" class="symbol-btn" data-symbol-insert="sqrt(" aria-label="Insert square root">√(</button>
     <button type="button" class="symbol-btn" data-symbol-insert="∠" aria-label="Insert angle symbol">∠</button>
   </div>
-  <script src="math-engine.js?v=cw1"></script>
-  <script src="calc-engine.js?v=cw2"></script>
-  <script src="expression-engine.js?v=cw2"></script>
-  <script src="poly-engine.js?v=cw1"></script>
-  <script src="root-engine.js?v=root3"></script>
-  <script src="root-ui.js?v=root3"></script>
-  <script src="ieee754.js?v=ieee1"></script>
-  <script src="math-display.js?v=nat1"></script>
-  <script src="app.js?v=student4"></script>
+  <script defer src="math-engine.js?v=cw1"></script>
+  <script defer src="calc-engine.js?v=cw2"></script>
+  <script defer src="expression-engine.js?v=cw2"></script>
+  <script defer src="poly-engine.js?v=cw1"></script>
+  <script defer src="root-engine.js?v=root3"></script>
+  <script defer src="root-ui.js?v=root3"></script>
+  <script defer src="ieee754.js?v=ieee1"></script>
+  <script defer src="math-display.js?v=nat1"></script>
+  <script defer src="app.js?v=student5"></script>
 </body>
 
 </html>
-
-
 
 
 
