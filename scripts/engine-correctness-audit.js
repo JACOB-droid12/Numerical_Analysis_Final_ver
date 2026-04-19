@@ -293,6 +293,68 @@ function run() {
   }
 
   {
+    const hostileExponent = captureRun(() => M.parseRational("1e5001"));
+    const extremeHostileExponent = captureRun(() => M.parseRational("1e10000000"));
+    const overlongInput = "1" + "0".repeat(4096);
+    const hostileLength = captureRun(() => M.parseRational(overlongInput));
+    const hostileK = captureRun(() => M.machineApprox(M.parseRational("1.23"), 1001, "round"));
+    const hostilePow = captureRun(() => M.pow10(5001));
+    const boundaryScientific = captureRun(() => M.parseRational("1e308"));
+
+    const hostileExponentActual = hostileExponent.error ? hostileExponent.error.message : rationalFraction(M, hostileExponent.run);
+    const extremeHostileExponentActual = extremeHostileExponent.error
+      ? extremeHostileExponent.error.message
+      : rationalFraction(M, extremeHostileExponent.run);
+    const hostileLengthActual = hostileLength.error ? hostileLength.error.message : rationalFraction(M, hostileLength.run);
+    const hostileKActual = hostileK.error ? hostileK.error.message : rationalDecimal(M, hostileK.run.approx);
+    const hostilePowActual = hostilePow.error ? hostilePow.error.message : hostilePow.run.toString();
+    const boundaryActual = boundaryScientific.error ? boundaryScientific.error.message : normalizedSignature(M.extractNormalizedDigits(boundaryScientific.run, 4));
+
+    report.check(
+      "Scientific exponent cap rejects hostile magnitudes",
+      "Numeric input guardrails",
+      "Exponent magnitude cannot exceed 5000.",
+      hostileExponentActual,
+      hostileExponent.error && hostileExponentActual === "Exponent magnitude cannot exceed 5000."
+    );
+    report.check(
+      "Scientific exponent cap rejects very large hostile magnitudes",
+      "Numeric input guardrails",
+      "Exponent magnitude cannot exceed 5000.",
+      extremeHostileExponentActual,
+      extremeHostileExponent.error && extremeHostileExponentActual === "Exponent magnitude cannot exceed 5000."
+    );
+    report.check(
+      "Raw numeric input length cap rejects overlong strings",
+      "Numeric input guardrails",
+      "Numeric input cannot exceed 4096 characters.",
+      hostileLengthActual,
+      hostileLength.error && hostileLengthActual === "Numeric input cannot exceed 4096 characters."
+    );
+    report.check(
+      "k cap rejects hostile precision requests",
+      "Numeric input guardrails",
+      "k must be an integer between 1 and 1000.",
+      hostileKActual,
+      hostileK.error && hostileKActual === "k must be an integer between 1 and 1000."
+    );
+    report.check(
+      "pow10 cap blocks unbounded cache growth",
+      "Numeric input guardrails",
+      "Power exponent cannot exceed 5000.",
+      hostilePowActual,
+      hostilePow.error && hostilePowActual === "Power exponent cannot exceed 5000."
+    );
+    report.check(
+      "Boundary scientific notation remains valid",
+      "Numeric input guardrails",
+      "digits 1000 exp 309",
+      boundaryActual,
+      !boundaryScientific.error && boundaryActual === "digits 1000 exp 309"
+    );
+  }
+
+  {
     const parityCases = [
       { label: "1/3 chop", value: M.parseRational("1/3"), k: 6, mode: "chop" },
       { label: "negative canonical round", value: M.parseRational("-8.10179136"), k: 8, mode: "round" },

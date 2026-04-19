@@ -22,6 +22,9 @@
    * @property {number} [guardDigit]
    */
 
+  const MAX_NUMERIC_INPUT_LENGTH = 4096;
+  const MAX_DECIMAL_EXPONENT_MAGNITUDE = 5000;
+  const MAX_MACHINE_DIGITS = 1000;
   const POW10_CACHE = [1n];
   const ZERO = Object.freeze({ sign: 0, num: 0n, den: 1n });
   const ONE = Object.freeze({ sign: 1, num: 1n, den: 1n });
@@ -43,8 +46,39 @@
     return x;
   }
 
+  function assertNumericInputLength(text) {
+    if (text.length > MAX_NUMERIC_INPUT_LENGTH) {
+      throw new Error("Numeric input cannot exceed " + MAX_NUMERIC_INPUT_LENGTH + " characters.");
+    }
+  }
+
+  function assertMachineDigits(k) {
+    if (!Number.isInteger(k) || k < 1 || k > MAX_MACHINE_DIGITS) {
+      throw new Error("k must be an integer between 1 and " + MAX_MACHINE_DIGITS + ".");
+    }
+  }
+
+  function parseBoundedExponent(expText) {
+    const sign = expText.startsWith("-") ? -1 : 1;
+    const magnitudeText = expText.replace(/^[+-]/, "").replace(/^0+/, "") || "0";
+    const capText = String(MAX_DECIMAL_EXPONENT_MAGNITUDE);
+
+    if (magnitudeText.length > capText.length) {
+      throw new Error("Exponent magnitude cannot exceed " + MAX_DECIMAL_EXPONENT_MAGNITUDE + ".");
+    }
+
+    const magnitude = parseInt(magnitudeText, 10);
+    if (magnitude > MAX_DECIMAL_EXPONENT_MAGNITUDE) {
+      throw new Error("Exponent magnitude cannot exceed " + MAX_DECIMAL_EXPONENT_MAGNITUDE + ".");
+    }
+    return sign * magnitude;
+  }
+
   function pow10(exp) {
     assertNonNegativeInteger(exp, "Power");
+    if (exp > MAX_DECIMAL_EXPONENT_MAGNITUDE) {
+      throw new Error("Power exponent cannot exceed " + MAX_DECIMAL_EXPONENT_MAGNITUDE + ".");
+    }
     for (let i = POW10_CACHE.length; i <= exp; i += 1) {
       POW10_CACHE.push(POW10_CACHE[i - 1] * 10n);
     }
@@ -206,6 +240,7 @@
   }
   function parseDecimalScientific(input) {
     const text = input.trim();
+    assertNumericInputLength(text);
     const regex = /^([+-])?(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/;
     const match = regex.exec(text);
     if (!match) {
@@ -215,15 +250,19 @@
     const signChar = match[1] || "+";
     const intPart = match[2] || "0";
     const fracPart = typeof match[3] === "string" ? match[3] : (match[4] || "");
-    const expPart = match[5] ? parseInt(match[5], 10) : 0;
+    const expPart = match[5] ? parseBoundedExponent(match[5]) : 0;
 
     const rawDigits = (intPart + fracPart).replace(/^0+/, "");
     if (rawDigits.length === 0) {
       return ZERO;
     }
 
-    const digits = BigInt(rawDigits);
     const totalExp = expPart - fracPart.length;
+    if (Math.abs(totalExp) > MAX_DECIMAL_EXPONENT_MAGNITUDE) {
+      throw new Error("Exponent magnitude cannot exceed " + MAX_DECIMAL_EXPONENT_MAGNITUDE + ".");
+    }
+
+    const digits = BigInt(rawDigits);
 
     if (totalExp >= 0) {
       const num = digits * pow10(totalExp);
@@ -360,9 +399,7 @@
   }
 
   function machineApprox(value, k, mode) {
-    if (!Number.isInteger(k) || k < 1) {
-      throw new Error("k must be a positive integer.");
-    }
+    assertMachineDigits(k);
     if (mode !== "chop" && mode !== "round") {
       throw new Error("mode must be 'chop' or 'round'.");
     }
@@ -476,17 +513,17 @@
     if (t === Infinity) {
       return ZERO;
     }
-    if (!Number.isInteger(t) || t < 0) {
-      throw new Error("t must be a non-negative integer, Infinity, or null.");
+    if (!Number.isInteger(t) || t < 0 || t > MAX_DECIMAL_EXPONENT_MAGNITUDE) {
+      throw new Error(
+        "t must be a non-negative integer up to " + MAX_DECIMAL_EXPONENT_MAGNITUDE + ", Infinity, or null."
+      );
     }
     const factor = makeRational(1, 5n, pow10(t));
     return mul(absRational(exact), factor);
   }
 
   function maxRelativeErrorBound(k, mode) {
-    if (!Number.isInteger(k) || k < 1) {
-      throw new Error("k must be a positive integer.");
-    }
+    assertMachineDigits(k);
     if (mode === "chop") {
       return makeRational(1, 1n, pow10(k - 1));
     }
