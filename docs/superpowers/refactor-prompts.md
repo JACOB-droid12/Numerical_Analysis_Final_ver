@@ -65,8 +65,41 @@ Do not ask me to paste code by default. Start by inspecting the repository from 
 
 ## Math-Engine Correctness Variant
 
+Use this when the target is in calculation or root-finding logic.
+
+```text
+Use the canonical prompt above, and add these priorities:
+- Treat numerical correctness as a hard constraint, not a nice-to-have.
+- Inspect stopping conditions, convergence behavior, sign logic, domain restrictions, and precision/chop/round semantics before editing.
+- Prefer existing audits and math-focused tests over informal reasoning.
+- If the target is in or near root-solving logic, verify with the most relevant commands such as node scripts/engine-correctness-audit.js and node scripts/root-engine-audit.js when applicable.
+- Call out any mathematically sensitive edge cases that should be manually rechecked after the refactor.
+```
+
 ## UI / Readability Variant
 
+Use this when the target is a UI controller or rendering module.
+
+```text
+Use the canonical prompt above, and add these priorities:
+- Optimize for clearer DOM wiring, smaller helpers, simpler control flow, and more descriptive names.
+- Preserve existing ids, event semantics, rendered summaries, status messages, and error messages unless I explicitly ask for UI copy changes.
+- Inspect index.html, app.js, and any shared formatting or state helpers before refactoring.
+- Prefer narrow structural cleanup over visual or behavioral redesign.
+- Call out any browser flows I should manually click through after the refactor.
+```
+
 ## Resilience / Performance Variant
+
+Use this when the goal is to improve resilience or performance without changing behavior.
+
+```text
+Use the canonical prompt above, and add these priorities:
+- Focus on guard clauses, invalid-state handling, repeated computation, avoidable branching, and error-surfacing consistency.
+- Do not claim a performance improvement unless you can point to the specific code path that improved.
+- Preserve success-path behavior and existing outputs for valid inputs.
+- Prefer small, explainable improvements over broad rewrites.
+- Report any benchmark, profiling, or regression checks that would be worth running next if deeper validation is needed.
+```
 
 ## Repo-Specific Examples
