@@ -4,7 +4,26 @@ Use these prompts when you want an AI assistant to inspect this repository from 
 
 ## When To Use Which Prompt
 
+- Use the canonical prompt for most refactors in this repo.
+- Use the math-engine correctness variant when the target is in `calc-engine.js`, `expression-engine.js`, `math-engine.js`, `poly-engine.js`, or `root-engine.js`, or when numerical correctness is the main risk.
+- Use the UI / readability variant when the target is in `app.js`, `root-ui.js`, `index.html`, or related UI formatting/wiring code.
+- Use the resilience / performance variant when the refactor is mainly about duplication, error handling, or hot-path cleanup and you do not want behavior changes.
+
 ## Minimal Inputs To Provide
+
+Keep your request lightweight. In most cases, this is enough:
+
+- Target path
+- Refactor goal
+- Optional hard constraints
+
+Example:
+
+```text
+Target path: root-ui.js
+Refactor goal: improve readability and reduce duplicated DOM wiring without changing UI behavior
+Optional hard constraints: keep all ids, status copy, and rendered summaries unchanged
+```
 
 ## Canonical Prompt
 
@@ -103,3 +122,30 @@ Use the canonical prompt above, and add these priorities:
 ```
 
 ## Repo-Specific Examples
+
+Example: refactor `root-engine.js`
+
+```text
+Use the canonical prompt plus the Math-Engine Correctness Variant.
+Target path: root-engine.js
+Refactor goal: improve readability and helper boundaries without changing solver behavior
+Optional hard constraints: preserve stop reasons, convergence behavior, and audit-script expectations
+```
+
+Example: refactor `root-ui.js`
+
+```text
+Use the canonical prompt plus the UI / Readability Variant.
+Target path: root-ui.js
+Refactor goal: simplify rendering helpers and reduce repeated UI wiring
+Optional hard constraints: keep DOM ids, status/error messages, and visible outputs unchanged
+```
+
+Example: refactor `app.js`
+
+```text
+Use the canonical prompt plus the Resilience / Performance Variant.
+Target path: app.js
+Refactor goal: reduce duplication in event/setup logic and make error handling more consistent
+Optional hard constraints: no behavior changes and no redesign of the UI flow
+```
