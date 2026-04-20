@@ -55,33 +55,75 @@ const modules = JSON.parse(
 );
 
 assert.ok(Array.isArray(modules), "modules.json must be an array.");
+
+const expectedModuleIds = [
+  "machine-arithmetic",
+  "error-analysis",
+  "polynomial-methods",
+  "root-finding"
+];
 assert.deepStrictEqual(
   modules.map((module) => module.id),
-  ["machine-arithmetic", "error-analysis", "polynomial-methods", "root-finding"],
+  expectedModuleIds,
   "modules.json must contain the expected module ids in order."
 );
 
-for (const module of modules) {
-  [
-    "id",
-    "label",
-    "title",
-    "summary",
-    "whatItDoes",
-    "whyItMatters",
-    "inputs",
-    "outputs",
-    "keyConcepts",
-    "learnerOutcomes",
-    "commonUseCases",
-    "limitations",
-    "notes"
-  ].forEach((key) => {
-    assert.ok(
-      Object.prototype.hasOwnProperty.call(module, key),
-      `Module ${module.id} is missing key: ${key}`
-    );
+const expectedModuleKeys = [
+  "id",
+  "label",
+  "title",
+  "summary",
+  "whatItDoes",
+  "whyItMatters",
+  "inputs",
+  "outputs",
+  "keyConcepts",
+  "learnerOutcomes",
+  "commonUseCases",
+  "limitations",
+  "notes"
+];
+
+function assertNonEmptyString(value, message) {
+  assert.strictEqual(typeof value, "string", message);
+  assert.ok(value.trim().length > 0, message);
+}
+
+function assertStringArray(value, message) {
+  assert.ok(Array.isArray(value), message);
+  assert.ok(value.length > 0, message);
+  value.forEach((item, index) => {
+    assertNonEmptyString(item, `${message} (item ${index + 1})`);
   });
+}
+
+const seenIds = new Set();
+for (const [index, module] of modules.entries()) {
+  assert.ok(module && typeof module === "object" && !Array.isArray(module), `Module at index ${index} must be an object.`);
+
+  const moduleKeys = Object.keys(module).sort();
+  assert.deepStrictEqual(
+    moduleKeys,
+    expectedModuleKeys.slice().sort(),
+    `Module ${module.id ?? index} must contain exactly the expected keys.`
+  );
+
+  assertNonEmptyString(module.id, `Module ${index + 1} id must be a non-empty string.`);
+  assert.ok(!seenIds.has(module.id), `Duplicate module id found: ${module.id}`);
+  seenIds.add(module.id);
+
+  assertNonEmptyString(module.label, `Module ${module.id} label must be a non-empty string.`);
+  assertNonEmptyString(module.title, `Module ${module.id} title must be a non-empty string.`);
+  assertNonEmptyString(module.summary, `Module ${module.id} summary must be a non-empty string.`);
+  assertNonEmptyString(module.whatItDoes, `Module ${module.id} whatItDoes must be a non-empty string.`);
+  assertNonEmptyString(module.whyItMatters, `Module ${module.id} whyItMatters must be a non-empty string.`);
+  assertStringArray(module.inputs, `Module ${module.id} inputs must be a non-empty array of strings.`);
+  assertStringArray(module.outputs, `Module ${module.id} outputs must be a non-empty array of strings.`);
+  assertStringArray(module.keyConcepts, `Module ${module.id} keyConcepts must be a non-empty array of strings.`);
+  assertStringArray(module.learnerOutcomes, `Module ${module.id} learnerOutcomes must be a non-empty array of strings.`);
+  assertStringArray(module.commonUseCases, `Module ${module.id} commonUseCases must be a non-empty array of strings.`);
+  assertStringArray(module.limitations, `Module ${module.id} limitations must be a non-empty array of strings.`);
+  assertStringArray(module.notes, `Module ${module.id} notes must be a non-empty array of strings.`);
 }
 
 console.log("Calculator site content presence audit passed.");
