@@ -1,1 +1,15 @@
-{}
+{
+  "projectName": "Numerical Analysis Teaching Lab",
+  "tagline": "A browser-based companion for learning machine arithmetic, error analysis, polynomial evaluation, and root-finding methods.",
+  "shortDescription": "The Numerical Analysis Teaching Lab is an interactive calculator for exploring how numerical methods behave under finite precision and structured problem-solving workflows.",
+  "longDescription": "This project helps learners move from formulas on paper to worked numerical-analysis results in a browser. It supports finite-precision arithmetic, error analysis, polynomial evaluation, and multiple root-finding approaches, making it useful both for quick checking and for deeper method comparison.",
+  "audience": ["students", "instructors", "self-learners"],
+  "valueProposition": "It gives users a practical way to inspect intermediate results, compare exact and approximate values, and understand how numerical choices affect outcomes.",
+  "tone": "Hybrid: academically credible, accessible, and presentable without sounding overly promotional.",
+  "highlights": [
+    "Works directly in the browser with no installation required for the calculator itself.",
+    "Supports both quick result checking and more detailed numerical-method exploration.",
+    "Brings together machine arithmetic, error analysis, polynomial evaluation, and root finding in one environment."
+  ],
+  "pageIntent": "Provide source content for a future informational website that explains what the calculator does, why it matters, and how different audiences can use it."
+}

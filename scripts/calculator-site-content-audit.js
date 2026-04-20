@@ -20,4 +20,34 @@ for (const relativePath of requiredFiles) {
   assert.ok(fs.existsSync(absolutePath), `Missing required file: ${relativePath}`);
 }
 
+const site = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/site.json"), "utf8")
+);
+
+const readme = fs.readFileSync(
+  path.join(ROOT, "calculator-site-content/README.md"),
+  "utf8"
+);
+
+[
+  "projectName",
+  "tagline",
+  "shortDescription",
+  "longDescription",
+  "audience",
+  "valueProposition",
+  "tone",
+  "highlights",
+  "pageIntent"
+].forEach((key) => {
+  assert.ok(Object.prototype.hasOwnProperty.call(site, key), `site.json is missing key: ${key}`);
+});
+
+assert.ok(Array.isArray(site.audience), "site.json audience must be an array.");
+assert.ok(Array.isArray(site.highlights), "site.json highlights must be an array.");
+assert.ok(
+  readme.includes("content-only") && readme.includes("no design guidance"),
+  "README must explain that this package is content-only and contains no design guidance."
+);
+
 console.log("Calculator site content presence audit passed.");
