@@ -17,6 +17,7 @@
 
   function byId(id) { return h.byId(id); }
   function setContent(id, text) { h.setContent(id, text, false); }
+  function setEmptyText(id) { h.setContent(id, h.getEmptyText ? h.getEmptyText(id) : EMPTY_VALUE, true); }
   function setHidden(id, val) { h.setHidden(id, val); }
   function showError(id, msg) { h.showError(id, msg); }
   function markInvalid(ids, errId) { h.markInvalid(ids, errId); }
@@ -1258,8 +1259,7 @@
     setContent("root-copy-status", "");
     clearStatus("root-status-msg");
     ["root-approx", "root-stopping-result", "root-convergence", "root-interval-status", "root-sign-summary", "root-decision-summary"].forEach(function(id) {
-      const el = byId(id);
-      if (el) el.textContent = EMPTY_VALUE;
+      if (document.getElementById(id)) setEmptyText(id);
     });
   }
 

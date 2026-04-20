@@ -14,6 +14,7 @@
   }
 
   const EMPTY_VALUE = "Not calculated yet.";
+  const EMPTY_TEXT_BY_ID = Object.create(null);
   const EXPRESSION_RESULT_IDS = [
     "basic-expression-stepwise",
     "basic-expression-final",
@@ -110,6 +111,14 @@
   const POLY_FIELD_IDS = ["poly-expression", "poly-x", "poly-k"];
   const IEEE_DECIMAL_FIELD_IDS = ["ieee-decimal-input"];
   const IEEE_BINARY_FIELD_IDS = ["ieee-binary-input"];
+  const ROOT_RESULT_IDS = [
+    "root-approx",
+    "root-stopping-result",
+    "root-convergence",
+    "root-interval-status",
+    "root-sign-summary",
+    "root-decision-summary"
+  ];
   const PREVIEW_FIELDS = [
     { inputId: "basic-expression", previewId: "basic-expression-preview", allowVariable: false, className: "math-preview math-preview-wide" },
     { inputId: "error-exact", previewId: "error-exact-preview", allowVariable: false, className: "math-preview math-preview-inline" },
@@ -123,6 +132,19 @@
     { inputId: "root-fp-expression", previewId: "root-fp-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
     { inputId: "root-fpi-expression", previewId: "root-fpi-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" }
   ];
+  captureEmptyTexts(EXPRESSION_RESULT_IDS);
+  captureEmptyTexts(BASIC_RESULT_IDS);
+  captureEmptyTexts(ERROR_RESULT_IDS);
+  captureEmptyTexts(POLY_RESULT_IDS);
+  captureEmptyTexts(IEEE_RESULT_IDS);
+  captureEmptyTexts(ROOT_RESULT_IDS);
+  captureEmptyTexts([
+    "basic-sandbox-alt-value",
+    "basic-sandbox-note",
+    "basic-sandbox-current-value",
+    "basic-sandbox-current-setup",
+    "basic-sandbox-current-expression"
+  ]);
   const TWO = M.makeRational(1, 2n, 1n);
   const HUNDRED = M.makeRational(1, 100n, 1n);
   const ONBOARDING_KEY = "ma-lab-guide-state-v2";
@@ -209,6 +231,29 @@
     symbolSelectionStart: null,
     symbolSelectionEnd: null
   };
+
+  function captureEmptyText(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      EMPTY_TEXT_BY_ID[id] = el.textContent;
+    }
+  }
+
+  function captureEmptyTexts(ids) {
+    for (const id of ids) {
+      captureEmptyText(id);
+    }
+  }
+
+  function getEmptyText(id) {
+    return Object.prototype.hasOwnProperty.call(EMPTY_TEXT_BY_ID, id)
+      ? EMPTY_TEXT_BY_ID[id]
+      : EMPTY_VALUE;
+  }
+
+  function setEmptyText(id) {
+    setContent(id, getEmptyText(id), true);
+  }
 
   function byId(id) {
     const el = document.getElementById(id);
@@ -1070,7 +1115,7 @@
   function resetExpressionResults() {
     updateExpressionFinalLabel(byId("basic-expression-mode").value);
     for (const id of EXPRESSION_RESULT_IDS) {
-      setText(id, EMPTY_VALUE);
+      setEmptyText(id);
     }
     state.expressionComparison = null;
     resetExpressionSandbox();
@@ -1084,7 +1129,7 @@
 
   function resetBasicResults() {
     for (const id of BASIC_RESULT_IDS) {
-      setText(id, EMPTY_VALUE);
+      setEmptyText(id);
     }
     state.basicExact = null;
     state.basicApprox = null;
@@ -1095,7 +1140,7 @@
 
   function resetErrorResults() {
     for (const id of ERROR_RESULT_IDS) {
-      setText(id, EMPTY_VALUE);
+      setEmptyText(id);
     }
     state.errorComputed = false;
     clearStatus("error-status-msg");
@@ -1126,7 +1171,7 @@
   function resetPolyResults() {
     updatePolyFinalLabels(byId("poly-mode").value);
     for (const id of POLY_RESULT_IDS) {
-      setText(id, EMPTY_VALUE);
+      setEmptyText(id);
     }
     state.polyComparison = null;
     renderEmptyPolySteps();
@@ -1150,7 +1195,7 @@
 
   function resetIEEEResults() {
     for (const id of IEEE_RESULT_IDS) {
-      setText(id, EMPTY_VALUE);
+      setEmptyText(id);
     }
     setContent("ieee-source-label", "Most recent input", false);
     state.ieeeResult = null;
@@ -2018,17 +2063,17 @@
 
   function clearExpressionSandboxResult() {
     state.expressionSandbox = null;
-    setText("basic-sandbox-alt-value", EMPTY_VALUE);
-    setText("basic-sandbox-note", EMPTY_VALUE);
+    setEmptyText("basic-sandbox-alt-value");
+    setEmptyText("basic-sandbox-note");
     setHidden("basic-sandbox-result", true);
   }
 
   function resetExpressionSandbox() {
     clearExpressionSandboxFeedback();
     clearExpressionSandboxResult();
-    setText("basic-sandbox-current-value", EMPTY_VALUE);
-    setText("basic-sandbox-current-setup", EMPTY_VALUE);
-    setText("basic-sandbox-current-expression", EMPTY_VALUE);
+    setEmptyText("basic-sandbox-current-value");
+    setEmptyText("basic-sandbox-current-setup");
+    setEmptyText("basic-sandbox-current-expression");
     byId("basic-sandbox-k").value = byId("basic-expression-k").value || "8";
     byId("basic-sandbox-mode").value = byId("basic-expression-mode").value || "chop";
   }
@@ -3224,6 +3269,7 @@
       clearStatus: clearStatus,
       debounce: debounce,
       syncMathPreviews: syncMathPreviews,
+      getEmptyText: getEmptyText,
       getAngleMode: function () { return state.angleMode; }
     });
     activateTab("basic");
