@@ -224,3 +224,32 @@ Ordered by visual-impact-per-risk. Each item is self-contained; skip any you don
 | 20 | OG / social meta tags | Low | XS | 9.3 |
 
 **Suggested first pass** (highest impact, lowest risk, self-contained): **1, 2, 3, 4, 5**. Under 40 lines of CSS diff, transforms the surface feel without touching component structure.
+
+---
+
+## Resolution log — 2026-04-20
+
+| # | Item | Disposition |
+|---|------|-------------|
+| 1 | Re-enable tinted shadow tier on hero answer cards | Done — `--shadow-soft` is reserved for the primary `.answer-hero-major` surface and active sidebar emphasis |
+| 2 | Warm the light-mode `--bg` and cool the surfaces | Done — light canvas remains warm while surfaces are retinted for clearer separation |
+| 3 | Sidebar `100vh` → `100dvh` | Already done before this pass; verified no `100vh` remains in `styles.css` |
+| 4 | H1 size bump for hero | Already done before this pass; preserved the larger `clamp()` hero treatment |
+| 5 | Desaturate mod1–mod6 accents ~10% | Done — module colors were softened and `--modN-strong` / `--modN-contrast` tokens were added |
+| 6 | Real ghost-button hover state | Done — ghost buttons now use visible surface and border hover states while filled buttons keep a narrower primary hover |
+| 7 | Kill `!important` in field-shell via `:where()` | Done — base inputs/selects now use `:where()` and the targeted field-shell overrides no longer need `!important` |
+| 8 | Merge duplicate exam-density blocks | Done — exam-density overrides were consolidated into one authoritative section |
+| 9 | Weight the primary comparison card (1.25fr) | Done — triple and quad comparison grids now give the primary result more visual weight |
+| 10 | Add `text-wrap: pretty` to body copy | Done — applied to prose containers with bounded line length |
+| 11 | Nested disclosure tier (no border, indented chevron) | Done — secondary/nested disclosures now use a lighter left-edge treatment |
+| 12 | Button.link tertiary style | Done — added `button.link` and wired it to low-priority inline actions |
+| 13 | Z-index scale tokens | Done — component z-indexes now use `--z-*` tokens; mobile sidebar layering was rechecked after review |
+| 14 | Consolidate label tracking rule | Done — label tracking is normalized around `0.1em` with a calmer weight |
+| 15 | Tint sidebar backdrop | Done — mobile backdrop now uses a theme-aware tint and sits below the open sidebar |
+| 16 | `scroll-behavior: smooth` | Done — smooth scrolling is gated by the existing reduced-motion override |
+| 17 | Vary "Ready to calculate" placeholders | Done — placeholders are context-specific and JS reset paths preserve the original empty copy |
+| 18 | Sentence case on module headers | Done — h2/h3 module headers are sentence case while preserving the brand h1 and acronyms |
+| 19 | Move inline styles to classes | Done — the planned single-operation helper inline styles moved to reusable classes |
+| 20 | OG / social meta tags | Done — OG/Twitter tags and a branded `og-card.svg` were added; deployment can later replace the relative image URL with an absolute hosted URL |
+
+Verification artifacts: final screenshots were captured in `docs/superpowers/plans/final-2026-04-20/` for light, dark, exam-density, mobile, and dark module-accent states.
