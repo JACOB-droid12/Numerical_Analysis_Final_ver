@@ -2,7 +2,7 @@
 
 This folder is a standalone handoff package for a future companion website about the Numerical Analysis Teaching Lab.
 
-It is intentionally separate from the calculator application in the repo root.
+It stays separate from the calculator application in the repo root.
 
 ## Important rules
 
@@ -10,7 +10,7 @@ It is intentionally separate from the calculator application in the repo root.
 - This package contains no design guidance.
 - Do not treat this folder as part of the main calculator runtime.
 - Do not modify calculator logic files in order to use this content.
-- A future UI/UX-focused agent is expected to decide layout, styling, components, and overall visual direction.
+- A future UI/UX-focused agent is expected to decide how the pages are presented.
 
 ## Files
 
@@ -21,4 +21,4 @@ It is intentionally separate from the calculator application in the repo root.
 - `content/workflows.json` - stepwise usage stories that explain how someone might use the calculator
 - `content/use-cases.json` - audience-based scenarios for students, instructors, and self-learners
 
-Use these files as canonical source material for a future website. They provide content and semantic meaning only, not presentation instructions.
+Use these files as canonical source material for a future website. They provide content and semantic meaning only, not instructions for how the pages should be presented.

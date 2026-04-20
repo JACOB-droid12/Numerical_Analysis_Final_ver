@@ -53,10 +53,6 @@ function collectFiles(dirPath) {
 }
 
 for (const filePath of collectFiles(CONTENT_ROOT)) {
-  if (path.basename(filePath).toLowerCase() === "readme.md") {
-    continue;
-  }
-
   const text = fs.readFileSync(filePath, "utf8");
   for (const pattern of forbiddenPatterns) {
     assert.ok(
