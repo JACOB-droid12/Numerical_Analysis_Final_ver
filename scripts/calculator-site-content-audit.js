@@ -134,16 +134,45 @@ for (const [index, module] of modules.entries()) {
   assertStringArray(module.notes, `Module ${module.id} notes must be a non-empty array of strings.`);
 }
 
+const expectedFaqKeys = ["id", "question", "answer", "category"];
+const seenFaqIds = new Set();
 for (const faq of faqs) {
-  ["id", "question", "answer", "category"].forEach((key) => {
-    assert.ok(Object.prototype.hasOwnProperty.call(faq, key), `FAQ item is missing key: ${key}`);
-  });
+  assert.ok(faq && typeof faq === "object" && !Array.isArray(faq), "FAQ items must be objects.");
+
+  const faqKeys = Object.keys(faq).sort();
+  assert.deepStrictEqual(
+    faqKeys,
+    expectedFaqKeys.slice().sort(),
+    `FAQ item ${faq.id ?? "unknown"} must contain exactly the expected keys.`
+  );
+
+  assertNonEmptyString(faq.id, "FAQ id must be a non-empty string.");
+  assert.ok(!seenFaqIds.has(faq.id), `Duplicate FAQ id found: ${faq.id}`);
+  seenFaqIds.add(faq.id);
+  assertNonEmptyString(faq.question, `FAQ ${faq.id} question must be a non-empty string.`);
+  assertNonEmptyString(faq.answer, `FAQ ${faq.id} answer must be a non-empty string.`);
+  assertNonEmptyString(faq.category, `FAQ ${faq.id} category must be a non-empty string.`);
 }
 
+const expectedGlossaryKeys = ["id", "term", "definition", "plainLanguage", "relatedTerms"];
+const seenGlossaryIds = new Set();
 for (const term of glossary) {
-  ["id", "term", "definition", "plainLanguage", "relatedTerms"].forEach((key) => {
-    assert.ok(Object.prototype.hasOwnProperty.call(term, key), `Glossary term is missing key: ${key}`);
-  });
+  assert.ok(term && typeof term === "object" && !Array.isArray(term), "Glossary terms must be objects.");
+
+  const termKeys = Object.keys(term).sort();
+  assert.deepStrictEqual(
+    termKeys,
+    expectedGlossaryKeys.slice().sort(),
+    `Glossary term ${term.id ?? "unknown"} must contain exactly the expected keys.`
+  );
+
+  assertNonEmptyString(term.id, "Glossary id must be a non-empty string.");
+  assert.ok(!seenGlossaryIds.has(term.id), `Duplicate glossary id found: ${term.id}`);
+  seenGlossaryIds.add(term.id);
+  assertNonEmptyString(term.term, `Glossary ${term.id} term must be a non-empty string.`);
+  assertNonEmptyString(term.definition, `Glossary ${term.id} definition must be a non-empty string.`);
+  assertNonEmptyString(term.plainLanguage, `Glossary ${term.id} plainLanguage must be a non-empty string.`);
+  assertStringArray(term.relatedTerms, `Glossary ${term.id} relatedTerms must be a non-empty array of strings.`);
 }
 
 console.log("Calculator site content presence audit passed.");
