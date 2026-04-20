@@ -257,7 +257,7 @@ button {
   cursor: pointer;
 }
 
-button:hover:not(:disabled):not(.ghost):not(.link) {
+:where(button:not([class]), .btn-calculate-omni):hover:not(:disabled) {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
 }
@@ -709,10 +709,6 @@ h3 {
   border-radius: var(--radius-sm);
   background: var(--surface-0);
   box-shadow: none;
-}
-
-.answer-hero {
-  box-shadow: var(--shadow-soft);
 }
 
 .answer-hero-major {
@@ -3619,7 +3615,7 @@ select {
   padding: 0.3rem 0.55rem;
   border-radius: var(--radius-xs, 4px);
   background: var(--surface-3, #333);
-  color: var(--on-accent, #fff);
+  color: var(--text, #fff);
   font-size: 0.78rem;
   font-family: var(--font-mono, monospace);
   white-space: nowrap;
