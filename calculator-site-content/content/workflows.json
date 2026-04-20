@@ -27,8 +27,8 @@
     "summary": "Study how Horner and direct evaluation behave on the same polynomial.",
     "audience": "students",
     "steps": [
-      { "title": "Enter the polynomial and x-value", "description": "Set up the polynomial problem you want to evaluate.", "outcome": "Both methods will work from the same mathematical input." },
-      { "title": "Compute the comparison", "description": "Run the polynomial module to produce the reference, Horner, and direct results.", "outcome": "You get multiple evaluation paths to compare." },
+      { "title": "Enter the polynomial, x-value, and precision settings", "description": "Set up the polynomial problem you want to evaluate, then choose significant digits and the machine rule.", "outcome": "Both methods will work from the same mathematical input and finite-precision setup." },
+      { "title": "Compute the comparison", "description": "Run the polynomial module to produce the reference, Horner, and direct results under the selected precision settings.", "outcome": "You get multiple evaluation paths to compare in the same machine environment." },
       { "title": "Inspect method differences", "description": "Use the outputs to discuss operation ordering and sensitivity.", "outcome": "You can explain why equivalent forms may behave differently numerically." }
     ]
   },
@@ -38,7 +38,7 @@
     "summary": "Use one of the root-finding methods to study approximate solutions and stopping behavior.",
     "audience": "students",
     "steps": [
-      { "title": "Choose a method and provide starting data", "description": "Select Bisection, Newton-Raphson, Secant, False Position, or Fixed Point and enter the required values.", "outcome": "The method has the function and initial setup it needs." },
+      { "title": "Choose a method and provide starting data", "description": "Select Bisection, Newton-Raphson, Secant, False Position, or Fixed Point, then enter the function, initial values, and precision settings required by the machine approximation.", "outcome": "The method has the function, starting setup, and finite-precision context it needs." },
       { "title": "Set stopping controls", "description": "Choose a stopping mode and value that fit the exercise.", "outcome": "The iteration has a clear stopping rule." },
       { "title": "Run and interpret the approximation", "description": "Review the approximate root and related method output.", "outcome": "You can discuss convergence and the meaning of the reported answer." }
     ]

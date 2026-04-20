@@ -113,9 +113,13 @@ function assertStringArray(value, message) {
   });
 }
 
+function assertObjectItem(value, message) {
+  assert.ok(value && typeof value === "object" && !Array.isArray(value), message);
+}
+
 const seenIds = new Set();
 for (const [index, module] of modules.entries()) {
-  assert.ok(module && typeof module === "object" && !Array.isArray(module), `Module at index ${index} must be an object.`);
+  assertObjectItem(module, `Module at index ${index} must be an object.`);
 
   const moduleKeys = Object.keys(module).sort();
   assert.deepStrictEqual(
@@ -145,7 +149,7 @@ for (const [index, module] of modules.entries()) {
 const expectedFaqKeys = ["id", "question", "answer", "category"];
 const seenFaqIds = new Set();
 for (const faq of faqs) {
-  assert.ok(faq && typeof faq === "object" && !Array.isArray(faq), "FAQ items must be objects.");
+  assertObjectItem(faq, "FAQ items must be objects.");
 
   const faqKeys = Object.keys(faq).sort();
   assert.deepStrictEqual(
@@ -165,7 +169,7 @@ for (const faq of faqs) {
 const expectedGlossaryKeys = ["id", "term", "definition", "plainLanguage", "relatedTerms"];
 const seenGlossaryIds = new Set();
 for (const term of glossary) {
-  assert.ok(term && typeof term === "object" && !Array.isArray(term), "Glossary terms must be objects.");
+  assertObjectItem(term, "Glossary terms must be objects.");
 
   const termKeys = Object.keys(term).sort();
   assert.deepStrictEqual(
@@ -183,17 +187,54 @@ for (const term of glossary) {
   assertStringArray(term.relatedTerms, `Glossary ${term.id} relatedTerms must be a non-empty array of strings.`);
 }
 
-for (const workflow of workflows) {
-  ["id", "title", "summary", "audience", "steps"].forEach((key) => {
-    assert.ok(Object.prototype.hasOwnProperty.call(workflow, key), `Workflow is missing key: ${key}`);
+const expectedWorkflowKeys = ["id", "title", "summary", "audience", "steps"];
+const seenWorkflowIds = new Set();
+for (const [index, workflow] of workflows.entries()) {
+  assertObjectItem(workflow, `Workflow at index ${index} must be an object.`);
+
+  const workflowKeys = Object.keys(workflow).sort();
+  assert.deepStrictEqual(
+    workflowKeys,
+    expectedWorkflowKeys.slice().sort(),
+    `Workflow ${workflow.id ?? index} must contain exactly the expected keys.`
+  );
+
+  assertNonEmptyString(workflow.id, `Workflow ${index + 1} id must be a non-empty string.`);
+  assert.ok(!seenWorkflowIds.has(workflow.id), `Duplicate workflow id found: ${workflow.id}`);
+  seenWorkflowIds.add(workflow.id);
+  assertNonEmptyString(workflow.title, `Workflow ${workflow.id} title must be a non-empty string.`);
+  assertNonEmptyString(workflow.summary, `Workflow ${workflow.id} summary must be a non-empty string.`);
+  assertNonEmptyString(workflow.audience, `Workflow ${workflow.id} audience must be a non-empty string.`);
+  assert.ok(Array.isArray(workflow.steps), `Workflow ${workflow.id} steps must be an array.`);
+  assert.ok(workflow.steps.length >= 3, `Workflow ${workflow.id} must contain at least 3 steps.`);
+  workflow.steps.forEach((step, stepIndex) => {
+    assertObjectItem(step, `Workflow ${workflow.id} step ${stepIndex + 1} must be an object.`);
+    assertNonEmptyString(step.title, `Workflow ${workflow.id} step ${stepIndex + 1} title must be a non-empty string.`);
+    assertNonEmptyString(step.description, `Workflow ${workflow.id} step ${stepIndex + 1} description must be a non-empty string.`);
+    assertNonEmptyString(step.outcome, `Workflow ${workflow.id} step ${stepIndex + 1} outcome must be a non-empty string.`);
   });
-  assert.ok(Array.isArray(workflow.steps) && workflow.steps.length >= 3, `Workflow ${workflow.id} must contain at least 3 steps.`);
 }
 
-for (const useCase of useCases) {
-  ["id", "audience", "title", "summary", "benefits", "situations"].forEach((key) => {
-    assert.ok(Object.prototype.hasOwnProperty.call(useCase, key), `Use case is missing key: ${key}`);
-  });
+const expectedUseCaseKeys = ["id", "audience", "title", "summary", "benefits", "situations"];
+const seenUseCaseIds = new Set();
+for (const [index, useCase] of useCases.entries()) {
+  assertObjectItem(useCase, `Use case at index ${index} must be an object.`);
+
+  const useCaseKeys = Object.keys(useCase).sort();
+  assert.deepStrictEqual(
+    useCaseKeys,
+    expectedUseCaseKeys.slice().sort(),
+    `Use case ${useCase.id ?? index} must contain exactly the expected keys.`
+  );
+
+  assertNonEmptyString(useCase.id, `Use case ${index + 1} id must be a non-empty string.`);
+  assert.ok(!seenUseCaseIds.has(useCase.id), `Duplicate use case id found: ${useCase.id}`);
+  seenUseCaseIds.add(useCase.id);
+  assertNonEmptyString(useCase.audience, `Use case ${useCase.id} audience must be a non-empty string.`);
+  assertNonEmptyString(useCase.title, `Use case ${useCase.id} title must be a non-empty string.`);
+  assertNonEmptyString(useCase.summary, `Use case ${useCase.id} summary must be a non-empty string.`);
+  assertStringArray(useCase.benefits, `Use case ${useCase.id} benefits must be a non-empty array of strings.`);
+  assertStringArray(useCase.situations, `Use case ${useCase.id} situations must be a non-empty array of strings.`);
 }
 
 console.log("Calculator site content presence audit passed.");
