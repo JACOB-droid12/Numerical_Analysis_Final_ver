@@ -22,6 +22,19 @@
   </script>
   <meta name="description"
     content="An interactive lab for analyzing floating-point numbers, error propagation, and polynomial evaluation." />
+  <meta property="og:title" content="Machine Arithmetic and Error Analysis Lab">
+  <meta property="og:description"
+    content="An interactive lab for analyzing floating-point numbers, error propagation, and polynomial evaluation.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="og-card.svg">
+  <meta property="og:image:type" content="image/svg+xml">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Machine Arithmetic and Error Analysis Lab">
+  <meta name="twitter:description"
+    content="An interactive lab for analyzing floating-point numbers, error propagation, and polynomial evaluation.">
+  <meta name="twitter:image" content="og-card.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style"
@@ -131,7 +144,7 @@
         <header class="module-header">
           <div>
             <p class="module-kicker">Module I</p>
-            <h2>Machine Arithmetic Workbench</h2>
+        <h2>Machine arithmetic workbench</h2>
           </div>
           <p class="module-copy">
             Enter an expression, choose <strong>k</strong> and the rule, then read <strong>p</strong>,
@@ -182,18 +195,18 @@
           <div class="comparison-grid comparison-grid-triple">
             <div class="answer-hero answer-hero-major answer-hero-source">
               <p id="basic-expression-reference-label" class="result-label">Exact value p</p>
-              <p id="basic-expression-exact" class="answer-value is-empty">Ready to calculate</p>
+              <p id="basic-expression-exact" class="answer-value is-empty">Pending result</p>
             </div>
 
             <div class="answer-hero answer-hero-major answer-hero-primary-machine">
               <p class="result-label">Main machine answer p* (apply the rule after every step)</p>
-              <p id="basic-expression-stepwise" class="answer-value is-empty">Ready to calculate</p>
+              <p id="basic-expression-stepwise" class="answer-value is-empty">Pending result</p>
             </div>
 
             <div class="answer-hero answer-hero-major answer-hero-secondary-comparison">
               <p id="basic-expression-final-label" class="result-label">Final-only comparison (exact expression, then chop once)
               </p>
-              <p id="basic-expression-final" class="answer-value is-empty">Ready to calculate</p>
+              <p id="basic-expression-final" class="answer-value is-empty">Pending result</p>
             </div>
           </div>
           <p id="basic-expression-answer-guide" class="result-caption answer-guide" hidden>Use the Stepwise result unless the problem explicitly says round or chop once at the end. Final-only is for exact-first, round-once or chop-once instructions.</p>
@@ -201,18 +214,18 @@
           <dl id="basic-answer-strip" class="answer-strip answer-strip-triple" hidden>
             <div>
               <dt>Simplified Exact Expression</dt>
-              <dd id="basic-expression-canonical" class="is-empty">Ready to calculate</dd>
+              <dd id="basic-expression-canonical" class="is-empty">Pending result</dd>
             </div>
             <div>
               <dt>Counted operations</dt>
-              <dd id="basic-expression-ops" class="is-empty">Ready to calculate</dd>
+              <dd id="basic-expression-ops" class="is-empty">Pending result</dd>
             </div>
             <div>
               <dt>Per-step rule bound</dt>
-              <dd id="basic-expression-bound" class="is-empty">Ready to calculate</dd>
+              <dd id="basic-expression-bound" class="is-empty">Awaiting k</dd>
             </div>
           </dl>
-          <p id="basic-expression-note" class="focus-note is-empty" hidden>Ready to calculate</p>
+          <p id="basic-expression-note" class="focus-note is-empty" hidden>Awaiting input</p>
         </section>
 
         <section id="basic-next-steps" class="result-next-steps" hidden>
@@ -220,7 +233,7 @@
   <div id="basic-actions" class="control-actions control-actions-secondary">
     <button id="basic-send-step" type="button" class="ghost" disabled>Send main machine p* to Errors</button>
     <button id="basic-send-final" type="button" class="ghost" disabled>Send final-only comparison to Errors</button>
-    <button id="basic-open-trace" type="button" class="ghost" disabled>Open machine trace</button>
+          <button id="basic-open-trace" type="button" class="link" disabled>Open machine trace</button>
   </div>
 </section>
 
@@ -275,8 +288,8 @@
           <summary>Single operation helper — detailed inspection tool</summary>
           <div class="utility-stack">
             <div>
-              <p class="module-kicker" style="margin-bottom: var(--space-1);">Detailed Inspection Tool</p>
-              <h3 style="margin: 0 0 var(--space-2) 0;">Single operation helper</h3>
+              <p class="module-kicker module-kicker-tight">Detailed Inspection Tool</p>
+              <h3>Single operation helper</h3>
               <p class="lesson-note" style="margin: 0;">Use this helper when you want the exact operand storage paths,
                 normalized bounds, and unit-in-the-last-place (ULP) context for a single binary operation.</p>
             </div>
@@ -332,7 +345,7 @@
             <section class="result-stage" aria-label="Single operation helper result">
               <div class="answer-hero answer-hero-major">
                 <p class="result-label">Stored machine answer p*</p>
-                <p id="basic-approx-primary" class="answer-value is-empty">Ready to calculate</p>
+                <p id="basic-approx-primary" class="answer-value is-empty">Pending result</p>
                 <p class="result-caption">This helper isolates the fundamental numerical analysis lesson: comparing the
                   true mathematical exact result directly with the machine-stored path.</p>
               </div>
@@ -340,19 +353,19 @@
               <dl class="answer-strip answer-strip-quad">
                 <div>
                   <dt>Exact answer p</dt>
-                  <dd id="basic-exact-summary" class="is-empty">Ready to calculate</dd>
+                  <dd id="basic-exact-summary" class="is-empty">Pending result</dd>
                 </div>
                 <div>
                   <dt>Machine Operation fl(x op y)</dt>
-                  <dd id="basic-approx-stored" class="is-empty">Ready to calculate</dd>
+                  <dd id="basic-approx-stored" class="is-empty">Not yet rounded</dd>
                 </div>
                 <div>
                   <dt>Guard digit</dt>
-                  <dd id="basic-guard" class="is-empty">Ready to calculate</dd>
+                  <dd id="basic-guard" class="is-empty">Awaiting k</dd>
                 </div>
                 <div>
                   <dt>Worst-case relative-error bound</dt>
-                  <dd id="basic-bound" class="is-empty">Ready to calculate</dd>
+                  <dd id="basic-bound" class="is-empty">Awaiting k</dd>
                 </div>
               </dl>
               <p class="focus-note">Read the exact result, the stored-operand path, the guard digit, and the bound
@@ -365,9 +378,9 @@
                 <section class="reading-panel reading-panel-quiet">
                   <h3>Why the stored answer changed</h3>
                   <div class="note-stack">
-                    <p id="basic-normalization-note" class="lesson-note is-empty">Ready to calculate</p>
-                    <p id="basic-guard-note" class="lesson-note is-empty">Ready to calculate</p>
-                    <p id="basic-rounding-note" class="lesson-note is-empty">Ready to calculate</p>
+                    <p id="basic-normalization-note" class="lesson-note is-empty">Awaiting operand a</p>
+                    <p id="basic-guard-note" class="lesson-note is-empty">Awaiting k</p>
+                    <p id="basic-rounding-note" class="lesson-note is-empty">Not yet rounded</p>
                   </div>
                 </section>
 
@@ -376,31 +389,31 @@
                   <dl class="metric-list">
                     <div>
                       <dt>Exact x</dt>
-                      <dd id="basic-a-exact" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-a-exact" class="is-empty">Awaiting operand a</dd>
                     </div>
                     <div>
                       <dt>Normalized x</dt>
-                      <dd id="basic-a-normalized" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-a-normalized" class="is-empty">Awaiting operand a</dd>
                     </div>
                     <div>
                       <dt>Stored fl(x)</dt>
-                      <dd id="basic-a-machine" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-a-machine" class="is-empty">Not yet rounded</dd>
                     </div>
                     <div>
                       <dt>Exact y</dt>
-                      <dd id="basic-b-exact" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-b-exact" class="is-empty">Awaiting operand b</dd>
                     </div>
                     <div>
                       <dt>Normalized y</dt>
-                      <dd id="basic-b-normalized" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-b-normalized" class="is-empty">Awaiting operand b</dd>
                     </div>
                     <div>
                       <dt>Stored fl(y)</dt>
-                      <dd id="basic-b-machine" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-b-machine" class="is-empty">Not yet rounded</dd>
                     </div>
                     <div>
                       <dt>Exact normalization</dt>
-                      <dd id="basic-exact-scientific" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-exact-scientific" class="is-empty">Pending result</dd>
                     </div>
                   </dl>
                 </section>
@@ -410,19 +423,19 @@
                   <dl class="metric-list metric-list-inline">
                     <div>
                       <dt>ULP / spacing</dt>
-                      <dd id="basic-ulp" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-ulp" class="is-empty">Pending result</dd>
                     </div>
                     <div>
                       <dt>Next smaller machine number</dt>
-                      <dd id="basic-prev" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-prev" class="is-empty">Pending result</dd>
                     </div>
                     <div>
                       <dt>Next larger machine number</dt>
-                      <dd id="basic-next" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-next" class="is-empty">Pending result</dd>
                     </div>
                     <div>
                       <dt>Represented interval</dt>
-                      <dd id="basic-interval" class="is-empty">Ready to calculate</dd>
+                      <dd id="basic-interval" class="is-empty">Pending result</dd>
                     </div>
                   </dl>
                 </section>
@@ -486,8 +499,8 @@
       <div class="module-shell module-error">
         <header class="module-header">
           <div>
-            <p class="module-kicker">Module II</p>
-            <h2>Error Analysis</h2>
+          <p class="module-kicker">Module II</p>
+            <h2>Error analysis</h2>
           </div>
           <p class="module-copy">
             Compare true value <strong>p</strong> with approximation <strong>p*</strong> and read the key error
@@ -513,7 +526,7 @@
 
           <div class="control-actions control-actions-inline">
             <button id="error-compute" type="button">Calculate error</button>
-            <button id="error-import-basic" type="button" class="ghost">Import Module I main machine p*</button>
+              <button id="error-import-basic" type="button" class="ghost">Import Module I main machine p*</button>
           </div>
 
 
@@ -548,44 +561,44 @@
         <section id="error-result-stage" class="result-stage result-stage-reading" aria-label="Primary error result" hidden>
           <div class="answer-hero answer-hero-major answer-hero-reading">
             <p class="result-label">Relative error</p>
-            <p id="error-rel" class="answer-value is-empty">Ready to calculate</p>
-            <p id="error-verdict" class="result-verdict is-empty">Ready to calculate</p>
+          <p id="error-rel" class="answer-value is-empty">Pending result</p>
+            <p id="error-verdict" class="result-verdict is-empty">Pending result</p>
             <p class="result-caption">This shows the size of the miss relative to the true value.</p>
           </div>
 
           <dl class="answer-strip answer-strip-quad">
             <div>
               <dt>Relative error (%)</dt>
-              <dd id="error-rel-pct" class="is-empty">Ready to calculate</dd>
+              <dd id="error-rel-pct" class="is-empty">Pending result</dd>
             </div>
             <div>
               <dt>Absolute error</dt>
-              <dd id="error-abs" class="is-empty">Ready to calculate</dd>
+              <dd id="error-abs" class="is-empty">Pending result</dd>
             </div>
             <div>
               <dt>Significant digits</dt>
-              <dd id="error-t" class="is-empty">Ready to calculate</dd>
+              <dd id="error-t" class="is-empty">Awaiting k</dd>
             </div>
             <div>
               <dt>Maximum Absolute Error</dt>
-              <dd id="error-maxabs" class="is-empty">Ready to calculate</dd>
+              <dd id="error-maxabs" class="is-empty">Pending result</dd>
             </div>
           </dl>
         </section>
 
         <div id="error-reading-grid" class="reading-grid" hidden>
           <section class="reading-panel reading-panel-rule">
-            <p class="result-label">Significant Digits Test</p>
-            <p id="error-check" class="lesson-note is-empty">Ready to calculate</p>
+            <p class="result-label">Significant digits test</p>
+            <p id="error-check" class="lesson-note is-empty">Awaiting input</p>
           </section>
 
           <section class="reading-panel reading-panel-meaning">
             <p class="result-label">How to read the metrics</p>
             <div class="note-stack">
-              <p id="error-meaning-abs" class="lesson-note is-empty">Ready to calculate</p>
-              <p id="error-meaning-rel" class="lesson-note is-empty">Ready to calculate</p>
-              <p id="error-meaning-t" class="lesson-note is-empty">Ready to calculate</p>
-              <p id="error-meaning-extra" class="lesson-note is-empty">Ready to calculate</p>
+              <p id="error-meaning-abs" class="lesson-note is-empty">Awaiting input</p>
+              <p id="error-meaning-rel" class="lesson-note is-empty">Awaiting input</p>
+              <p id="error-meaning-t" class="lesson-note is-empty">Awaiting input</p>
+              <p id="error-meaning-extra" class="lesson-note is-empty">Awaiting input</p>
             </div>
           </section>
         </div>
@@ -597,7 +610,7 @@
         <header class="module-header">
           <div>
             <p class="module-kicker">Module III</p>
-            <h2>Polynomial Comparison Board</h2>
+            <h2>Polynomial comparison board</h2>
           </div>
           <p class="module-copy">
             Enter <strong>f(x)</strong> and <strong>x</strong>, then compare the source value, stepwise machine
@@ -667,18 +680,18 @@
         <section id="poly-summary-band" class="summary-band" aria-label="Exact polynomial summary" hidden>
           <div class="answer-hero answer-hero-poly answer-hero-major answer-hero-source">
             <p id="poly-reference-label" class="result-label">Exact polynomial value f(x)</p>
-            <p id="poly-exact" class="answer-value is-empty">Ready to calculate</p>
+            <p id="poly-exact" class="answer-value is-empty">Pending result</p>
             <p class="result-caption">This is <strong>f(x)</strong> before the machine rule is applied.</p>
           </div>
 
           <dl class="answer-strip answer-strip-inline">
             <div>
               <dt>Rewritten polynomial</dt>
-              <dd id="poly-canonical" class="is-empty">Ready to calculate</dd>
+              <dd id="poly-canonical" class="is-empty">Pending result</dd>
             </div>
             <div>
               <dt>Stored x</dt>
-              <dd id="poly-xapprox" class="is-empty">Ready to calculate</dd>
+              <dd id="poly-xapprox" class="is-empty">Not yet rounded</dd>
             </div>
           </dl>
         </section>
@@ -689,22 +702,22 @@
           <section class="conclusion-block conclusion-block-featured">
             <h3>Verdict</h3>
             <div class="note-stack">
-              <p id="poly-accuracy-winner" class="lesson-note is-empty">Ready to calculate</p>
+              <p id="poly-accuracy-winner" class="lesson-note is-empty">Pending result</p>
             </div>
             <details class="disclosure disclosure-secondary verdict-explainer" aria-label="Explanation of accuracy verdict">
               <summary>Why this result</summary>
               <div class="note-stack">
-                <p id="poly-operation-winner" class="lesson-note is-empty">Ready to calculate</p>
-                <p id="poly-sensitivity-note" class="lesson-note is-empty">Ready to calculate</p>
+                <p id="poly-operation-winner" class="lesson-note is-empty">Pending result</p>
+                <p id="poly-sensitivity-note" class="lesson-note is-empty">Pending result</p>
               </div>
             </details>
           </section>
 
-          <p id="poly-next-step" class="result-next-step is-empty" hidden>Ready to calculate</p>
+          <p id="poly-next-step" class="result-next-step is-empty" hidden>Awaiting input</p>
 
           <div class="answer-hero answer-hero-major comparison-baseline answer-hero-secondary-comparison">
             <p id="poly-final-shared-label" class="result-label">Final-only comparison (exact f(x), then chop once)</p>
-            <p id="poly-final-shared" class="answer-value is-empty">Ready to calculate</p>
+            <p id="poly-final-shared" class="answer-value is-empty">Pending result</p>
           </div>
 
           <div class="comparison-grid comparison-grid-board">
@@ -712,15 +725,15 @@
               <dl class="metric-list">
                 <div>
                   <dt>Horner stepwise p*</dt>
-                  <dd id="poly-horner-step-approx" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-horner-step-approx" class="is-empty">Pending result</dd>
                 </div>
                 <div>
                   <dt>Measured Significant Digits (t)</dt>
-                  <dd id="poly-horner-step-t" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-horner-step-t" class="is-empty">Awaiting k</dd>
                 </div>
                 <div>
                   <dt>Counted operations</dt>
-                  <dd id="poly-horner-ops-summary" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-horner-ops-summary" class="is-empty">Pending result</dd>
                 </div>
               </dl>
             </section>
@@ -729,15 +742,15 @@
               <dl class="metric-list">
                 <div>
                   <dt>Direct stepwise p*</dt>
-                  <dd id="poly-direct-step-approx" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-direct-step-approx" class="is-empty">Pending result</dd>
                 </div>
                 <div>
                   <dt>Measured Significant Digits (t)</dt>
-                  <dd id="poly-direct-step-t" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-direct-step-t" class="is-empty">Awaiting k</dd>
                 </div>
                 <div>
                   <dt>Counted operations</dt>
-                  <dd id="poly-direct-ops-summary" class="is-empty">Ready to calculate</dd>
+                  <dd id="poly-direct-ops-summary" class="is-empty">Pending result</dd>
                 </div>
               </dl>
             </section>
@@ -854,8 +867,8 @@
       <div class="module-shell module-root">
         <header class="module-header">
           <div>
-            <p class="module-kicker">Module IV</p>
-            <h2>Root Finding Workbench</h2>
+          <p class="module-kicker">Module IV</p>
+            <h2>Root finding workbench</h2>
           </div>
           <p class="module-copy">
             Find roots of f(x) = 0 using five methods. Each tab has its own inputs and step-by-step iteration table.
@@ -1035,7 +1048,7 @@
                 <p class="result-label">Solution steps</p>
                 <h3>Classroom-style explanation</h3>
               </div>
-              <button id="root-copy-solution" type="button" class="ghost">Copy solution</button>
+              <button id="root-copy-solution" type="button" class="link">Copy solution</button>
             </div>
             <ol id="root-solution-steps" class="root-solution-steps">
               <li>Run the method to see steps.</li>
@@ -1061,7 +1074,7 @@
         <header class="module-header">
           <div>
             <p class="module-kicker">Module V</p>
-            <h2>IEEE-754 Double Precision Lab</h2>
+            <h2>IEEE-754 double precision lab</h2>
           </div>
           <p class="module-copy">
             Convert between decimal values and 64-bit IEEE-754 patterns, then inspect the sign bit, exponent,
@@ -1093,7 +1106,7 @@
             <div class="ieee-card-header">
               <div>
                 <p class="module-kicker">Decode</p>
-                <h3>IEEE-754 to Decimal</h3>
+                <h3>IEEE-754 to decimal</h3>
               </div>
               <p class="lesson-note">Paste 64 bits with or without spaces. The tool will normalize the grouping for display.</p>
             </div>
@@ -1213,7 +1226,7 @@
         <header class="module-header">
           <div>
             <p class="module-kicker">Guide</p>
-            <h2>Tutorial and Practice</h2>
+            <h2>Tutorial and practice</h2>
           </div>
           <p class="module-copy">
             Learn with worked examples here, then send them into the calculators when you want to solve or verify for real.

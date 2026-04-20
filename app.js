@@ -1062,7 +1062,7 @@
 
     const cell = document.createElement("td");
     cell.colSpan = 5;
-    cell.textContent = "Ready to calculate.";
+    cell.textContent = "Awaiting input.";
     row.appendChild(cell);
     body.appendChild(row);
   }
@@ -1118,7 +1118,7 @@
 
     const cell = document.createElement("td");
     cell.colSpan = 5;
-    cell.textContent = "Ready to calculate.";
+    cell.textContent = "Awaiting input.";
     row.appendChild(cell);
     body.appendChild(row);
   }
