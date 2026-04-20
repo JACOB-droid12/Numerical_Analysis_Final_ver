@@ -53,8 +53,16 @@ assert.ok(
 const modules = JSON.parse(
   fs.readFileSync(path.join(ROOT, "calculator-site-content/content/modules.json"), "utf8")
 );
+const faqs = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/faqs.json"), "utf8")
+);
+const glossary = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/glossary.json"), "utf8")
+);
 
 assert.ok(Array.isArray(modules), "modules.json must be an array.");
+assert.ok(Array.isArray(faqs) && faqs.length >= 6, "faqs.json must contain at least 6 items.");
+assert.ok(Array.isArray(glossary) && glossary.length >= 8, "glossary.json must contain at least 8 terms.");
 
 const expectedModuleIds = [
   "machine-arithmetic",
@@ -124,6 +132,18 @@ for (const [index, module] of modules.entries()) {
   assertStringArray(module.commonUseCases, `Module ${module.id} commonUseCases must be a non-empty array of strings.`);
   assertStringArray(module.limitations, `Module ${module.id} limitations must be a non-empty array of strings.`);
   assertStringArray(module.notes, `Module ${module.id} notes must be a non-empty array of strings.`);
+}
+
+for (const faq of faqs) {
+  ["id", "question", "answer", "category"].forEach((key) => {
+    assert.ok(Object.prototype.hasOwnProperty.call(faq, key), `FAQ item is missing key: ${key}`);
+  });
+}
+
+for (const term of glossary) {
+  ["id", "term", "definition", "plainLanguage", "relatedTerms"].forEach((key) => {
+    assert.ok(Object.prototype.hasOwnProperty.call(term, key), `Glossary term is missing key: ${key}`);
+  });
 }
 
 console.log("Calculator site content presence audit passed.");
