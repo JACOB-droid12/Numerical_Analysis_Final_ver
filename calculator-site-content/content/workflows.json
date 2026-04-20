@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": "machine-arithmetic-check",
+    "title": "Check a finite-precision arithmetic problem",
+    "summary": "Use the calculator to compare an exact expression with a machine-computed result.",
+    "audience": "students",
+    "steps": [
+      { "title": "Enter the expression or numbers", "description": "Provide the arithmetic problem you want to inspect.", "outcome": "The calculator has the full problem setup." },
+      { "title": "Choose precision settings", "description": "Select the number of significant digits and whether to chop or round.", "outcome": "The finite-precision rule is defined." },
+      { "title": "Compute and compare", "description": "Review the machine result alongside the exact or reference value.", "outcome": "You can see how finite precision changes the answer." }
+    ]
+  },
+  {
+    "id": "error-analysis-review",
+    "title": "Evaluate approximation quality",
+    "summary": "Use error metrics to judge whether an approximation is acceptable.",
+    "audience": "students",
+    "steps": [
+      { "title": "Provide the true and approximate values", "description": "Enter the reference value and the approximation you want to assess.", "outcome": "The calculator has the pair needed for comparison." },
+      { "title": "Read the reported metrics", "description": "Inspect absolute error, relative error, and significant-digit style results.", "outcome": "You have quantitative measures of approximation quality." },
+      { "title": "Interpret the result", "description": "Use the explanations to decide how trustworthy the approximation is.", "outcome": "You can explain the approximation in numerical-analysis terms." }
+    ]
+  },
+  {
+    "id": "polynomial-comparison",
+    "title": "Compare polynomial evaluation methods",
+    "summary": "Study how Horner and direct evaluation behave on the same polynomial.",
+    "audience": "students",
+    "steps": [
+      { "title": "Enter the polynomial and x-value", "description": "Set up the polynomial problem you want to evaluate.", "outcome": "Both methods will work from the same mathematical input." },
+      { "title": "Compute the comparison", "description": "Run the polynomial module to produce the reference, Horner, and direct results.", "outcome": "You get multiple evaluation paths to compare." },
+      { "title": "Inspect method differences", "description": "Use the outputs to discuss operation ordering and sensitivity.", "outcome": "You can explain why equivalent forms may behave differently numerically." }
+    ]
+  },
+  {
+    "id": "root-finding-session",
+    "title": "Approximate a root with an iterative method",
+    "summary": "Use one of the root-finding methods to study approximate solutions and stopping behavior.",
+    "audience": "students",
+    "steps": [
+      { "title": "Choose a method and provide starting data", "description": "Select Bisection, Newton-Raphson, Secant, False Position, or Fixed Point and enter the required values.", "outcome": "The method has the function and initial setup it needs." },
+      { "title": "Set stopping controls", "description": "Choose a stopping mode and value that fit the exercise.", "outcome": "The iteration has a clear stopping rule." },
+      { "title": "Run and interpret the approximation", "description": "Review the approximate root and related method output.", "outcome": "You can discuss convergence and the meaning of the reported answer." }
+    ]
+  }
+]

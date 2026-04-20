@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "students",
+    "audience": "students",
+    "title": "Students can turn formulas into worked numerical results",
+    "summary": "The calculator helps students move from lecture formulas and homework instructions to concrete computed outputs they can inspect and explain.",
+    "benefits": ["faster checking of manual work", "clearer understanding of approximation effects", "better comparison of multiple methods"],
+    "situations": ["reviewing assignments", "studying for quizzes and exams", "checking whether a finite-precision result makes sense"]
+  },
+  {
+    "id": "instructors",
+    "audience": "instructors",
+    "title": "Instructors can demonstrate numerical ideas with concrete examples",
+    "summary": "The calculator provides a practical way to show how numerical-analysis concepts behave during class demonstrations or guided examples.",
+    "benefits": ["supports lecture walkthroughs", "helps compare methods in real time", "makes abstract error discussions more concrete"],
+    "situations": ["classroom demonstration", "lab or recitation support", "preparing worked examples for discussion"]
+  },
+  {
+    "id": "self-learners",
+    "audience": "self-learners",
+    "title": "Self-learners can explore method behavior independently",
+    "summary": "A self-directed learner can use the calculator to practice interpreting finite precision, error measures, and iterative results without needing a full software stack.",
+    "benefits": ["low-friction experimentation", "guided interpretation through structured outputs", "practical reinforcement of textbook material"],
+    "situations": ["independent study", "reviewing a numerical-analysis chapter", "testing intuition about approximation and convergence"]
+  }
+]

@@ -59,10 +59,18 @@ const faqs = JSON.parse(
 const glossary = JSON.parse(
   fs.readFileSync(path.join(ROOT, "calculator-site-content/content/glossary.json"), "utf8")
 );
+const workflows = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/workflows.json"), "utf8")
+);
+const useCases = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/use-cases.json"), "utf8")
+);
 
 assert.ok(Array.isArray(modules), "modules.json must be an array.");
 assert.ok(Array.isArray(faqs) && faqs.length >= 6, "faqs.json must contain at least 6 items.");
 assert.ok(Array.isArray(glossary) && glossary.length >= 8, "glossary.json must contain at least 8 terms.");
+assert.ok(Array.isArray(workflows) && workflows.length >= 4, "workflows.json must contain at least 4 workflows.");
+assert.ok(Array.isArray(useCases) && useCases.length >= 3, "use-cases.json must contain at least 3 use cases.");
 
 const expectedModuleIds = [
   "machine-arithmetic",
@@ -173,6 +181,19 @@ for (const term of glossary) {
   assertNonEmptyString(term.definition, `Glossary ${term.id} definition must be a non-empty string.`);
   assertNonEmptyString(term.plainLanguage, `Glossary ${term.id} plainLanguage must be a non-empty string.`);
   assertStringArray(term.relatedTerms, `Glossary ${term.id} relatedTerms must be a non-empty array of strings.`);
+}
+
+for (const workflow of workflows) {
+  ["id", "title", "summary", "audience", "steps"].forEach((key) => {
+    assert.ok(Object.prototype.hasOwnProperty.call(workflow, key), `Workflow is missing key: ${key}`);
+  });
+  assert.ok(Array.isArray(workflow.steps) && workflow.steps.length >= 3, `Workflow ${workflow.id} must contain at least 3 steps.`);
+}
+
+for (const useCase of useCases) {
+  ["id", "audience", "title", "summary", "benefits", "situations"].forEach((key) => {
+    assert.ok(Object.prototype.hasOwnProperty.call(useCase, key), `Use case is missing key: ${key}`);
+  });
 }
 
 console.log("Calculator site content presence audit passed.");
