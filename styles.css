@@ -1887,7 +1887,7 @@ html[data-density="exam"] .table-wrap {
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 8%, transparent), 0 8px 18px -12px color-mix(in srgb, var(--accent) 28%, transparent);
   transition-delay: 0ms;
   z-index: var(--z-popover);
 }
@@ -1991,7 +1991,7 @@ html[data-density="exam"] .table-wrap {
   position: fixed;
   inset: 0;
   background: color-mix(in srgb, var(--bg) 40%, transparent);
-  z-index: var(--z-modal);
+  z-index: var(--z-sidebar);
   opacity: 0;
   transition: opacity var(--sidebar-transition);
 }
