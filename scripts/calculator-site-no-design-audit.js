@@ -7,7 +7,14 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const CONTENT_ROOT = path.join(ROOT, "calculator-site-content");
 const forbiddenPatterns = [
+  /\bcomposition\b/i,
+  /\baesthetic(s)?\b/i,
+  /\bvisual(s)?\b/i,
+  /\bvisual direction\b/i,
+  /\bpresentation\b/i,
+  /\bpresented\b/i,
   /\bdesign system\b/i,
+  /\bdesign direction\b/i,
   /\bcolor palette\b/i,
   /\bcolor scheme\b/i,
   /\btypography\b/i,

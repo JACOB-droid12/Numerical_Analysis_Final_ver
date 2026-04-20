@@ -10,7 +10,7 @@ It stays separate from the calculator application in the repo root.
 - This package contains no design guidance.
 - Do not treat this folder as part of the main calculator runtime.
 - Do not modify calculator logic files in order to use this content.
-- A future UI/UX-focused agent is expected to decide how the pages are presented.
+- A future implementation agent can turn these source materials into pages later.
 
 ## Files
 
@@ -21,4 +21,4 @@ It stays separate from the calculator application in the repo root.
 - `content/workflows.json` - stepwise usage stories that explain how someone might use the calculator
 - `content/use-cases.json` - audience-based scenarios for students, instructors, and self-learners
 
-Use these files as canonical source material for a future website. They provide content and semantic meaning only, not instructions for how the pages should be presented.
+Use these files as canonical source material for a future website. They provide content and semantic meaning only.
