@@ -50,4 +50,38 @@ assert.ok(
   "README must explain that this package is content-only and contains no design guidance."
 );
 
+const modules = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "calculator-site-content/content/modules.json"), "utf8")
+);
+
+assert.ok(Array.isArray(modules), "modules.json must be an array.");
+assert.deepStrictEqual(
+  modules.map((module) => module.id),
+  ["machine-arithmetic", "error-analysis", "polynomial-methods", "root-finding"],
+  "modules.json must contain the expected module ids in order."
+);
+
+for (const module of modules) {
+  [
+    "id",
+    "label",
+    "title",
+    "summary",
+    "whatItDoes",
+    "whyItMatters",
+    "inputs",
+    "outputs",
+    "keyConcepts",
+    "learnerOutcomes",
+    "commonUseCases",
+    "limitations",
+    "notes"
+  ].forEach((key) => {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(module, key),
+      `Module ${module.id} is missing key: ${key}`
+    );
+  });
+}
+
 console.log("Calculator site content presence audit passed.");
