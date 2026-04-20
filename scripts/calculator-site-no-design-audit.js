@@ -7,30 +7,56 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const CONTENT_ROOT = path.join(ROOT, "calculator-site-content");
 const forbiddenPatterns = [
+  /\bdesign system\b/i,
   /\bcolor palette\b/i,
+  /\bcolor scheme\b/i,
   /\btypography\b/i,
+  /\btype scale\b/i,
+  /\bfont(s)?\b/i,
+  /\bspacing\b/i,
+  /\bspace(r|d)?\b/i,
+  /\blayout\b/i,
+  /\bgrid\b/i,
+  /\btheme(s)?\b/i,
+  /\bresponsive\b/i,
+  /\bbreakpoint(s)?\b/i,
   /\blayout instructions?\b/i,
   /\bcomponent recommendations?\b/i,
   /\banimation\b/i,
   /\bwireframe\b/i,
   /\bmockup\b/i,
+  /\bvisual hierarchy\b/i,
+  /\bstyle guide\b/i,
   /<div/i,
   /<section/i,
   /\.btn-/i,
   /tailwind/i
 ];
 
-const filesToScan = [
-  path.join(CONTENT_ROOT, "README.md"),
-  path.join(CONTENT_ROOT, "content", "site.json"),
-  path.join(CONTENT_ROOT, "content", "modules.json"),
-  path.join(CONTENT_ROOT, "content", "faqs.json"),
-  path.join(CONTENT_ROOT, "content", "glossary.json"),
-  path.join(CONTENT_ROOT, "content", "workflows.json"),
-  path.join(CONTENT_ROOT, "content", "use-cases.json")
-];
+function collectFiles(dirPath) {
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  const files = [];
 
-for (const filePath of filesToScan) {
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(entryPath));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+
+  return files;
+}
+
+for (const filePath of collectFiles(CONTENT_ROOT)) {
+  if (path.basename(filePath).toLowerCase() === "readme.md") {
+    continue;
+  }
+
   const text = fs.readFileSync(filePath, "utf8");
   for (const pattern of forbiddenPatterns) {
     assert.ok(
