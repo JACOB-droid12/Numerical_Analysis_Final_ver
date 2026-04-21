@@ -101,6 +101,28 @@ function getElementHtmlById(source, tagName, id) {
   return "";
 }
 
+function getElementHtmlByClass(source, tagName, className) {
+  const startPattern = new RegExp(
+    `<${tagName}\\b(?=[^>]*\\bclass="[^"]*\\b${escapeRegExp(className)}\\b[^"]*")[^>]*>`,
+    "i"
+  );
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
 function hasQuickStartGuide(source) {
   const guideHtml = source.match(
     /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>[\s\S]*?<\/section>/i
@@ -128,23 +150,43 @@ function hasEmptyStateContract(source) {
 }
 
 function hasGuidedSolverShell(source) {
-  const text = normalizedText(source);
-  return /class="[^"]*\broots-guided-hero\b[^"]*"/.test(source) &&
-    /id="root-method-guide"/.test(source) &&
-    /id="root-method-title"/.test(source) &&
-    /id="root-method-summary"/.test(source) &&
-    /id="root-method-details"/.test(source) &&
-    text.includes("Fast root solving for quizzes and worksheets") &&
-    text.includes("Answer first. Explanation second. Trace when you need it.");
+  const heroHtml = getElementHtmlByClass(source, "div", "roots-guided-hero");
+  const guideHtml = getElementHtmlById(source, "section", "root-method-guide");
+  const heroText = normalizedText(heroHtml);
+  const guideText = normalizedText(guideHtml);
+  return Boolean(heroHtml) &&
+    Boolean(guideHtml) &&
+    /id="root-method-title"/.test(guideHtml) &&
+    /id="root-method-summary"/.test(guideHtml) &&
+    /id="root-method-details"/.test(guideHtml) &&
+    [
+      "Module IV",
+      "Guided Solver Studio",
+      "Fast root solving",
+      "quizzes and worksheets",
+      "Answer first",
+      "Explanation second",
+      "Trace when you need it"
+    ].every((phrase) => heroText.includes(phrase)) &&
+    guideText.includes("Active solver");
 }
 
 function hasQuizAnswerPanel(source) {
-  return /id="root-quiz-answer"/.test(source) &&
-    /id="root-active-method"/.test(source) &&
-    /id="root-final-metric"/.test(source) &&
-    /id="root-interpretation"/.test(source) &&
-    /id="root-next-action"/.test(source) &&
-    /id="root-copy-solution"/.test(source);
+  const resultStageHtml = extractSectionById(source, "root-result-stage");
+  const quizAnswerHtml = extractSectionById(resultStageHtml, "root-quiz-answer");
+  const quizAnswerText = normalizedText(quizAnswerHtml);
+  return Boolean(resultStageHtml) &&
+    Boolean(quizAnswerHtml) &&
+    /id="root-active-method"/.test(quizAnswerHtml) &&
+    /id="root-final-metric"/.test(quizAnswerHtml) &&
+    /id="root-interpretation"/.test(quizAnswerHtml) &&
+    /id="root-next-action"/.test(quizAnswerHtml) &&
+    /id="root-copy-solution"/.test(resultStageHtml) &&
+    quizAnswerText.includes("Quiz-ready answer") &&
+    quizAnswerText.includes("Approximate root") &&
+    quizAnswerText.includes("Stopping result") &&
+    quizAnswerText.includes("What this means") &&
+    quizAnswerText.includes("Try next");
 }
 
 const exists = fs.existsSync(ROOTS_HTML);
