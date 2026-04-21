@@ -7,10 +7,8 @@
   const E = globalScope.ExpressionEngine;
   const D = globalScope.MathDisplay;
   const P = globalScope.PolyEngine;
-  const R = globalScope.RootEngine;
-  const RU = globalScope.RootUI;
-  if (!I || !M || !C || !E || !D || !P || !R || !RU) {
-    throw new Error("IEEE754, MathEngine, CalcEngine, ExpressionEngine, MathDisplay, PolyEngine, RootEngine, and RootUI must be loaded before app.js.");
+  if (!I || !M || !C || !E || !D || !P) {
+    throw new Error("IEEE754, MathEngine, CalcEngine, ExpressionEngine, MathDisplay, and PolyEngine must be loaded before app.js.");
   }
 
   const EMPTY_VALUE = "Not calculated yet.";
@@ -111,33 +109,18 @@
   const POLY_FIELD_IDS = ["poly-expression", "poly-x", "poly-k"];
   const IEEE_DECIMAL_FIELD_IDS = ["ieee-decimal-input"];
   const IEEE_BINARY_FIELD_IDS = ["ieee-binary-input"];
-  const ROOT_RESULT_IDS = [
-    "root-approx",
-    "root-stopping-result",
-    "root-convergence",
-    "root-interval-status",
-    "root-sign-summary",
-    "root-decision-summary"
-  ];
   const PREVIEW_FIELDS = [
     { inputId: "basic-expression", previewId: "basic-expression-preview", allowVariable: false, className: "math-preview math-preview-wide" },
     { inputId: "error-exact", previewId: "error-exact-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "error-approx", previewId: "error-approx-preview", allowVariable: false, className: "math-preview math-preview-inline" },
     { inputId: "poly-expression", previewId: "poly-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "poly-x", previewId: "poly-x-preview", allowVariable: false, className: "math-preview math-preview-inline" },
-    { inputId: "root-bis-expression", previewId: "root-bis-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "root-newton-expression", previewId: "root-newton-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "root-newton-df", previewId: "root-newton-df-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "root-secant-expression", previewId: "root-secant-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "root-fp-expression", previewId: "root-fp-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" },
-    { inputId: "root-fpi-expression", previewId: "root-fpi-expression-preview", allowVariable: true, className: "math-preview math-preview-wide" }
+    { inputId: "poly-x", previewId: "poly-x-preview", allowVariable: false, className: "math-preview math-preview-inline" }
   ];
   captureEmptyTexts(EXPRESSION_RESULT_IDS);
   captureEmptyTexts(BASIC_RESULT_IDS);
   captureEmptyTexts(ERROR_RESULT_IDS);
   captureEmptyTexts(POLY_RESULT_IDS);
   captureEmptyTexts(IEEE_RESULT_IDS);
-  captureEmptyTexts(ROOT_RESULT_IDS);
   captureEmptyTexts([
     "basic-sandbox-alt-value",
     "basic-sandbox-note",
@@ -608,11 +591,9 @@
     if (state.polyComparison) {
       computePolynomialModule();
     }
-    RU.recompute();
     clearStatus("basic-status-msg");
     clearStatus("error-status-msg");
     clearStatus("poly-status-msg");
-    clearStatus("root-status-msg");
   }
 
   function currentEngineMode() {
@@ -3258,20 +3239,6 @@
     resetErrorResults();
     resetPolyResults();
     resetIEEEResults();
-    RU.init({
-      byId: byId,
-      setContent: setContent,
-      setHidden: setHidden,
-      showError: showError,
-      markInvalid: markInvalid,
-      clearInvalid: clearInvalid,
-      announceStatus: announceStatus,
-      clearStatus: clearStatus,
-      debounce: debounce,
-      syncMathPreviews: syncMathPreviews,
-      getEmptyText: getEmptyText,
-      getAngleMode: function () { return state.angleMode; }
-    });
     activateTab("basic");
     setErrorSource("Entered manually", "manual");
     setContent("basic-preset-note", "Select an example to populate the inputs.", true);
