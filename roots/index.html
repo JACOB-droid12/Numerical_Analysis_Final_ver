@@ -32,7 +32,26 @@
         <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint">Fixed Point</button>
       </nav>
 
-      <section id="root-inputs-bisection" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-bisection"></section>
+      <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
+        <div class="expression-row">
+          <label class="input-with-symbol">
+            <input id="root-bis-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+            <button type="button" class="symbol-trigger" data-symbol-target="root-bis-expression" aria-label="Open symbols">f(x)</button>
+          </label>
+          <button id="root-bis-compute" type="button" class="btn-calculate-omni" aria-label="Run bisection">=</button>
+        </div>
+        <div class="root-config-grid">
+          <label>Left endpoint a<input id="root-bis-a" type="text" value="1"></label>
+          <label>Right endpoint b<input id="root-bis-b" type="text" value="2"></label>
+          <label>Significant digits (k)<input id="root-bis-k" type="number" min="1" max="25" step="1" value="6"></label>
+          <label>Machine rule<select id="root-bis-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+          <label>Stopping mode<select id="root-bis-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
+          <label>Stopping value (n or epsilon)<input id="root-bis-stop-value" type="text" value="4"></label>
+          <label hidden><select id="root-bis-tolerance-type"><option value="absolute" selected>Absolute</option><option value="relative">Relative</option></select></label>
+          <label hidden><select id="root-bis-decision-basis"><option value="exact" selected>Exact signs decide</option><option value="machine">Machine signs decide</option></select></label>
+          <label hidden><select id="root-bis-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine only</option><option value="exact">Exact only</option></select></label>
+        </div>
+      </section>
       <section id="root-inputs-newton" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-newton" hidden></section>
       <section id="root-inputs-secant" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-secant" hidden></section>
       <section id="root-inputs-falseposition" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-falseposition" hidden></section>
