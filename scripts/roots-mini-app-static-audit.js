@@ -89,7 +89,7 @@ function hasQuickStartGuide(source) {
 }
 
 function hasEmptyStateContract(source) {
-  return /<section\b[^>]*id="root-empty"[^>]*class="[^"]*\bempty-state\b[^"]*\broot-empty-state\b[^"]*"[^>]*>/.test(source) &&
+  return /<section\b(?=[^>]*\bid="root-empty")(?=[^>]*\bclass="[^"]*\bempty-state\b[^"]*\broot-empty-state\b[^"]*")[^>]*>/i.test(source) &&
     [
       "Ready when you are",
       "Pick a method, enter a function, and run the method.",
