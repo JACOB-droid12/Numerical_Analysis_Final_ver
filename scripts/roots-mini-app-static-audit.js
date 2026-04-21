@@ -307,6 +307,9 @@ const iterationTableHeaderBlock = iterationTableHeaderBlocks.find((block) =>
 );
 const narrowScreenMediaBlocks = getCssBlocks(rootsCss, "@media (max-width: 720px)");
 const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreenMediaBlocks[0] : "";
+const narrowScreenMediaTableBlock =
+  narrowScreenMediaBlock.includes(".root-iteration-table") &&
+  narrowScreenMediaBlock.includes("min-width: 640px");
 
 check(
   "Roots CSS keeps the approximate root visually primary",
@@ -319,11 +322,21 @@ check(
 
 check(
   "Roots CSS includes narrow-screen table support",
-  "table wrapper, sticky header, and max-width media query",
-  iterationTableScrollBlock && iterationTableFrameBlock && iterationTableHeaderBlock && narrowScreenMediaBlock
+  "table wrapper, sticky header, and 640px table min-width inside the max-width media query",
+  iterationTableScrollBlock &&
+    iterationTableFrameBlock &&
+    iterationTableHeaderBlock &&
+    narrowScreenMediaBlock &&
+    narrowScreenMediaTableBlock
     ? "responsive table support present"
     : "responsive table support missing",
-  Boolean(iterationTableScrollBlock && iterationTableFrameBlock && iterationTableHeaderBlock && narrowScreenMediaBlock)
+  Boolean(
+    iterationTableScrollBlock &&
+      iterationTableFrameBlock &&
+      iterationTableHeaderBlock &&
+      narrowScreenMediaBlock &&
+      narrowScreenMediaTableBlock
+  )
 );
 
 check(
