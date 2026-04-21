@@ -2279,6 +2279,12 @@ dd {
 #tab-ieee754 .module-kicker { color: var(--mod5-accent); }
 #tab-tutorial .module-kicker { color: var(--mod6-accent); }
 
+#tab-root .bridge-panel {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 42rem;
+}
+
 #tab-basic .answer-hero   { border-left: 3px solid var(--mod1-strong); }
 #tab-error .answer-hero   { border-left: 3px solid var(--mod2-strong); }
 #tab-poly .answer-hero    { border-left: 3px solid var(--mod3-strong); }

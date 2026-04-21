@@ -5,6 +5,9 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const ROOTS_HTML = path.join(ROOT, "roots", "index.html");
+const MAIN_HTML = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+const APP_JS = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+const LEGACY_ROOT_UI = path.join(ROOT, "root-ui.js");
 
 function check(name, expected, actual, passed) {
   console.log(`[${passed ? "PASS" : "FAIL"}] ${name}`);
@@ -95,4 +98,41 @@ check(
     /id="symbol-popover"/.test(html) &&
     /class="root-method-tabs"/.test(html) &&
     /id="root-result-stage"/.test(html)
+);
+
+check(
+  "Main calculator bridge links to standalone roots app",
+  'href="roots/index.html"',
+  MAIN_HTML.match(/href="[^"]+"/)?.[0] || "no standalone link",
+  /href="roots\/index\.html"/.test(MAIN_HTML)
+);
+
+check(
+  "Main calculator no longer loads root-ui.js",
+  "root-ui.js script tag should be absent",
+  /root-ui\.js/.test(MAIN_HTML) ? "present" : "absent",
+  !/root-ui\.js/.test(MAIN_HTML)
+);
+
+check(
+  "App bootstrap no longer references RootUI",
+  "app.js should not reference RootUI or RU.recompute()",
+  /RootUI|RU\.recompute|RU\.init/.test(APP_JS) ? "legacy references present" : "legacy references removed",
+  !/RootUI|RU\.recompute|RU\.init/.test(APP_JS)
+);
+
+check(
+  "App shell no longer tracks root-only previews or result IDs",
+  "ROOT_RESULT_IDS and root preview IDs removed from app.js",
+  /ROOT_RESULT_IDS|root-bis-expression-preview|root-newton-expression-preview|root-fpi-expression-preview/.test(APP_JS)
+    ? "root shell bookkeeping present"
+    : "root shell bookkeeping removed",
+  !/ROOT_RESULT_IDS|root-bis-expression-preview|root-newton-expression-preview|root-fpi-expression-preview/.test(APP_JS)
+);
+
+check(
+  "Legacy root-ui.js file removed",
+  "root-ui.js deleted after cutover",
+  fs.existsSync(LEGACY_ROOT_UI) ? "present" : "deleted",
+  !fs.existsSync(LEGACY_ROOT_UI)
 );
