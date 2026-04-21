@@ -122,6 +122,22 @@ check(
 );
 
 check(
+  "Standalone diagnostics keep live-region semantics",
+  'id="root-diagnostics" with role="status" and aria-live="polite"',
+  html.match(/<[^>]*id="root-diagnostics"[^>]*>/)?.[0] || "missing root-diagnostics",
+  /id="root-diagnostics"[^>]*role="status"[^>]*aria-live="polite"|id="root-diagnostics"[^>]*aria-live="polite"[^>]*role="status"/.test(html)
+);
+
+check(
+  "Standalone iteration table has a scroll wrapper",
+  "root-iteration-table-wrap contains root-iteration-table",
+  /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
+    ? "wrapped table present"
+    : "wrapped table missing",
+  /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
+);
+
+check(
   "Main calculator root tab bridge links to standalone roots app",
   'href="roots/index.html"',
   rootTabPanel.match(/href="[^"]+"/)?.[0] || "no link in #tab-root",
