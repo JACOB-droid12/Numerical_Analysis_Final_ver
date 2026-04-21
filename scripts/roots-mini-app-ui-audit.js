@@ -230,6 +230,11 @@ assert.strictEqual(document.elements["root-approx"].textContent, "1.4375");
 assert.strictEqual(document.elements["root-empty"].hidden, true);
 assert.strictEqual(document.elements["root-result-stage"].hidden, false);
 assert.ok(document.elements["root-convergence-graph"].innerHTML.includes("<svg"), "bisection graph should render an svg");
+document.elements["root-bis-sign-display"].value = "machine";
+document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
+assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
+assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
+assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
 
 setValues(document, {
   "root-bis-expression": "x^2 + 1",
@@ -244,7 +249,7 @@ setValues(document, {
 });
 assert.doesNotThrow(() => click(document.elements["root-bis-compute"]));
 assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
-assert.strictEqual(document.elements["root-stopping-result"].textContent, "Not a valid bisection bracket");
+assert.strictEqual(document.elements["root-stopping-result"].textContent, "Not a valid starting bracket");
 
 setValues(document, {
   "root-bis-expression": "x^2 - 2",
@@ -323,6 +328,12 @@ setValues(document, {
 click(document.elements["root-fp-compute"]);
 assert.notStrictEqual(document.elements["root-approx"].textContent, "");
 closeTo(document.elements["root-approx"].textContent, 1.41379310345, 1e-10, "false-position root");
+const fpApprox = document.elements["root-approx"].textContent;
+document.elements["root-fp-sign-display"].value = "exact";
+document.elements["root-fp-sign-display"].dispatchEvent({ type: "change" });
+assert.strictEqual(document.elements["root-result-stage"].hidden, false, "false-position sign display change should keep results visible");
+assert.strictEqual(document.elements["root-approx"].textContent, fpApprox, "false-position sign display change should preserve cached approximation");
+assert.ok(document.elements["root-sign-summary"].textContent.includes("E("), "false-position sign summary should re-render with exact signs");
 
 click(document.elements["root-copy-solution"]);
 assert.strictEqual(document.elements["root-copy-status"].textContent, "Solution copied.");

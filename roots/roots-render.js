@@ -79,7 +79,7 @@
   function formatIntervalStatus(status) {
     const map = {
       "valid-bracket": "Valid bracket",
-      "invalid-bracket": "Not a valid bisection bracket",
+      "invalid-bracket": "Not a valid starting bracket",
       "invalid-continuity": "Continuity requirement failed",
       "root-at-a": "Root found at left endpoint a",
       "root-at-b": "Root found at right endpoint b",
@@ -97,7 +97,7 @@
       "endpoint-root": "An endpoint is already a root",
       "exact-zero": method === "fixedPoint" ? "The iteration reached an exact fixed point" : "Reference value is exactly zero",
       "machine-zero": "Machine value is zero or near zero",
-      "invalid-starting-interval": "Not a valid bisection bracket",
+      "invalid-starting-interval": "Not a valid starting bracket",
       "invalid-input": "Input was rejected",
       "discontinuity-detected": "Stopped at a discontinuity or singularity",
       "singularity-encountered": "Evaluator raised an error inside the iteration",

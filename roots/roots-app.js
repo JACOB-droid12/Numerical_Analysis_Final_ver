@@ -102,6 +102,20 @@
     }
   }
 
+  function handlePresentationChange(state, method, id) {
+    const run = state.runs[method];
+    const el = byId(id);
+    if (!run || !el) return;
+    if (id === "root-bis-sign-display" || id === "root-fp-sign-display") {
+      run.signDisplay = el.value;
+    }
+    if (state.activeMethod === method) {
+      clearError();
+      setStatus("");
+      globalScope.RootsRender.renderRun(run);
+    }
+  }
+
   function wireMethodControls(state) {
     state.methodConfigs.forEach(function wireConfig(config) {
       const tab = byId(config.tabId);
@@ -116,10 +130,16 @@
       config.fieldIds.forEach(function wireField(id) {
         const el = byId(id);
         if (!el) return;
-        el.addEventListener("input", function onInput() { handleInputChange(state, config.name); });
+        if (!globalScope.RootsState.isPresentationField(config, id)) {
+          el.addEventListener("input", function onInput() { handleInputChange(state, config.name); });
+        }
         el.addEventListener("change", function onChange() {
           if (id === "root-bis-stop-kind") syncBisectionToleranceControls();
-          handleInputChange(state, config.name);
+          if (globalScope.RootsState.isPresentationField(config, id)) {
+            handlePresentationChange(state, config.name, id);
+          } else {
+            handleInputChange(state, config.name);
+          }
         });
       });
     });
