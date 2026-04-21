@@ -20,6 +20,8 @@ function check(name, expected, actual, passed) {
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
+const mainScriptSources = [...MAIN_HTML.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
+const rootTabPanel = MAIN_HTML.match(/<section\b[^>]*id="tab-root"[\s\S]*?<\/section>\s*(?=<section\b[^>]*id="tab-ieee754")/)?.[0] || "";
 const expectedScriptOrder = [
   "../math-engine.js?v=roots-v1",
   "../calc-engine.js?v=roots-v1",
@@ -101,10 +103,17 @@ check(
 );
 
 check(
-  "Main calculator bridge links to standalone roots app",
+  "Main calculator root tab bridge links to standalone roots app",
   'href="roots/index.html"',
-  MAIN_HTML.match(/href="[^"]+"/)?.[0] || "no standalone link",
-  /href="roots\/index\.html"/.test(MAIN_HTML)
+  rootTabPanel.match(/href="[^"]+"/)?.[0] || "no link in #tab-root",
+  /href="roots\/index\.html"/.test(rootTabPanel)
+);
+
+check(
+  "Main calculator no longer loads root-engine.js",
+  "root-engine.js script tag should be absent",
+  mainScriptSources.find((src) => /root-engine\.js/.test(src)) || "absent",
+  !mainScriptSources.some((src) => /root-engine\.js/.test(src))
 );
 
 check(
