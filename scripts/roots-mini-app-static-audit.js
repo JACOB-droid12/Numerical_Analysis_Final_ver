@@ -127,6 +127,26 @@ function hasEmptyStateContract(source) {
     ].every((phrase) => normalizedText(source).includes(phrase));
 }
 
+function hasGuidedSolverShell(source) {
+  const text = normalizedText(source);
+  return /class="[^"]*\broots-guided-hero\b[^"]*"/.test(source) &&
+    /id="root-method-guide"/.test(source) &&
+    /id="root-method-title"/.test(source) &&
+    /id="root-method-summary"/.test(source) &&
+    /id="root-method-details"/.test(source) &&
+    text.includes("Fast root solving for quizzes and worksheets") &&
+    text.includes("Answer first. Explanation second. Trace when you need it.");
+}
+
+function hasQuizAnswerPanel(source) {
+  return /id="root-quiz-answer"/.test(source) &&
+    /id="root-active-method"/.test(source) &&
+    /id="root-final-metric"/.test(source) &&
+    /id="root-interpretation"/.test(source) &&
+    /id="root-next-action"/.test(source) &&
+    /id="root-copy-solution"/.test(source);
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
@@ -256,6 +276,24 @@ check(
 );
 
 check(
+  "Guided Solver shell is present",
+  "hero, active method guide, and fast quiz copy",
+  hasGuidedSolverShell(html)
+    ? "guided solver shell present"
+    : "guided solver shell missing",
+  hasGuidedSolverShell(html)
+);
+
+check(
+  "Quiz answer panel exposes result interpretation landmarks",
+  "active method, final metric, interpretation, next action, and copy solution",
+  hasQuizAnswerPanel(html)
+    ? "quiz answer landmarks present"
+    : "quiz answer landmarks missing",
+  hasQuizAnswerPanel(html)
+);
+
+check(
   "Standalone diagnostics keep live-region semantics",
   'id="root-diagnostics" with role="status" and aria-live="polite"',
   html.match(/<[^>]*id="root-diagnostics"[^>]*>/)?.[0] || "missing root-diagnostics",
@@ -310,6 +348,34 @@ const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreen
 const narrowScreenMediaTableBlock =
   narrowScreenMediaBlock.includes(".root-iteration-table") &&
   narrowScreenMediaBlock.includes("min-width: 640px");
+const guidedHeroBlocks = getCssBlocks(rootsCss, ".roots-guided-hero");
+const guidedHeroBlock = guidedHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const methodGuideBlocks = getCssBlocks(rootsCss, ".root-method-guide");
+const methodGuideBlock = methodGuideBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const quizAnswerBlocks = getCssBlocks(rootsCss, ".root-quiz-answer");
+const quizAnswerBlock = quizAnswerBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line-strong)"
+  ])
+);
+const resultInsightBlocks = getCssBlocks(rootsCss, ".root-result-insight");
+const resultInsightBlock = resultInsightBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
 
 check(
   "Roots CSS keeps the approximate root visually primary",
@@ -318,6 +384,15 @@ check(
     ? "primary summary styling present"
     : "primary summary styling missing",
   Boolean(primaryRootHeroBlock && rootHeroValueBlock)
+);
+
+check(
+  "Roots CSS includes Guided Solver hierarchy",
+  "guided hero, method guide, quiz answer panel, and insight cards",
+  guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock
+    ? "guided solver styling present"
+    : "guided solver styling missing",
+  Boolean(guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock)
 );
 
 check(
