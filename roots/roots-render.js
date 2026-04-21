@@ -601,18 +601,19 @@
   }
 
   function buildSolutionText(run) {
-    const summary = run.summary || {};
+    const summary = run && run.summary ? run.summary : {};
+    const machine = run && run.machine ? run.machine : {};
+    const method = run && run.method ? run.method : "";
     const header = [
-      "Method: " + methodLabel(run.method),
-      "Function: " + (run.canonical || run.expression || "f(x)"),
-      "Machine: " + run.machine.k + " significant digits, " + (run.machine.mode === "round" ? "rounding" : "chopping"),
-      "Stopping: " + formatStoppingDetails(run),
+      "Method: " + methodLabel(method),
       "Approximate root: " + (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18)),
-      "Stopping reason: " + formatStopReason(summary.stopReason, run.method),
-      "Final metric: " + finalMetric(run),
-      "Interpretation: " + interpretationText(run),
+      "Stopping reason: " + formatStopReason(summary.stopReason, method),
+      "Stopping: " + formatStoppingDetails(run),
       "Next action: " + nextActionText(run)
     ];
+    if (machine.k != null && machine.mode) {
+      header.splice(1, 0, "Machine: " + machine.k + " significant digits, " + (machine.mode === "round" ? "rounding" : "chopping"));
+    }
     const steps = solutionSteps(run).map(function numberStep(step, index) {
       return (index + 1) + ". " + step;
     }).join("\n");
