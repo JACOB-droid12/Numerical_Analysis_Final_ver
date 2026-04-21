@@ -241,6 +241,26 @@ check(
   /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
 );
 
+const rootsCss = fs.readFileSync(path.join(ROOT, "roots", "roots.css"), "utf8");
+
+check(
+  "Roots CSS keeps the approximate root visually primary",
+  "root-summary-grid first answer hero receives primary styling",
+  /\.root-summary-grid\s+\.answer-hero:first-child[\s\S]*background:\s*var\(--surface-strong/.test(rootsCss)
+    ? "primary summary styling present"
+    : "primary summary styling missing",
+  /\.root-summary-grid\s+\.answer-hero:first-child[\s\S]*background:\s*var\(--surface-strong/.test(rootsCss)
+);
+
+check(
+  "Roots CSS includes narrow-screen table support",
+  "root-iteration-table-wrap and max-width media query",
+  /root-iteration-table-wrap/.test(rootsCss) && /@media\s*\(max-width:\s*720px\)/.test(rootsCss)
+    ? "responsive table support present"
+    : "responsive table support missing",
+  /root-iteration-table-wrap/.test(rootsCss) && /@media\s*\(max-width:\s*720px\)/.test(rootsCss)
+);
+
 check(
   "Main calculator root tab bridge links to standalone roots app",
   'href="roots/index.html"',
