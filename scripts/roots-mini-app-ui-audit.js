@@ -143,3 +143,17 @@ document.elements["root-bis-sign-display"].value = "both";
 assert.doesNotThrow(() => clickHandlers[0]());
 assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
 assert.strictEqual(document.elements["root-stopping-result"].textContent, "invalid-bracket");
+
+document.elements["root-bis-expression"].value = "x^2 - 2";
+document.elements["root-bis-a"].value = "1";
+document.elements["root-bis-b"].value = "2";
+document.elements["root-bis-k"].value = "6";
+document.elements["root-bis-mode"].value = "round";
+document.elements["root-bis-stop-kind"].value = "iterations";
+document.elements["root-bis-stop-value"].value = "0";
+document.elements["root-bis-decision-basis"].value = "exact";
+document.elements["root-bis-sign-display"].value = "both";
+
+assert.doesNotThrow(() => clickHandlers[0]());
+assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
+assert.ok(!document.elements["root-convergence"].textContent.includes("null"));

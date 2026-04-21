@@ -14,6 +14,19 @@
     return summary.stopReason || summary.intervalStatus || "complete";
   }
 
+  function convergenceText(run, summary) {
+    if (!run.stopping) {
+      return "Not calculated yet";
+    }
+    if (run.stopping.kind === "iterations") {
+      if (run.stopping.epsilonBound == null) {
+        return summary.stopDetail || "N/A";
+      }
+      return `n = ${run.stopping.input}, epsilon <= ${C.formatReal(run.stopping.epsilonBound, 8)}`;
+    }
+    return `epsilon = ${run.stopping.input}`;
+  }
+
   function renderBisection(run) {
     const summary = run.summary || {};
 
@@ -21,11 +34,7 @@
       ? "N/A"
       : C.formatReal(C.requireRealNumber(summary.approximation, "root"), 8));
     setText("root-stopping-result", stoppingText(summary));
-    setText("root-convergence", run.stopping
-      ? (run.stopping.kind === "iterations"
-        ? `n = ${run.stopping.input}, epsilon <= ${C.formatReal(run.stopping.epsilonBound, 8)}`
-        : `epsilon = ${run.stopping.input}`)
-      : "Not calculated yet");
+    setText("root-convergence", convergenceText(run, summary));
     document.getElementById("root-empty").hidden = true;
     document.getElementById("root-result-stage").hidden = false;
   }
