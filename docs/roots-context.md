@@ -5,8 +5,9 @@ Short working map for future Roots mini-app edits.
 ## File Map
 
 - `roots/index.html` - standalone Roots entry point and shell
+- `math-engine.js`, `calc-engine.js`, `expression-engine.js`, `math-display.js` - shared parsing, arithmetic, and display dependencies loaded by `roots/index.html`
 - `roots/roots-app.js` - event wiring and interaction flow
-- `roots/roots-state.js` - state, caches, and shared UI flags
+- `roots/roots-state.js` - state, caches, default state, and shared UI flags
 - `roots/roots-render.js` - DOM rendering and update behavior
 - `roots/roots-engine-adapter.js` - UI request packaging for `root-engine.js`
 - `roots/roots.css` - Roots-specific styling
