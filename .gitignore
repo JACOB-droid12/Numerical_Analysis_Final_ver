@@ -33,6 +33,7 @@
 .playwright-cli/
 .playwright-mcp/
 .worktrees/
+worktrees/
 output/
 deliverable/
 DO NOT OPEN UNLESS SPECIFIED TO DO SO!/

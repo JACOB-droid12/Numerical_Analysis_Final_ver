@@ -1,0 +1,8 @@
+[
+  { "id": "what-is-it", "question": "What is the Numerical Analysis Teaching Lab?", "answer": "It is a browser-based calculator designed to help users work through numerical-analysis topics such as machine arithmetic, error analysis, polynomial evaluation, and root finding.", "category": "getting-started" },
+  { "id": "who-is-it-for", "question": "Who is this calculator for?", "answer": "It is useful for students studying numerical analysis, instructors demonstrating computational ideas, and self-learners who want structured numerical-method practice.", "category": "learning-goals" },
+  { "id": "needs-install", "question": "Does the calculator require installation?", "answer": "The calculator itself runs in the browser and does not require a backend service or full installation to use locally.", "category": "getting-started" },
+  { "id": "exact-vs-machine", "question": "Why does the calculator compare exact and machine values?", "answer": "That comparison helps users see how finite precision changes results and why intermediate approximation matters in numerical computation.", "category": "numerical-methods" },
+  { "id": "root-methods", "question": "Which root-finding methods are available?", "answer": "The calculator includes Bisection, Newton-Raphson, Secant, False Position, and Fixed Point workflows for one-variable root approximation.", "category": "numerical-methods" },
+  { "id": "limits", "question": "Is this meant to replace advanced mathematical software?", "answer": "No. The calculator is primarily an instructional environment for studying numerical methods and finite-precision behavior, not a general-purpose symbolic mathematics system.", "category": "accuracy-and-limitations" }
+]

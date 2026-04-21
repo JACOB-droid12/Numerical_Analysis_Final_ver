@@ -1,0 +1,62 @@
+[
+  {
+    "id": "machine-arithmetic",
+    "label": "Module I",
+    "title": "Machine Arithmetic",
+    "summary": "Explores how finite-precision arithmetic changes results when values are chopped or rounded during computation.",
+    "whatItDoes": "Lets users evaluate expressions and arithmetic operations under a chosen significant-digit setting, compare stored machine values against exact references, and inspect how intermediate approximation affects the final answer.",
+    "whyItMatters": "Machine arithmetic is the foundation for understanding why digital computations differ from symbolic mathematics or exact hand derivations.",
+    "inputs": ["numbers or expressions", "significant digits", "machine rule such as chopping or rounding"],
+    "outputs": ["machine result", "exact or reference value", "comparison notes", "stepwise approximation details"],
+    "keyConcepts": ["finite precision", "stored machine values", "round-off behavior", "stepwise versus final-only approximation"],
+    "learnerOutcomes": ["Recognize when intermediate approximation changes a result.", "Compare exact and machine-computed values.", "Explain the role of chopping and rounding in textbook machine arithmetic."],
+    "commonUseCases": ["checking assignment-style machine arithmetic", "comparing exact and stored values", "demonstrating round-off effects during instruction"],
+    "limitations": ["Results depend on the chosen precision and machine rule.", "The module is intended for instructional finite-precision scenarios, not as a substitute for arbitrary-precision symbolic software."],
+    "notes": ["The calculator emphasizes textbook-style notation and interpretable comparisons rather than opaque one-line output."]
+  },
+  {
+    "id": "error-analysis",
+    "label": "Module II",
+    "title": "Error Analysis",
+    "summary": "Computes and explains common error measures between a true value and an approximation.",
+    "whatItDoes": "Takes an exact value and an approximate value, then reports absolute error, relative error when defined, significant-digit style checks, and explanatory notes about the result.",
+    "whyItMatters": "Error analysis gives users a disciplined way to judge whether an approximation is acceptable and how much trust to place in a computed value.",
+    "inputs": ["true value", "approximate value"],
+    "outputs": ["absolute error", "relative error", "significant-digit interpretation", "verdict-style explanations"],
+    "keyConcepts": ["absolute error", "relative error", "significant digits", "approximation quality"],
+    "learnerOutcomes": ["Distinguish absolute from relative error.", "Interpret whether an approximation preserves a useful number of digits.", "Explain when relative error is undefined and why."],
+    "commonUseCases": ["checking numerical-analysis homework", "explaining the meaning of error metrics", "comparing imported results from other calculator modules"],
+    "limitations": ["Interpretation depends on the quality and meaning of the supplied reference value.", "Relative error is not defined when the true value is zero."],
+    "notes": ["This module is especially useful as a bridge between raw computation and method evaluation."]
+  },
+  {
+    "id": "polynomial-methods",
+    "label": "Module III",
+    "title": "Polynomial Methods",
+    "summary": "Compares ways of evaluating a polynomial, including Horner-style evaluation and direct evaluation.",
+    "whatItDoes": "Lets users evaluate a polynomial at a chosen value, compare direct and Horner-style paths, and inspect how operation ordering influences machine-computed results.",
+    "whyItMatters": "Polynomial evaluation is a classic setting for seeing how mathematically equivalent expressions can behave differently in finite precision.",
+    "inputs": ["polynomial in x", "evaluation point", "significant digits", "machine rule"],
+    "outputs": ["exact or reference value", "Horner result", "direct result", "comparison notes", "error-related summaries"],
+    "keyConcepts": ["Horner's method", "operation count", "round-off amplification", "equivalent expressions with different numerical behavior"],
+    "learnerOutcomes": ["Compare Horner and direct evaluation.", "Explain why evaluation strategy can affect finite-precision output.", "Connect polynomial structure to numerical stability."],
+    "commonUseCases": ["assignment comparisons between Horner and direct evaluation", "teaching stability and operation ordering", "testing how a polynomial behaves near sensitive points"],
+    "limitations": ["Behavior depends on the input polynomial and evaluation point.", "This module focuses on instructional comparisons rather than full symbolic manipulation."],
+    "notes": ["The module is useful when a class wants to discuss why two equivalent forms can produce different machine results."]
+  },
+  {
+    "id": "root-finding",
+    "label": "Module IV",
+    "title": "Root Finding",
+    "summary": "Supports multiple one-variable root-finding methods so users can approximate solutions and compare iterative behavior.",
+    "whatItDoes": "Provides root-finding workflows for Bisection, Newton-Raphson, Secant, False Position, and Fixed Point methods, including method inputs, stopping controls, and result summaries.",
+    "whyItMatters": "Root-finding methods are central to numerical analysis because they show how iteration, stopping rules, and method assumptions shape approximate solutions.",
+    "inputs": ["function definition", "initial bracket or seed values", "significant digits", "machine rule", "stopping settings"],
+    "outputs": ["approximate root", "stopping outcome", "iteration details", "method-specific summaries"],
+    "keyConcepts": ["iteration", "convergence", "stopping criteria", "method assumptions", "approximate roots"],
+    "learnerOutcomes": ["Differentiate among common root-finding methods.", "Interpret stopping rules and approximate-root outputs.", "Understand why starting values and method choice affect convergence behavior."],
+    "commonUseCases": ["running lecture examples for iterative methods", "comparing multiple root-finding methods on the same function", "studying how stopping choices affect reported answers"],
+    "limitations": ["Some methods require stronger assumptions than others, such as derivative availability or suitable starting points.", "Approximate roots and convergence behavior depend heavily on the chosen function and initial values."],
+    "notes": ["The module is best understood as a method-comparison workspace rather than as a black-box root solver."]
+  }
+]
