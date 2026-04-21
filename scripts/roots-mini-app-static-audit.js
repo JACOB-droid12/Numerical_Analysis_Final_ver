@@ -36,11 +36,20 @@ function extractSectionById(source, id) {
   return "";
 }
 
+function countMatches(source, pattern) {
+  return (source.match(pattern) || []).length;
+}
+
+function includesAll(source, values) {
+  return values.every((value) => source.includes(value));
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
 const mainScriptSources = [...MAIN_HTML.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
 const rootTabPanel = extractSectionById(MAIN_HTML, "tab-root");
+const rootEmptyHtml = extractSectionById(html, "root-empty");
 const expectedScriptOrder = [
   "../math-engine.js?v=roots-v1",
   "../calc-engine.js?v=roots-v1",
@@ -125,33 +134,36 @@ check(
   "Standalone entry includes a Roots first-run guide",
   "root-start-guide with three steps",
   /class="[^"]*root-start-guide[^"]*"/.test(html) &&
-    (html.match(/class="[^"]*root-start-step[^"]*"/g) || []).length >= 3
+    countMatches(html, /class="[^"]*root-start-step[^"]*"/g) >= 3 &&
+    includesAll(html, ["Step 1", "Step 2", "Step 3", "Choose a method", "Run the method"])
     ? "first-run guide present"
     : "first-run guide missing",
   /class="[^"]*root-start-guide[^"]*"/.test(html) &&
-    (html.match(/class="[^"]*root-start-step[^"]*"/g) || []).length >= 3
+    countMatches(html, /class="[^"]*root-start-step[^"]*"/g) >= 3 &&
+    includesAll(html, ["Step 1", "Step 2", "Step 3", "Choose a method", "Run the method"])
 );
 
 check(
   "Method tabs expose method categories",
   "two bracket tabs, two open tabs, one fixed-point tab",
   [
-    `bracket:${(html.match(/data-method-kind="bracket"/g) || []).length}`,
-    `open:${(html.match(/data-method-kind="open"/g) || []).length}`,
-    `fixed-point:${(html.match(/data-method-kind="fixed-point"/g) || []).length}`
+    `bracket:${countMatches(html, /data-method-kind="bracket"/g)} / labels:${countMatches(html, />Bisection<\/button>|>False Position<\/button>/g)}`,
+    `open:${countMatches(html, /data-method-kind="open"/g)} / labels:${countMatches(html, />Newton-Raphson<\/button>|>Secant<\/button>/g)}`,
+    `fixed-point:${countMatches(html, /data-method-kind="fixed-point"/g)} / labels:${countMatches(html, />Fixed Point<\/button>/g)}`
   ].join(", "),
-  (html.match(/data-method-kind="bracket"/g) || []).length === 2 &&
-    (html.match(/data-method-kind="open"/g) || []).length === 2 &&
-    (html.match(/data-method-kind="fixed-point"/g) || []).length === 1
+  countMatches(html, /data-method-kind="bracket"/g) === 2 &&
+    countMatches(html, /data-method-kind="open"/g) === 2 &&
+    countMatches(html, /data-method-kind="fixed-point"/g) === 1 &&
+    includesAll(html, ["Bisection", "Newton-Raphson", "Secant", "False Position", "Fixed Point"])
 );
 
 check(
   "Empty state gives a useful first action",
   "root-empty includes a short action prompt",
-  /id="root-empty"[\s\S]*Pick a method[\s\S]*Run the method/.test(html)
+  /<section\b[^>]*id="root-empty"[^>]*>[\s\S]*<p class="result-label">Try a root-finding run<\/p>[\s\S]*<p\b[^>]*>[\s\S]*Pick a method[\s\S]*Run the method[\s\S]*<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
     ? "empty prompt present"
     : "empty prompt missing",
-  /id="root-empty"[\s\S]*Pick a method[\s\S]*Run the method/.test(html)
+  /<section\b[^>]*id="root-empty"[^>]*>[\s\S]*<p class="result-label">Try a root-finding run<\/p>[\s\S]*<p\b[^>]*>[\s\S]*Pick a method[\s\S]*Run the method[\s\S]*<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
 );
 
 check(
