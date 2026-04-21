@@ -113,6 +113,15 @@
   background: rgba(183, 121, 31, 0.08);
 }
 
+.module-root .root-diagnostics:not([hidden]) {
+  margin: calc(-1 * var(--space-1)) 0 var(--space-1);
+}
+
+.module-root .root-rate-summary:empty,
+.module-root #root-copy-status:empty {
+  display: none;
+}
+
 .module-root .root-summary-grid .answer-hero:first-child {
   border-color: var(--line-strong);
   background: var(--surface-strong);
@@ -121,15 +130,6 @@
 
 .module-root .root-summary-grid .answer-hero:first-child .answer-value {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
-}
-
-.module-root .root-diagnostics:not([hidden]) {
-  margin: calc(-1 * var(--space-1)) 0 var(--space-1);
-}
-
-.module-root .root-rate-summary:empty,
-.module-root #root-copy-status:empty {
-  display: none;
 }
 
 .module-root .root-advanced-options {
