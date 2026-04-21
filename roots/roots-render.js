@@ -7,12 +7,25 @@
     document.getElementById(id).textContent = value;
   }
 
+  function stoppingText(summary) {
+    if (summary.approximation == null && summary.intervalStatus) {
+      return summary.intervalStatus;
+    }
+    return summary.stopReason || summary.intervalStatus || "complete";
+  }
+
   function renderBisection(run) {
-    setText("root-approx", C.formatReal(C.requireRealNumber(run.summary.approximation, "root"), 8));
-    setText("root-stopping-result", run.summary.stopReason || run.summary.intervalStatus || "complete");
-    setText("root-convergence", run.stopping.kind === "iterations"
-      ? `n = ${run.stopping.input}, epsilon <= ${C.formatReal(run.stopping.epsilonBound, 8)}`
-      : `epsilon = ${run.stopping.input}`);
+    const summary = run.summary || {};
+
+    setText("root-approx", summary.approximation == null
+      ? "N/A"
+      : C.formatReal(C.requireRealNumber(summary.approximation, "root"), 8));
+    setText("root-stopping-result", stoppingText(summary));
+    setText("root-convergence", run.stopping
+      ? (run.stopping.kind === "iterations"
+        ? `n = ${run.stopping.input}, epsilon <= ${C.formatReal(run.stopping.epsilonBound, 8)}`
+        : `epsilon = ${run.stopping.input}`)
+      : "Not calculated yet");
     document.getElementById("root-empty").hidden = true;
     document.getElementById("root-result-stage").hidden = false;
   }

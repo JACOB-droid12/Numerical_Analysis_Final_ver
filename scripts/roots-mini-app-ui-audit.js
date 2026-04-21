@@ -122,3 +122,24 @@ clickHandlers[0]();
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375");
 assert.strictEqual(document.elements["root-empty"].hidden, true);
 assert.strictEqual(document.elements["root-result-stage"].hidden, false);
+
+const angleHandlers = document.elements["angle-toggle"].listeners.click || [];
+assert.ok(angleHandlers.length > 0, "angle toggle should be wired");
+angleHandlers[0]();
+assert.strictEqual(document.elements["status-angle"].textContent, "RAD");
+angleHandlers[0]();
+assert.strictEqual(document.elements["status-angle"].textContent, "DEG");
+
+document.elements["root-bis-expression"].value = "x^2 + 1";
+document.elements["root-bis-a"].value = "0";
+document.elements["root-bis-b"].value = "1";
+document.elements["root-bis-k"].value = "6";
+document.elements["root-bis-mode"].value = "round";
+document.elements["root-bis-stop-kind"].value = "iterations";
+document.elements["root-bis-stop-value"].value = "4";
+document.elements["root-bis-decision-basis"].value = "exact";
+document.elements["root-bis-sign-display"].value = "both";
+
+assert.doesNotThrow(() => clickHandlers[0]());
+assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
+assert.strictEqual(document.elements["root-stopping-result"].textContent, "invalid-bracket");
