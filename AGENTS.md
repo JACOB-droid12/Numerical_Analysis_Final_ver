@@ -34,7 +34,7 @@ Each engine is a standalone IIFE that attaches to `window`:
 | `calc-engine.js` | Multi-operand calculations with error propagation |
 | `expression-engine.js` | Free-form expression parsing and stepwise evaluation |
 | `poly-engine.js` | Polynomial evaluation (Horner vs Direct methods) |
-| `root-engine.js` | Root-finding: bisection, Newton, secant, false position |
+| `root-engine.js` | Root-finding: bisection, Newton, secant, false position, fixed point |
 | `app.js` | Wires all engines to DOM events |
 
 Load order matters -- `app.js` must come last and requires all engines present on `window`.
