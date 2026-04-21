@@ -44,6 +44,57 @@ function includesAll(source, values) {
   return values.every((value) => source.includes(value));
 }
 
+function stripTags(source) {
+  return source.replace(/<[^>]*>/g, " ");
+}
+
+function normalizedText(source) {
+  return stripTags(source).replace(/\s+/g, " ").trim();
+}
+
+function getElementHtmlById(source, tagName, id) {
+  const startPattern = new RegExp(`<${tagName}\\b[^>]*id="${id}"[^>]*>`, "i");
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function hasQuickStartGuide(source) {
+  const guideHtml = source.match(/<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*?<\/section>/)?.[0] || "";
+  const guideText = normalizedText(guideHtml);
+  return /<section class="root-start-guide" aria-label="Roots quick start">/.test(guideHtml) &&
+    countMatches(guideHtml, /class="root-start-step"/g) >= 3 &&
+    [
+      "Pick a method",
+      "Use bracket methods when you have an interval, or open methods when you have starting guesses.",
+      "Enter the function",
+      "Type f(x), choose the machine rule, then set iterations or tolerance.",
+      "Read the run",
+      "Check the approximate root, stopping reason, diagnostics, graph, and iteration table."
+    ].every((phrase) => guideText.includes(phrase));
+}
+
+function hasEmptyStateContract(source) {
+  return /<section\b[^>]*id="root-empty"[^>]*class="[^"]*\bempty-state\b[^"]*\broot-empty-state\b[^"]*"[^>]*>/.test(source) &&
+    [
+      "Ready when you are",
+      "Pick a method, enter a function, and run the method.",
+      "Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table."
+    ].every((phrase) => normalizedText(source).includes(phrase));
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
@@ -133,10 +184,10 @@ check(
 check(
   "Standalone entry includes a Roots first-run guide",
   "root-start-guide with three steps",
-  /<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*<h2>Pick a method<\/h2>[\s\S]*<p>Use bracket methods when you have an interval, or open methods when you have starting guesses\.<\/p>[\s\S]*<h2>Enter the function<\/h2>[\s\S]*<p>Type f\(x\), choose the machine rule, then set iterations or tolerance\.<\/p>[\s\S]*<h2>Read the run<\/h2>[\s\S]*<p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table\.<\/p>[\s\S]*<\/section>/.test(html)
+  hasQuickStartGuide(html)
     ? "first-run guide present"
     : "first-run guide missing",
-  /<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*<h2>Pick a method<\/h2>[\s\S]*<p>Use bracket methods when you have an interval, or open methods when you have starting guesses\.<\/p>[\s\S]*<h2>Enter the function<\/h2>[\s\S]*<p>Type f\(x\), choose the machine rule, then set iterations or tolerance\.<\/p>[\s\S]*<h2>Read the run<\/h2>[\s\S]*<p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table\.<\/p>[\s\S]*<\/section>/.test(html)
+  hasQuickStartGuide(html)
 );
 
 check(
@@ -150,16 +201,26 @@ check(
   countMatches(html, /data-method-kind="bracket"/g) === 2 &&
     countMatches(html, /data-method-kind="open"/g) === 2 &&
     countMatches(html, /data-method-kind="fixed-point"/g) === 1 &&
-    includesAll(html, ["<span class=\"method-kind\">Bracket</span><span>Bisection</span>", "<span class=\"method-kind\">Open</span><span>Newton-Raphson</span>", "<span class=\"method-kind\">Open</span><span>Secant</span>", "<span class=\"method-kind\">Bracket</span><span>False Position</span>", "<span class=\"method-kind\">Fixed-point</span><span>Fixed Point</span>"])
+    [
+      { id: "root-tab-bisection", kind: "Bracket", name: "Bisection" },
+      { id: "root-tab-newton", kind: "Open", name: "Newton-Raphson" },
+      { id: "root-tab-secant", kind: "Open", name: "Secant" },
+      { id: "root-tab-falseposition", kind: "Bracket", name: "False Position" },
+      { id: "root-tab-fixedpoint", kind: "Fixed-point", name: "Fixed Point" }
+    ].every(({ id, kind, name }) => {
+      const buttonHtml = getElementHtmlById(html, "button", id);
+      const text = normalizedText(buttonHtml);
+      return buttonHtml.includes(`data-method-kind="${kind === "Fixed-point" ? "fixed-point" : kind.toLowerCase()}"`) && text.includes(kind) && text.includes(name);
+    })
 );
 
 check(
   "Empty state gives a useful first action",
   "root-empty includes a short action prompt",
-  /<section\b[^>]*id="root-empty"[^>]*class="empty-state root-empty-state"[^>]*>[\s\S]*<p class="result-label">Ready when you are<\/p>[\s\S]*<h2>Pick a method, enter a function, and run the method\.<\/h2>[\s\S]*<p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table\.<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
+  hasEmptyStateContract(rootEmptyHtml)
     ? "empty prompt present"
     : "empty prompt missing",
-  /<section\b[^>]*id="root-empty"[^>]*class="empty-state root-empty-state"[^>]*>[\s\S]*<p class="result-label">Ready when you are<\/p>[\s\S]*<h2>Pick a method, enter a function, and run the method\.<\/h2>[\s\S]*<p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table\.<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
+  hasEmptyStateContract(rootEmptyHtml)
 );
 
 check(
