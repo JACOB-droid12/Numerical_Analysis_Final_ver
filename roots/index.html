@@ -28,21 +28,21 @@
         <div class="root-start-step">
           <span class="root-step-number" aria-hidden="true">1</span>
           <div>
-            <h2>Pick a method <span hidden>Step 1 Choose a method</span></h2>
+            <h2>Pick a method</h2>
             <p>Use bracket methods when you have an interval, or open methods when you have starting guesses.</p>
           </div>
         </div>
         <div class="root-start-step">
           <span class="root-step-number" aria-hidden="true">2</span>
           <div>
-            <h2>Enter the function <span hidden>Step 2</span></h2>
+            <h2>Enter the function</h2>
             <p>Type f(x), choose the machine rule, then set iterations or tolerance.</p>
           </div>
         </div>
         <div class="root-start-step">
           <span class="root-step-number" aria-hidden="true">3</span>
           <div>
-            <h2>Read the run <span hidden>Step 3 Run the method</span></h2>
+            <h2>Read the run</h2>
             <p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table.</p>
           </div>
         </div>
@@ -50,15 +50,10 @@
 
       <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
         <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
-        <!-- legacy label token for static audit: >Bisection</button> -->
         <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
-        <!-- legacy label token for static audit: >Newton-Raphson</button> -->
         <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
-        <!-- legacy label token for static audit: >Secant</button> -->
         <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
-        <!-- legacy label token for static audit: >False Position</button> -->
         <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
-        <!-- legacy label token for static audit: >Fixed Point</button> -->
       </nav>
 
       <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
@@ -185,11 +180,9 @@
       <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
 
       <section id="root-empty" class="empty-state root-empty-state">
-        <p class="result-label">Try a root-finding run</p>
         <p class="result-label">Ready when you are</p>
         <h2>Pick a method, enter a function, and run the method.</h2>
         <p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table.</p>
-        <p hidden>Pick a method and Run the method.</p>
       </section>
 
       <section id="root-result-stage" class="result-stage" hidden>

@@ -441,10 +441,6 @@
   color: var(--accent);
 }
 
-#root-empty > .result-label:first-child {
-  display: none;
-}
-
 @media (max-width: 768px) {
   .module-root .root-config-grid,
   .module-root .root-summary-grid {

@@ -133,37 +133,33 @@ check(
 check(
   "Standalone entry includes a Roots first-run guide",
   "root-start-guide with three steps",
-  /class="[^"]*root-start-guide[^"]*"/.test(html) &&
-    countMatches(html, /class="[^"]*root-start-step[^"]*"/g) >= 3 &&
-    includesAll(html, ["Step 1", "Step 2", "Step 3", "Choose a method", "Run the method"])
+  /<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*<h2>Pick a method<\/h2>[\s\S]*<p>Use bracket methods when you have an interval, or open methods when you have starting guesses\.<\/p>[\s\S]*<h2>Enter the function<\/h2>[\s\S]*<p>Type f\(x\), choose the machine rule, then set iterations or tolerance\.<\/p>[\s\S]*<h2>Read the run<\/h2>[\s\S]*<p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table\.<\/p>[\s\S]*<\/section>/.test(html)
     ? "first-run guide present"
     : "first-run guide missing",
-  /class="[^"]*root-start-guide[^"]*"/.test(html) &&
-    countMatches(html, /class="[^"]*root-start-step[^"]*"/g) >= 3 &&
-    includesAll(html, ["Step 1", "Step 2", "Step 3", "Choose a method", "Run the method"])
+  /<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*<h2>Pick a method<\/h2>[\s\S]*<p>Use bracket methods when you have an interval, or open methods when you have starting guesses\.<\/p>[\s\S]*<h2>Enter the function<\/h2>[\s\S]*<p>Type f\(x\), choose the machine rule, then set iterations or tolerance\.<\/p>[\s\S]*<h2>Read the run<\/h2>[\s\S]*<p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table\.<\/p>[\s\S]*<\/section>/.test(html)
 );
 
 check(
   "Method tabs expose method categories",
   "two bracket tabs, two open tabs, one fixed-point tab",
   [
-    `bracket:${countMatches(html, /data-method-kind="bracket"/g)} / labels:${countMatches(html, />Bisection<\/button>|>False Position<\/button>/g)}`,
-    `open:${countMatches(html, /data-method-kind="open"/g)} / labels:${countMatches(html, />Newton-Raphson<\/button>|>Secant<\/button>/g)}`,
-    `fixed-point:${countMatches(html, /data-method-kind="fixed-point"/g)} / labels:${countMatches(html, />Fixed Point<\/button>/g)}`
+    `bracket:${countMatches(html, /data-method-kind="bracket"/g)} / labels:${countMatches(html, /<span class="method-kind">Bracket<\/span><span>Bisection<\/span>|<span class="method-kind">Bracket<\/span><span>False Position<\/span>/g)}`,
+    `open:${countMatches(html, /data-method-kind="open"/g)} / labels:${countMatches(html, /<span class="method-kind">Open<\/span><span>Newton-Raphson<\/span>|<span class="method-kind">Open<\/span><span>Secant<\/span>/g)}`,
+    `fixed-point:${countMatches(html, /data-method-kind="fixed-point"/g)} / labels:${countMatches(html, /<span class="method-kind">Fixed-point<\/span><span>Fixed Point<\/span>/g)}`
   ].join(", "),
   countMatches(html, /data-method-kind="bracket"/g) === 2 &&
     countMatches(html, /data-method-kind="open"/g) === 2 &&
     countMatches(html, /data-method-kind="fixed-point"/g) === 1 &&
-    includesAll(html, ["Bisection", "Newton-Raphson", "Secant", "False Position", "Fixed Point"])
+    includesAll(html, ["<span class=\"method-kind\">Bracket</span><span>Bisection</span>", "<span class=\"method-kind\">Open</span><span>Newton-Raphson</span>", "<span class=\"method-kind\">Open</span><span>Secant</span>", "<span class=\"method-kind\">Bracket</span><span>False Position</span>", "<span class=\"method-kind\">Fixed-point</span><span>Fixed Point</span>"])
 );
 
 check(
   "Empty state gives a useful first action",
   "root-empty includes a short action prompt",
-  /<section\b[^>]*id="root-empty"[^>]*>[\s\S]*<p class="result-label">Try a root-finding run<\/p>[\s\S]*<p\b[^>]*>[\s\S]*Pick a method[\s\S]*Run the method[\s\S]*<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
+  /<section\b[^>]*id="root-empty"[^>]*class="empty-state root-empty-state"[^>]*>[\s\S]*<p class="result-label">Ready when you are<\/p>[\s\S]*<h2>Pick a method, enter a function, and run the method\.<\/h2>[\s\S]*<p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table\.<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
     ? "empty prompt present"
     : "empty prompt missing",
-  /<section\b[^>]*id="root-empty"[^>]*>[\s\S]*<p class="result-label">Try a root-finding run<\/p>[\s\S]*<p\b[^>]*>[\s\S]*Pick a method[\s\S]*Run the method[\s\S]*<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
+  /<section\b[^>]*id="root-empty"[^>]*class="empty-state root-empty-state"[^>]*>[\s\S]*<p class="result-label">Ready when you are<\/p>[\s\S]*<h2>Pick a method, enter a function, and run the method\.<\/h2>[\s\S]*<p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table\.<\/p>[\s\S]*<\/section>/.test(rootEmptyHtml)
 );
 
 check(
