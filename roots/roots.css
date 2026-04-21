@@ -146,9 +146,14 @@
   line-height: 1.5;
 }
 
+.root-iteration-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .root-iteration-table {
   width: 100%;
-  overflow-x: auto;
+  min-width: 720px;
 }
 
 .root-iteration-table th,

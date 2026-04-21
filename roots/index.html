@@ -165,7 +165,7 @@
           <div class="answer-hero answer-hero-major"><p class="result-label">Stopping result</p><p id="root-stopping-result" class="answer-value">Not calculated yet</p></div>
           <div class="answer-hero answer-hero-major"><p class="result-label">Stopping parameters</p><p id="root-convergence" class="answer-value">Not calculated yet</p></div>
         </div>
-        <div id="root-diagnostics" class="root-diagnostics" hidden></div>
+        <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
         <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
           <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
           <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value">Not calculated yet</p></div>
@@ -181,10 +181,12 @@
           <ol id="root-solution-steps" class="root-solution-steps"></ol>
           <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
         </section>
-        <table class="root-iteration-table">
-          <thead id="root-iteration-thead"></thead>
-          <tbody id="root-iteration-body"></tbody>
-        </table>
+        <div class="root-iteration-table-wrap">
+          <table class="root-iteration-table">
+            <thead id="root-iteration-thead"></thead>
+            <tbody id="root-iteration-body"></tbody>
+          </table>
+        </div>
       </section>
     </section>
   </main>
