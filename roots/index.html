@@ -25,18 +25,18 @@
       </div>
 
       <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
-        <button class="root-method-tab active" data-method="bisection" role="tab" aria-selected="true">Bisection</button>
-        <button class="root-method-tab" data-method="newton" role="tab" aria-selected="false">Newton-Raphson</button>
-        <button class="root-method-tab" data-method="secant" role="tab" aria-selected="false">Secant</button>
-        <button class="root-method-tab" data-method="falsePosition" role="tab" aria-selected="false">False Position</button>
-        <button class="root-method-tab" data-method="fixedPoint" role="tab" aria-selected="false">Fixed Point</button>
+        <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" role="tab" aria-selected="true" aria-controls="root-inputs-bisection">Bisection</button>
+        <button id="root-tab-newton" class="root-method-tab" data-method="newton" role="tab" aria-selected="false" aria-controls="root-inputs-newton">Newton-Raphson</button>
+        <button id="root-tab-secant" class="root-method-tab" data-method="secant" role="tab" aria-selected="false" aria-controls="root-inputs-secant">Secant</button>
+        <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition">False Position</button>
+        <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint">Fixed Point</button>
       </nav>
 
-      <section id="root-inputs-bisection" class="root-method-inputs"></section>
-      <section id="root-inputs-newton" class="root-method-inputs" hidden></section>
-      <section id="root-inputs-secant" class="root-method-inputs" hidden></section>
-      <section id="root-inputs-falseposition" class="root-method-inputs" hidden></section>
-      <section id="root-inputs-fixedpoint" class="root-method-inputs" hidden></section>
+      <section id="root-inputs-bisection" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-bisection"></section>
+      <section id="root-inputs-newton" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-newton" hidden></section>
+      <section id="root-inputs-secant" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-secant" hidden></section>
+      <section id="root-inputs-falseposition" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-falseposition" hidden></section>
+      <section id="root-inputs-fixedpoint" class="root-method-inputs" role="tabpanel" aria-labelledby="root-tab-fixedpoint" hidden></section>
 
       <p id="root-error-msg" class="inline-error" role="alert" hidden></p>
       <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
