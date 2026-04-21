@@ -17,11 +17,30 @@ function check(name, expected, actual, passed) {
   if (!passed) process.exitCode = 1;
 }
 
+function extractSectionById(source, id) {
+  const startPattern = new RegExp(`<section\\b[^>]*id="${id}"[^>]*>`, "i");
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  let depth = 0;
+  const tagPattern = /<\/?section\b[^>]*>/gi;
+  tagPattern.lastIndex = startMatch.index;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
 const mainScriptSources = [...MAIN_HTML.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
-const rootTabPanel = MAIN_HTML.match(/<section\b[^>]*id="tab-root"[\s\S]*?<\/section>\s*(?=<section\b[^>]*id="tab-ieee754")/)?.[0] || "";
+const rootTabPanel = extractSectionById(MAIN_HTML, "tab-root");
 const expectedScriptOrder = [
   "../math-engine.js?v=roots-v1",
   "../calc-engine.js?v=roots-v1",
