@@ -430,6 +430,7 @@
     const formula = isFP ? "c = b - f(b)(b-a)/(f(b)-f(a))" : "c = (a + b) / 2";
     const left = run.initial && run.initial.left ? fmtVal(run.initial.left.x, 12) : "unavailable";
     const right = run.initial && run.initial.right ? fmtVal(run.initial.right.x, 12) : "unavailable";
+    const machineLine = machineCopyLine(run);
     const steps = [
       "Apply the " + methodName + " method to f(x) = " + (run.canonical || run.expression || "f(x)") + " on [" + left + ", " + right + "].",
       "Check endpoint signs using " + (run.decisionBasis === "exact" ? "exact" : "machine") + " signs."
@@ -443,38 +444,50 @@
       steps.push("Use " + formula + " and keep the subinterval that preserves the sign change.");
       steps.push("The approximate root after the final step is " + fmtVal(run.summary && run.summary.approximation, 18) + ".");
     }
-    steps.push("Machine values use " + run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping") + ".");
+    if (machineLine) steps.push(machineLine);
     return steps;
   }
 
   function buildNewtonSteps(run) {
-    return [
+    const machineLine = machineCopyLine(run);
+    const steps = [
       "Apply Newton-Raphson to f(x) = " + (run.canonical || run.expression || "f(x)") + " with f'(x) = " + (run.dfCanonical || run.dfExpression || "f'(x)") + ".",
       "Use x next = x - f(x) / f'(x).",
       run.stopping.kind === "epsilon" ? "Stop when |x next - x| < epsilon = " + run.stopping.input + "." : "Run for n = " + run.stopping.input + " iterations.",
-      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + ".",
-      "Machine values use " + run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping") + "."
+      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + "."
     ];
+    if (machineLine) steps.push(machineLine);
+    return steps;
   }
 
   function buildSecantSteps(run) {
-    return [
+    const machineLine = machineCopyLine(run);
+    const steps = [
       "Apply the secant method to f(x) = " + (run.canonical || run.expression || "f(x)") + ".",
       "Use x next = x - f(x)(x - x prev) / (f(x) - f(x prev)).",
       run.stopping.kind === "epsilon" ? "Stop when |x next - x| < epsilon = " + run.stopping.input + "." : "Run for n = " + run.stopping.input + " iterations.",
-      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + ".",
-      "Machine values use " + run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping") + "."
+      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate root after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + "."
     ];
+    if (machineLine) steps.push(machineLine);
+    return steps;
   }
 
   function buildFixedPointSteps(run) {
-    return [
+    const machineLine = machineCopyLine(run);
+    const steps = [
       "Apply fixed-point iteration with g(x) = " + (run.canonical || run.expression || "g(x)") + ".",
       "Use x next = g(x). Convergence requires |g'(x)| < 1 near the fixed point.",
       run.stopping.kind === "epsilon" ? "Stop when |x next - x| < epsilon = " + run.stopping.input + "." : "Run for n = " + run.stopping.input + " iterations.",
-      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + ".",
-      "Machine values use " + run.machine.k + " significant digits with " + (run.machine.mode === "round" ? "rounding" : "chopping") + "."
+      run.summary.approximation == null ? "No trusted approximation was produced." : "The approximate fixed point after " + run.rows.length + " iteration" + (run.rows.length === 1 ? "" : "s") + " is x ~ " + fmtVal(run.summary.approximation, 18) + "."
     ];
+    if (machineLine) steps.push(machineLine);
+    return steps;
+  }
+
+  function machineCopyLine(run) {
+    const machine = run && run.machine ? run.machine : null;
+    if (!machine || machine.k == null || !machine.mode) return "";
+    return "Machine values use " + machine.k + " significant digits with " + (machine.mode === "round" ? "rounding" : "chopping") + ".";
   }
 
   function solutionSteps(run) {
