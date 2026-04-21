@@ -20,14 +20,34 @@
     };
   }
 
+  function clearError() {
+    byId("root-error-msg").textContent = "";
+    byId("root-error-msg").hidden = true;
+  }
+
+  function showError(err) {
+    byId("root-error-msg").textContent = err && err.message ? err.message : "Root calculation failed.";
+    byId("root-error-msg").hidden = false;
+  }
+
   document.addEventListener("DOMContentLoaded", function onReady() {
     const state = globalScope.RootsState.createState();
     globalScope.RootsRender.resetResults(state);
 
     byId("root-bis-compute").addEventListener("click", function onBisectionCompute() {
-      const run = globalScope.RootsEngineAdapter.runMethod("bisection", fieldsForBisection(), state.angleMode);
-      globalScope.RootsState.storeRun(state, "bisection", run);
-      globalScope.RootsRender.renderBisection(run);
+      clearError();
+      byId("root-status-msg").textContent = "";
+
+      try {
+        const run = globalScope.RootsEngineAdapter.runMethod("bisection", fieldsForBisection(), state.angleMode);
+        globalScope.RootsState.storeRun(state, "bisection", run);
+        globalScope.RootsRender.renderBisection(run);
+        clearError();
+      } catch (err) {
+        globalScope.RootsRender.resetResults(state);
+        byId("root-status-msg").textContent = "";
+        showError(err);
+      }
     });
 
     byId("angle-toggle").addEventListener("click", function onAngleToggle() {
