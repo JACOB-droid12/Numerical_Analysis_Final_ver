@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roots Workbench</title>
+  <link rel="stylesheet" href="../styles.css?v=roots-base">
+  <link rel="stylesheet" href="./roots.css?v=roots-v1">
+</head>
+<body class="roots-standalone">
+  <main class="roots-app-shell">
+    <header class="roots-toolbar">
+      <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
+      <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+      <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
+    </header>
+
+    <section class="module-shell module-root roots-module-shell">
+      <div class="module-header">
+        <div>
+          <p class="eyebrow">Module IV</p>
+          <h1>Root finding workbench</h1>
+          <p class="module-subtitle">Solve f(x) = 0 with the same five methods, tables, diagnostics, and convergence views from the calculator.</p>
+        </div>
+      </div>
+
+      <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
+        <button class="root-method-tab active" data-method="bisection" role="tab" aria-selected="true">Bisection</button>
+        <button class="root-method-tab" data-method="newton" role="tab" aria-selected="false">Newton-Raphson</button>
+        <button class="root-method-tab" data-method="secant" role="tab" aria-selected="false">Secant</button>
+        <button class="root-method-tab" data-method="falsePosition" role="tab" aria-selected="false">False Position</button>
+        <button class="root-method-tab" data-method="fixedPoint" role="tab" aria-selected="false">Fixed Point</button>
+      </nav>
+
+      <section id="root-inputs-bisection" class="root-method-inputs"></section>
+      <section id="root-inputs-newton" class="root-method-inputs" hidden></section>
+      <section id="root-inputs-secant" class="root-method-inputs" hidden></section>
+      <section id="root-inputs-falseposition" class="root-method-inputs" hidden></section>
+      <section id="root-inputs-fixedpoint" class="root-method-inputs" hidden></section>
+
+      <p id="root-error-msg" class="inline-error" role="alert" hidden></p>
+      <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
+
+      <section id="root-empty" class="empty-state">
+        <p class="result-label">Try a root-finding run</p>
+      </section>
+
+      <section id="root-result-stage" class="result-stage" hidden>
+        <div class="root-summary-grid">
+          <div class="answer-hero answer-hero-major"><p class="result-label">Approximate root</p><p id="root-approx" class="answer-value">Not calculated yet</p></div>
+          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping result</p><p id="root-stopping-result" class="answer-value">Not calculated yet</p></div>
+          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping parameters</p><p id="root-convergence" class="answer-value">Not calculated yet</p></div>
+        </div>
+        <div id="root-diagnostics" class="root-diagnostics" hidden></div>
+        <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden></div>
+        <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
+        <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
+        <section class="root-solution-panel answer-hero" aria-label="Solution steps">
+          <div class="root-solution-header">
+            <h2>Solution steps</h2>
+            <button id="root-copy-solution" type="button" class="link">Copy solution</button>
+          </div>
+          <ol id="root-solution-steps" class="root-solution-steps"></ol>
+          <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
+        </section>
+        <table class="root-iteration-table">
+          <thead id="root-iteration-thead"></thead>
+          <tbody id="root-iteration-body"></tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>
+    <button type="button" class="symbol-btn" data-symbol-insert="sqrt(" aria-label="Insert square root">sqrt(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="sin(" aria-label="Insert sine">sin(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="cos(" aria-label="Insert cosine">cos(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="e^(" aria-label="Insert e to a power">e^(</button>
+  </div>
+
+  <script defer src="../math-engine.js?v=roots-v1"></script>
+  <script defer src="../calc-engine.js?v=roots-v1"></script>
+  <script defer src="../expression-engine.js?v=roots-v1"></script>
+  <script defer src="../root-engine.js?v=roots-v1"></script>
+  <script defer src="../math-display.js?v=roots-v1"></script>
+  <script defer src="./roots-state.js?v=roots-v1"></script>
+  <script defer src="./roots-engine-adapter.js?v=roots-v1"></script>
+  <script defer src="./roots-render.js?v=roots-v1"></script>
+  <script defer src="./roots-app.js?v=roots-v1"></script>
+</body>
+</html>
