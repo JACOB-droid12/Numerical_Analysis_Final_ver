@@ -601,9 +601,22 @@
   }
 
   function buildSolutionText(run) {
-    return solutionSteps(run).map(function numberStep(step, index) {
+    const summary = run.summary || {};
+    const header = [
+      "Method: " + methodLabel(run.method),
+      "Function: " + (run.canonical || run.expression || "f(x)"),
+      "Machine: " + run.machine.k + " significant digits, " + (run.machine.mode === "round" ? "rounding" : "chopping"),
+      "Stopping: " + formatStoppingDetails(run),
+      "Approximate root: " + (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18)),
+      "Stopping reason: " + formatStopReason(summary.stopReason, run.method),
+      "Final metric: " + finalMetric(run),
+      "Interpretation: " + interpretationText(run),
+      "Next action: " + nextActionText(run)
+    ];
+    const steps = solutionSteps(run).map(function numberStep(step, index) {
       return (index + 1) + ". " + step;
     }).join("\n");
+    return header.concat(["", "Solution steps:"], steps).join("\n");
   }
 
   globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText, renderMethodGuide };
