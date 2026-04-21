@@ -21,6 +21,7 @@ Short working map for future Roots mini-app edits.
 ## Edit Boundaries
 
 - UI, copy, and styles: `roots/index.html`, `roots/roots.css`
+- State, caches, and default values: `roots/roots-state.js`
 - Interaction wiring: `roots/roots-app.js`
 - Render behavior: `roots/roots-render.js`
 - Adapter and request packaging: `roots/roots-engine-adapter.js`
