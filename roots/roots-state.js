@@ -5,9 +5,18 @@
     return {
       activeMethod: "bisection",
       angleMode: "deg",
-      runs: Object.create(null)
+      runs: Object.create(null),
+      emptyTextById: {
+        "root-approx": "Not calculated yet",
+        "root-stopping-result": "Not calculated yet",
+        "root-convergence": "Not calculated yet"
+      }
     };
   }
 
-  globalScope.RootsState = { createState };
+  function storeRun(state, method, run) {
+    state.runs[method] = run;
+  }
+
+  globalScope.RootsState = { createState, storeRun };
 })(window);
