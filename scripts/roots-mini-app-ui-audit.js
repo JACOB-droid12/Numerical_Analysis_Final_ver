@@ -113,6 +113,8 @@ const IDS = [
   "root-fpi-expression", "root-fpi-x0", "root-fpi-k", "root-fpi-mode", "root-fpi-stop-kind",
   "root-fpi-stop-value", "root-fpi-compute",
   "root-empty", "root-result-stage", "root-approx", "root-stopping-result", "root-convergence",
+  "root-active-method", "root-final-metric", "root-interpretation", "root-next-action",
+  "root-method-guide", "root-method-title", "root-method-summary", "root-method-details",
   "root-error-msg", "root-status-msg", "root-diagnostics", "root-bracket-panel", "root-interval-status",
   "root-sign-summary", "root-decision-summary", "root-convergence-graph", "root-rate-summary",
   "root-iteration-thead", "root-iteration-body", "root-solution-steps", "root-copy-solution", "root-copy-status"
@@ -227,6 +229,25 @@ setValues(document, {
 });
 click(document.elements["root-bis-compute"]);
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375");
+assert.strictEqual(document.elements["root-active-method"].textContent, "Bisection");
+assert.ok(
+  document.elements["root-final-metric"].textContent.includes("epsilon <=") ||
+    document.elements["root-final-metric"].textContent.includes("Final |error|"),
+  "bisection final metric should summarize error or bound"
+);
+assert.ok(
+  document.elements["root-interpretation"].textContent.includes("requested iterations"),
+  "bisection interpretation should explain the stopping result"
+);
+assert.ok(
+  document.elements["root-next-action"].textContent.includes("Increase n") ||
+    document.elements["root-next-action"].textContent.includes("tolerance"),
+  "bisection next action should guide tighter answers"
+);
+assert.ok(
+  document.elements["root-method-summary"].textContent.includes("interval"),
+  "bisection method guide should explain interval use"
+);
 assert.strictEqual(document.elements["root-empty"].hidden, true);
 assert.strictEqual(document.elements["root-result-stage"].hidden, false);
 assert.ok(document.elements["root-convergence-graph"].innerHTML.includes("<svg"), "bisection graph should render an svg");
@@ -250,6 +271,14 @@ setValues(document, {
 assert.doesNotThrow(() => click(document.elements["root-bis-compute"]));
 assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
 assert.strictEqual(document.elements["root-stopping-result"].textContent, "Not a valid starting bracket");
+assert.ok(
+  document.elements["root-interpretation"].textContent.includes("do not bracket"),
+  "invalid bracket interpretation should explain the sign problem"
+);
+assert.ok(
+  document.elements["root-next-action"].textContent.includes("opposite signs"),
+  "invalid bracket next action should tell the user how to recover"
+);
 
 setValues(document, {
   "root-bis-expression": "x^2 - 2",
@@ -274,6 +303,8 @@ click(document.elements["angle-toggle"]);
 assert.strictEqual(document.elements["status-angle"].textContent, "RAD");
 
 click(document.elements["root-tab-newton"]);
+assert.strictEqual(document.elements["root-method-title"].textContent, "Newton-Raphson");
+assert.ok(document.elements["root-method-summary"].textContent.includes("derivative"));
 setValues(document, {
   "root-newton-expression": "x^2 - 2",
   "root-newton-df": "2x",
@@ -288,6 +319,8 @@ assert.strictEqual(document.elements["root-approx"].textContent, "1.41421356237"
 assert.ok(document.elements["root-solution-steps"].innerHTML.includes("Newton-Raphson"));
 
 click(document.elements["root-tab-fixedpoint"]);
+assert.strictEqual(document.elements["root-method-title"].textContent, "Fixed Point");
+assert.ok(document.elements["root-method-summary"].textContent.includes("g(x)"));
 setValues(document, {
   "root-fpi-expression": "cos(x)",
   "root-fpi-x0": "1",
@@ -338,6 +371,10 @@ assert.ok(document.elements["root-sign-summary"].textContent.includes("E("), "fa
 click(document.elements["root-copy-solution"]);
 assert.strictEqual(document.elements["root-copy-status"].textContent, "Solution copied.");
 assert.ok(clipboard.text.includes("false position"), "copy should include current solution text");
+assert.ok(clipboard.text.includes("Method: False Position"), "copy should include method header");
+assert.ok(clipboard.text.includes("Approximate root:"), "copy should include approximate root");
+assert.ok(clipboard.text.includes("Stopping reason:"), "copy should include stopping reason");
+assert.ok(clipboard.text.includes("Next action:"), "copy should include next action guidance");
 
 const bisTrigger = document.symbolTriggers.find((trigger) => trigger.dataset.symbolTarget === "root-bis-expression");
 const sqrtButton = document.symbolButtons.find((button) => button.dataset.symbolInsert === "sqrt(");
