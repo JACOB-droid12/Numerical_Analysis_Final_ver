@@ -16,11 +16,16 @@
     </header>
 
     <section class="module-shell module-root roots-module-shell">
-      <div class="module-header">
+      <div class="module-header roots-guided-hero">
         <div>
-          <p class="eyebrow">Module IV</p>
-          <h1>Root finding workbench</h1>
-          <p class="module-subtitle">Solve f(x) = 0 with the same five methods, tables, diagnostics, and convergence views from the calculator.</p>
+          <p class="eyebrow">Module IV · Guided Solver Studio</p>
+          <h1>Fast root solving for quizzes and worksheets</h1>
+          <p class="module-subtitle">Answer first. Explanation second. Trace when you need it.</p>
+        </div>
+        <div class="root-hero-card" aria-label="Guided solver priorities">
+          <span class="root-hero-kicker">Quiz workflow</span>
+          <strong>Run the method, read the root, copy the reasoning.</strong>
+          <p>Method tabs stay quick. Tables and diagnostics stay available below the main answer.</p>
         </div>
       </div>
 
@@ -55,6 +60,15 @@
         <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
         <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
       </nav>
+
+      <section id="root-method-guide" class="root-method-guide" aria-label="Active method guidance">
+        <div>
+          <p class="result-label">Active solver</p>
+          <h2 id="root-method-title">Bisection</h2>
+          <p id="root-method-summary" class="root-method-summary">Use an interval where f(a) and f(b) have opposite signs.</p>
+        </div>
+        <p id="root-method-details" class="root-method-details">Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking.</p>
+      </section>
 
       <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
         <div class="omnipotent-search-bar calculator-band">
@@ -186,11 +200,38 @@
       </section>
 
       <section id="root-result-stage" class="result-stage" hidden>
-        <div class="root-summary-grid">
-          <div class="answer-hero answer-hero-major"><p class="result-label">Approximate root</p><p id="root-approx" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping result</p><p id="root-stopping-result" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping parameters</p><p id="root-convergence" class="answer-value">Not calculated yet</p></div>
-        </div>
+        <section id="root-quiz-answer" class="root-quiz-answer" aria-label="Quiz-ready answer">
+          <p class="visually-hidden">Quiz-ready answer</p>
+          <div class="root-answer-main">
+            <p class="result-label">Approximate root</p>
+            <p id="root-approx" class="answer-value">Not calculated yet</p>
+            <p class="root-answer-method">Method: <strong id="root-active-method">Not calculated yet</strong></p>
+          </div>
+          <div class="root-answer-context">
+            <div class="root-result-insight">
+              <p class="result-label">Stopping result</p>
+              <p id="root-stopping-result" class="answer-value">Not calculated yet</p>
+            </div>
+            <div class="root-result-insight">
+              <p class="result-label">Stopping parameters</p>
+              <p id="root-convergence" class="answer-value">Not calculated yet</p>
+            </div>
+            <div class="root-result-insight">
+              <p class="result-label">Final metric</p>
+              <p id="root-final-metric" class="answer-value">Not calculated yet</p>
+            </div>
+          </div>
+          <div class="root-answer-guidance">
+            <div>
+              <p class="result-label">What this means</p>
+              <p id="root-interpretation">Run the method to see a short interpretation.</p>
+            </div>
+            <div>
+              <p class="result-label">Try next</p>
+              <p id="root-next-action">Run the method to see the next recommended action.</p>
+            </div>
+          </div>
+        </section>
         <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
         <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
           <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
