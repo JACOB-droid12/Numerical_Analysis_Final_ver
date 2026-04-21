@@ -46,6 +46,9 @@
     if (!config) return;
 
     state.activeMethod = method;
+    if (globalScope.RootsRender.renderMethodGuide) {
+      globalScope.RootsRender.renderMethodGuide(method);
+    }
     state.methodConfigs.forEach(function updateMethod(item) {
       const isActive = item.name === method;
       const tab = byId(item.tabId);

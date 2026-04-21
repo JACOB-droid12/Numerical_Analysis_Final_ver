@@ -12,6 +12,34 @@
     fixedPoint: { headers: ["i", "xn", "g(xn)", "Error", "Note"], colSpan: 5 }
   };
 
+  const METHOD_INFO = {
+    bisection: {
+      label: "Bisection",
+      summary: "Use an interval where f(a) and f(b) have opposite signs.",
+      details: "Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking."
+    },
+    falsePosition: {
+      label: "False Position",
+      summary: "Use a bracket, then estimate the crossing with a secant line.",
+      details: "Often moves faster than bisection, but one endpoint can stay fixed for many steps."
+    },
+    newton: {
+      label: "Newton-Raphson",
+      summary: "Use one starting value and the derivative to jump toward the root.",
+      details: "Fast near a good starting point, but sensitive to zero derivatives and unstable steps."
+    },
+    secant: {
+      label: "Secant",
+      summary: "Use two starting values to estimate the slope without a derivative.",
+      details: "Useful when f'(x) is unavailable, but repeated function values can stall the method."
+    },
+    fixedPoint: {
+      label: "Fixed Point",
+      summary: "Enter g(x), then iterate x next = g(x).",
+      details: "Works when the iteration settles near a fixed point; cycles and divergence mean the form or start should change."
+    }
+  };
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -137,6 +165,114 @@
       return "n = " + stopping.input + ", epsilon <= " + fmtErr(stopping.epsilonBound) + iterationNote;
     }
     return "n = " + stopping.input + ", final |error| = " + fmtErr(stopping.epsilonBound) + iterationNote;
+  }
+
+  function methodLabel(method) {
+    return (METHOD_INFO[method] && METHOD_INFO[method].label) || method || EMPTY;
+  }
+
+  function finalMetric(run) {
+    const summary = run && run.summary ? run.summary : {};
+    if (run && run.method === "bisection" && run.stopping && run.stopping.epsilonBound != null) {
+      return "epsilon <= " + fmtErr(run.stopping.epsilonBound);
+    }
+    if (summary.bound != null) return "Bound = " + fmtErr(summary.bound);
+    if (summary.error != null) return "Final |error| = " + fmtErr(summary.error);
+    if (summary.residual != null) return "Residual = " + fmtVal(summary.residual, 12);
+    if (run && run.stopping && run.stopping.epsilonBound != null) {
+      return "Final |error| = " + fmtErr(run.stopping.epsilonBound);
+    }
+    return "No final metric available.";
+  }
+
+  function interpretationText(run) {
+    const summary = run && run.summary ? run.summary : {};
+    const reason = summary.stopReason;
+    const method = run && run.method;
+    if (summary.intervalStatus === "invalid-bracket" || reason === "invalid-starting-interval") {
+      return "The endpoints do not bracket a sign change, so this bracket method cannot start safely.";
+    }
+    if (reason === "iteration-limit") {
+      return "The requested iterations completed. Use this root when the quiz asks for this fixed n.";
+    }
+    if (reason === "tolerance-reached") {
+      return "The method reached the requested tolerance, so the last approximation satisfies your stopping rule.";
+    }
+    if (reason === "tolerance-already-met") {
+      return "The starting interval already satisfies the requested tolerance.";
+    }
+    if (reason === "endpoint-root") {
+      return "One endpoint is already a root, so no iteration is needed.";
+    }
+    if (reason === "exact-zero" || reason === "machine-zero") {
+      return method === "fixedPoint"
+        ? "The iteration landed on a fixed point under the current precision rule."
+        : "The function value is zero or machine-zero at the reported approximation.";
+    }
+    if (reason === "derivative-zero") {
+      return "Newton-Raphson cannot continue because the derivative is zero or too small at the current point.";
+    }
+    if (reason === "stagnation") {
+      return "The update stalled because the denominator became too small.";
+    }
+    if (reason === "retained-endpoint-stagnation") {
+      return "False Position kept the same endpoint too long, so the run stopped before claiming convergence.";
+    }
+    if (reason === "diverged" || reason === "diverged-step") {
+      return "The iterates moved away from a stable answer instead of settling toward a root.";
+    }
+    if (reason === "cycle-detected") {
+      return "The fixed-point iteration repeated a cycle instead of settling to one value.";
+    }
+    if (reason === "iteration-cap") {
+      return "The safety cap was reached before the requested tolerance was satisfied.";
+    }
+    if (reason === "discontinuity-detected" || reason === "singularity-encountered" || reason === "non-finite-evaluation") {
+      return "The evaluator hit an undefined or non-finite value during the run.";
+    }
+    if (reason === "invalid-input") {
+      return "The run could not start because one or more inputs were rejected.";
+    }
+    return "The run completed with the displayed stopping result.";
+  }
+
+  function nextActionText(run) {
+    const summary = run && run.summary ? run.summary : {};
+    const reason = summary.stopReason;
+    if (summary.intervalStatus === "invalid-bracket" || reason === "invalid-starting-interval") {
+      return "Choose endpoints where f(a) and f(b) have opposite signs.";
+    }
+    if (reason === "iteration-limit") {
+      return "Need a tighter answer? Increase n or switch to tolerance mode.";
+    }
+    if (reason === "tolerance-reached" || reason === "exact-zero" || reason === "machine-zero" || reason === "endpoint-root") {
+      return "Copy the answer or inspect the table if your solution needs shown work.";
+    }
+    if (reason === "derivative-zero") {
+      return "Change the starting point or check that f'(x) was entered correctly.";
+    }
+    if (reason === "stagnation") {
+      return "Use different starting guesses or switch to a bracket method.";
+    }
+    if (reason === "retained-endpoint-stagnation") {
+      return "Try Bisection for guaranteed interval shrinkage or choose a better bracket.";
+    }
+    if (reason === "diverged" || reason === "diverged-step") {
+      return "Choose a closer starting point or use a bracket method when an interval is known.";
+    }
+    if (reason === "cycle-detected") {
+      return "Try a different g(x) form or a different starting value.";
+    }
+    if (reason === "iteration-cap") {
+      return "Increase the cap only if the table shows the error is improving.";
+    }
+    if (reason === "discontinuity-detected" || reason === "singularity-encountered" || reason === "non-finite-evaluation") {
+      return "Move the interval or starting value away from undefined points.";
+    }
+    if (reason === "invalid-input") {
+      return "Check the expression, machine precision, and stopping value.";
+    }
+    return "Review the diagnostics and table before trusting the approximation.";
   }
 
   function collectDiagnostics(run) {
@@ -272,6 +408,20 @@
     const order = estimateConvergenceRate(rows);
     const orderText = order == null ? "" : " Estimated order = " + order.toFixed(2) + ".";
     setOptionalText("root-rate-summary", rows.length + " iteration" + (rows.length === 1 ? "" : "s") + " completed. Final |error| = " + fmtErr(finalError) + "." + orderText);
+  }
+
+  function renderMethodGuide(method) {
+    const info = METHOD_INFO[method] || METHOD_INFO.bisection;
+    setText("root-method-title", info.label);
+    setOptionalText("root-method-summary", info.summary);
+    setOptionalText("root-method-details", info.details);
+  }
+
+  function renderQuizAnswer(run) {
+    setText("root-active-method", methodLabel(run.method));
+    setText("root-final-metric", finalMetric(run));
+    setOptionalText("root-interpretation", interpretationText(run));
+    setOptionalText("root-next-action", nextActionText(run));
   }
 
   function buildBisectionSteps(run) {
@@ -411,6 +561,8 @@
     setText("root-approx", summary.intervalStatus === "invalid-bracket" || summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18));
     setText("root-stopping-result", formatStopReason(summary.stopReason, run.method));
     setText("root-convergence", formatStoppingDetails(run));
+    renderMethodGuide(run.method);
+    renderQuizAnswer(run);
     renderDiagnostics(run);
     renderBracketPanel(run);
     renderGraph(run);
@@ -423,6 +575,11 @@
     Object.keys(state.emptyTextById).forEach(function resetText(id) {
       setText(id, state.emptyTextById[id]);
     });
+    renderMethodGuide(state.activeMethod);
+    setText("root-active-method", state.activeMethod ? methodLabel(state.activeMethod) : EMPTY);
+    setText("root-final-metric", "Not calculated yet");
+    setOptionalText("root-interpretation", "Run the method to see a short interpretation.");
+    setOptionalText("root-next-action", "Run the method to see the next recommended action.");
     setHidden("root-empty", false);
     setHidden("root-result-stage", true);
     setHidden("root-bracket-panel", true);
@@ -449,5 +606,5 @@
     }).join("\n");
   }
 
-  globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText };
+  globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText, renderMethodGuide };
 })(window);
