@@ -11,7 +11,8 @@
         "root-bis-expression", "root-bis-a", "root-bis-b", "root-bis-k",
         "root-bis-mode", "root-bis-stop-kind", "root-bis-stop-value",
         "root-bis-tolerance-type", "root-bis-decision-basis", "root-bis-sign-display"
-      ]
+      ],
+      presentationFieldIds: ["root-bis-sign-display"]
     },
     {
       name: "newton",
@@ -42,7 +43,8 @@
         "root-fp-expression", "root-fp-a", "root-fp-b", "root-fp-k",
         "root-fp-mode", "root-fp-stop-kind", "root-fp-stop-value",
         "root-fp-decision-basis", "root-fp-sign-display"
-      ]
+      ],
+      presentationFieldIds: ["root-fp-sign-display"]
     },
     {
       name: "fixedPoint",
@@ -93,5 +95,9 @@
     });
   }
 
-  globalScope.RootsState = { createState, storeRun, methodConfig, clearRun, clearAllRuns, METHOD_CONFIGS };
+  function isPresentationField(config, id) {
+    return !!(config && config.presentationFieldIds && config.presentationFieldIds.indexOf(id) !== -1);
+  }
+
+  globalScope.RootsState = { createState, storeRun, methodConfig, clearRun, clearAllRuns, isPresentationField, METHOD_CONFIGS };
 })(window);
