@@ -109,31 +109,35 @@ check(
 
 check(
   "Fast lane lists full verification commands",
-  "all four Roots verification commands",
+  "all five Roots verification commands",
   includesAll(fastLane, [
     "node scripts/engine-correctness-audit.js",
     "node scripts/root-engine-audit.js",
     "node scripts/roots-mini-app-static-audit.js",
-    "node scripts/roots-mini-app-ui-audit.js"
+    "node scripts/roots-mini-app-ui-audit.js",
+    "node scripts/roots-fast-lane-audit.js"
   ]) ? "present" : "missing",
   includesAll(fastLane, [
     "node scripts/engine-correctness-audit.js",
     "node scripts/root-engine-audit.js",
     "node scripts/roots-mini-app-static-audit.js",
-    "node scripts/roots-mini-app-ui-audit.js"
+    "node scripts/roots-mini-app-ui-audit.js",
+    "node scripts/roots-fast-lane-audit.js"
   ])
 );
 
 check(
   "AGENTS.md keeps the Roots mini-app audit lines",
-  "roots-mini-app-static-audit.js and roots-mini-app-ui-audit.js",
+  "roots-mini-app-static-audit.js, roots-mini-app-ui-audit.js, and roots-fast-lane-audit.js",
   includesAll(agents, [
     "node scripts/roots-mini-app-static-audit.js",
-    "node scripts/roots-mini-app-ui-audit.js"
+    "node scripts/roots-mini-app-ui-audit.js",
+    "node scripts/roots-fast-lane-audit.js"
   ]) ? "present" : "missing",
   includesAll(agents, [
     "node scripts/roots-mini-app-static-audit.js",
-    "node scripts/roots-mini-app-ui-audit.js"
+    "node scripts/roots-mini-app-ui-audit.js",
+    "node scripts/roots-fast-lane-audit.js"
   ])
 );
 
@@ -176,10 +180,18 @@ check(
 );
 
 check(
-  "README points to Roots AI docs",
-  "docs/roots-context.md and docs/roots-ai-fast-lane.md",
-  includesAll(readme, ["docs/roots-context.md", "docs/roots-ai-fast-lane.md"]) ? "present" : "missing",
-  includesAll(readme, ["docs/roots-context.md", "docs/roots-ai-fast-lane.md"])
+  "README keeps the fast-lane guidance links and verify audit",
+  "docs/roots-context.md, docs/roots-ai-fast-lane.md, and roots-fast-lane-audit.js",
+  includesAll(readme, [
+    "docs/roots-context.md",
+    "docs/roots-ai-fast-lane.md",
+    "node scripts/roots-fast-lane-audit.js"
+  ]) ? "present" : "missing",
+  includesAll(readme, [
+    "docs/roots-context.md",
+    "docs/roots-ai-fast-lane.md",
+    "node scripts/roots-fast-lane-audit.js"
+  ])
 );
 
 check(

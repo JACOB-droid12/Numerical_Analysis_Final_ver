@@ -36,4 +36,5 @@ node scripts/engine-correctness-audit.js
 node scripts/root-engine-audit.js
 node scripts/roots-mini-app-static-audit.js
 node scripts/roots-mini-app-ui-audit.js
+node scripts/roots-fast-lane-audit.js
 ```

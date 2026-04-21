@@ -49,6 +49,7 @@ All tests run with `node scripts/<name>.js`:
 - `node scripts/root-engine-audit.js` -- root-finding accuracy
 - `node scripts/roots-mini-app-static-audit.js` -- Roots entry-point, bridge, and static UI audit
 - `node scripts/roots-mini-app-ui-audit.js` -- standalone Roots wiring audit
+- `node scripts/roots-fast-lane-audit.js` -- Roots fast-lane guidance audit
 
 Always run `node scripts/engine-correctness-audit.js` after any engine file change.
 
