@@ -36,11 +36,103 @@ function extractSectionById(source, id) {
   return "";
 }
 
+function countMatches(source, pattern) {
+  return (source.match(pattern) || []).length;
+}
+
+function includesAll(source, values) {
+  return values.every((value) => source.includes(value));
+}
+
+function escapeRegExp(source) {
+  return source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripTags(source) {
+  return source.replace(/<[^>]*>/g, " ");
+}
+
+function normalizedText(source) {
+  return stripTags(source).replace(/\s+/g, " ").trim();
+}
+
+function getCssBlocks(source, selector) {
+  const selectorPattern = new RegExp(`${escapeRegExp(selector)}\\s*\\{`, "g");
+  const blocks = [];
+  for (const match of source.matchAll(selectorPattern)) {
+    const openIndex = source.indexOf("{", match.index);
+    if (openIndex === -1) continue;
+
+    let depth = 0;
+    for (let i = openIndex; i < source.length; i += 1) {
+      const char = source[i];
+      if (char === "{") depth += 1;
+      if (char === "}") depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(match.index, i + 1));
+        break;
+      }
+    }
+  }
+
+  return blocks;
+}
+
+function cssBlockIncludesAll(block, declarations) {
+  return declarations.every((declaration) => block.includes(declaration));
+}
+
+function getElementHtmlById(source, tagName, id) {
+  const startPattern = new RegExp(`<${tagName}\\b[^>]*id="${id}"[^>]*>`, "i");
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function hasQuickStartGuide(source) {
+  const guideHtml = source.match(
+    /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>[\s\S]*?<\/section>/i
+  )?.[0] || "";
+  const guideText = normalizedText(guideHtml);
+  return /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>/i.test(guideHtml) &&
+    countMatches(guideHtml, /class="[^"]*\broot-start-step\b[^"]*"/g) >= 3 &&
+    [
+      "Pick a method",
+      "Use bracket methods when you have an interval, or open methods when you have starting guesses.",
+      "Enter the function",
+      "Type f(x), choose the machine rule, then set iterations or tolerance.",
+      "Read the run",
+      "Check the approximate root, stopping reason, diagnostics, graph, and iteration table."
+    ].every((phrase) => guideText.includes(phrase));
+}
+
+function hasEmptyStateContract(source) {
+  return /<section\b(?=[^>]*\bid="root-empty")(?=[^>]*\bclass="[^"]*\bempty-state\b[^"]*\broot-empty-state\b[^"]*")[^>]*>/i.test(source) &&
+    [
+      "Ready when you are",
+      "Pick a method, enter a function, and run the method.",
+      "Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table."
+    ].every((phrase) => normalizedText(source).includes(phrase));
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
 const mainScriptSources = [...MAIN_HTML.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
 const rootTabPanel = extractSectionById(MAIN_HTML, "tab-root");
+const rootEmptyHtml = extractSectionById(html, "root-empty");
 const expectedScriptOrder = [
   "../math-engine.js?v=roots-v1",
   "../calc-engine.js?v=roots-v1",
@@ -115,10 +207,52 @@ check(
     /id="root-result-stage"/.test(html) ? "root-result-stage" : null
   ].filter(Boolean).join(", ") || "no required shell controls",
   /id="angle-toggle"/.test(html) &&
-    /id="status-angle"/.test(html) &&
+  /id="status-angle"/.test(html) &&
     /id="symbol-popover"/.test(html) &&
     /class="root-method-tabs"/.test(html) &&
     /id="root-result-stage"/.test(html)
+);
+
+check(
+  "Standalone entry includes a Roots first-run guide",
+  "root-start-guide with three steps",
+  hasQuickStartGuide(html)
+    ? "first-run guide present"
+    : "first-run guide missing",
+  hasQuickStartGuide(html)
+);
+
+check(
+  "Method tabs expose method categories",
+  "two bracket tabs, two open tabs, one fixed-point tab",
+  [
+    `bracket:${countMatches(html, /data-method-kind="bracket"/g)} / labels:${countMatches(html, /<span class="method-kind">Bracket<\/span><span>Bisection<\/span>|<span class="method-kind">Bracket<\/span><span>False Position<\/span>/g)}`,
+    `open:${countMatches(html, /data-method-kind="open"/g)} / labels:${countMatches(html, /<span class="method-kind">Open<\/span><span>Newton-Raphson<\/span>|<span class="method-kind">Open<\/span><span>Secant<\/span>/g)}`,
+    `fixed-point:${countMatches(html, /data-method-kind="fixed-point"/g)} / labels:${countMatches(html, /<span class="method-kind">Fixed-point<\/span><span>Fixed Point<\/span>/g)}`
+  ].join(", "),
+  countMatches(html, /data-method-kind="bracket"/g) === 2 &&
+    countMatches(html, /data-method-kind="open"/g) === 2 &&
+    countMatches(html, /data-method-kind="fixed-point"/g) === 1 &&
+    [
+      { id: "root-tab-bisection", kind: "Bracket", name: "Bisection" },
+      { id: "root-tab-newton", kind: "Open", name: "Newton-Raphson" },
+      { id: "root-tab-secant", kind: "Open", name: "Secant" },
+      { id: "root-tab-falseposition", kind: "Bracket", name: "False Position" },
+      { id: "root-tab-fixedpoint", kind: "Fixed-point", name: "Fixed Point" }
+    ].every(({ id, kind, name }) => {
+      const buttonHtml = getElementHtmlById(html, "button", id);
+      const text = normalizedText(buttonHtml);
+      return buttonHtml.includes(`data-method-kind="${kind === "Fixed-point" ? "fixed-point" : kind.toLowerCase()}"`) && text.includes(kind) && text.includes(name);
+    })
+);
+
+check(
+  "Empty state gives a useful first action",
+  "root-empty includes a short action prompt",
+  hasEmptyStateContract(rootEmptyHtml)
+    ? "empty prompt present"
+    : "empty prompt missing",
+  hasEmptyStateContract(rootEmptyHtml)
 );
 
 check(
@@ -135,6 +269,74 @@ check(
     ? "wrapped table present"
     : "wrapped table missing",
   /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
+);
+
+const rootsCss = fs.readFileSync(path.join(ROOT, "roots", "roots.css"), "utf8");
+
+const primaryRootHeroBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child");
+const primaryRootHeroBlock = primaryRootHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "background: var(--surface-strong)",
+    "box-shadow: 0 10px 24px rgba(20, 24, 31, 0.08)"
+  ])
+);
+const rootHeroValueBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child .answer-value");
+const rootHeroValueBlock = rootHeroValueBlocks.find((block) =>
+  block.includes("font-size: clamp(1.8rem, 4vw, 2.6rem)")
+);
+const iterationTableWrapBlocks = getCssBlocks(rootsCss, ".root-iteration-table-wrap");
+const iterationTableScrollBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "overflow-x: auto",
+    "max-width: 100%"
+  ])
+);
+const iterationTableFrameBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "border: 1px solid var(--line)",
+    "border-radius: var(--radius)"
+  ])
+);
+const iterationTableHeaderBlocks = getCssBlocks(rootsCss, ".root-iteration-table th");
+const iterationTableHeaderBlock = iterationTableHeaderBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "position: sticky",
+    "top: 0",
+    "z-index: 1"
+  ])
+);
+const narrowScreenMediaBlocks = getCssBlocks(rootsCss, "@media (max-width: 720px)");
+const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreenMediaBlocks[0] : "";
+const narrowScreenMediaTableBlock =
+  narrowScreenMediaBlock.includes(".root-iteration-table") &&
+  narrowScreenMediaBlock.includes("min-width: 640px");
+
+check(
+  "Roots CSS keeps the approximate root visually primary",
+  "root-summary-grid first answer hero receives primary styling",
+  primaryRootHeroBlock && rootHeroValueBlock
+    ? "primary summary styling present"
+    : "primary summary styling missing",
+  Boolean(primaryRootHeroBlock && rootHeroValueBlock)
+);
+
+check(
+  "Roots CSS includes narrow-screen table support",
+  "table wrapper, sticky header, and 640px table min-width inside the max-width media query",
+  iterationTableScrollBlock &&
+    iterationTableFrameBlock &&
+    iterationTableHeaderBlock &&
+    narrowScreenMediaBlock &&
+    narrowScreenMediaTableBlock
+    ? "responsive table support present"
+    : "responsive table support missing",
+  Boolean(
+    iterationTableScrollBlock &&
+      iterationTableFrameBlock &&
+      iterationTableHeaderBlock &&
+      narrowScreenMediaBlock &&
+      narrowScreenMediaTableBlock
+  )
 );
 
 check(

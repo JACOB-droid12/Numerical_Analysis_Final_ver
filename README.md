@@ -22,6 +22,8 @@ This repository contains a static browser-based numerical analysis calculator. N
 - `scripts/roots-mini-app-static-audit.js` - static cutover and entry-point audit
 - `scripts/roots-mini-app-ui-audit.js` - Roots UI wiring audit
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` - design and implementation notes
+- `docs/roots-context.md` - compact Roots file map and edit boundaries for AI-assisted work
+- `docs/roots-ai-fast-lane.md` - routing guide for low-context Roots edits
 - `lesson-roundoff.pdf` - supporting course material
 - `scripts/build-deliverable.ps1` - packages the static app into a shareable folder
 
@@ -34,4 +36,5 @@ node scripts/engine-correctness-audit.js
 node scripts/root-engine-audit.js
 node scripts/roots-mini-app-static-audit.js
 node scripts/roots-mini-app-ui-audit.js
+node scripts/roots-fast-lane-audit.js
 ```
