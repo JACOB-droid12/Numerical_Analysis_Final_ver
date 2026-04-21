@@ -72,10 +72,12 @@ function getElementHtmlById(source, tagName, id) {
 }
 
 function hasQuickStartGuide(source) {
-  const guideHtml = source.match(/<section class="root-start-guide" aria-label="Roots quick start">[\s\S]*?<\/section>/)?.[0] || "";
+  const guideHtml = source.match(
+    /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>[\s\S]*?<\/section>/i
+  )?.[0] || "";
   const guideText = normalizedText(guideHtml);
-  return /<section class="root-start-guide" aria-label="Roots quick start">/.test(guideHtml) &&
-    countMatches(guideHtml, /class="root-start-step"/g) >= 3 &&
+  return /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>/i.test(guideHtml) &&
+    countMatches(guideHtml, /class="[^"]*\broot-start-step\b[^"]*"/g) >= 3 &&
     [
       "Pick a method",
       "Use bracket methods when you have an interval, or open methods when you have starting guesses.",
