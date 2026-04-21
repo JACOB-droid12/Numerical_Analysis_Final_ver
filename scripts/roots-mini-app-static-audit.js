@@ -44,12 +44,42 @@ function includesAll(source, values) {
   return values.every((value) => source.includes(value));
 }
 
+function escapeRegExp(source) {
+  return source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function stripTags(source) {
   return source.replace(/<[^>]*>/g, " ");
 }
 
 function normalizedText(source) {
   return stripTags(source).replace(/\s+/g, " ").trim();
+}
+
+function getCssBlocks(source, selector) {
+  const selectorPattern = new RegExp(`${escapeRegExp(selector)}\\s*\\{`, "g");
+  const blocks = [];
+  for (const match of source.matchAll(selectorPattern)) {
+    const openIndex = source.indexOf("{", match.index);
+    if (openIndex === -1) continue;
+
+    let depth = 0;
+    for (let i = openIndex; i < source.length; i += 1) {
+      const char = source[i];
+      if (char === "{") depth += 1;
+      if (char === "}") depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(match.index, i + 1));
+        break;
+      }
+    }
+  }
+
+  return blocks;
+}
+
+function cssBlockIncludesAll(block, declarations) {
+  return declarations.every((declaration) => block.includes(declaration));
 }
 
 function getElementHtmlById(source, tagName, id) {
@@ -243,22 +273,57 @@ check(
 
 const rootsCss = fs.readFileSync(path.join(ROOT, "roots", "roots.css"), "utf8");
 
+const primaryRootHeroBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child");
+const primaryRootHeroBlock = primaryRootHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "background: var(--surface-strong)",
+    "box-shadow: 0 10px 24px rgba(20, 24, 31, 0.08)"
+  ])
+);
+const rootHeroValueBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child .answer-value");
+const rootHeroValueBlock = rootHeroValueBlocks.find((block) =>
+  block.includes("font-size: clamp(1.8rem, 4vw, 2.6rem)")
+);
+const iterationTableWrapBlocks = getCssBlocks(rootsCss, ".root-iteration-table-wrap");
+const iterationTableScrollBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "overflow-x: auto",
+    "max-width: 100%"
+  ])
+);
+const iterationTableFrameBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "border: 1px solid var(--line)",
+    "border-radius: var(--radius)"
+  ])
+);
+const iterationTableHeaderBlocks = getCssBlocks(rootsCss, ".root-iteration-table th");
+const iterationTableHeaderBlock = iterationTableHeaderBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "position: sticky",
+    "top: 0",
+    "z-index: 1"
+  ])
+);
+const narrowScreenMediaBlocks = getCssBlocks(rootsCss, "@media (max-width: 720px)");
+const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreenMediaBlocks[0] : "";
+
 check(
   "Roots CSS keeps the approximate root visually primary",
   "root-summary-grid first answer hero receives primary styling",
-  /\.root-summary-grid\s+\.answer-hero:first-child[\s\S]*background:\s*var\(--surface-strong/.test(rootsCss)
+  primaryRootHeroBlock && rootHeroValueBlock
     ? "primary summary styling present"
     : "primary summary styling missing",
-  /\.root-summary-grid\s+\.answer-hero:first-child[\s\S]*background:\s*var\(--surface-strong/.test(rootsCss)
+  Boolean(primaryRootHeroBlock && rootHeroValueBlock)
 );
 
 check(
   "Roots CSS includes narrow-screen table support",
-  "root-iteration-table-wrap and max-width media query",
-  /root-iteration-table-wrap/.test(rootsCss) && /@media\s*\(max-width:\s*720px\)/.test(rootsCss)
+  "table wrapper, sticky header, and max-width media query",
+  iterationTableScrollBlock && iterationTableFrameBlock && iterationTableHeaderBlock && narrowScreenMediaBlock
     ? "responsive table support present"
     : "responsive table support missing",
-  /root-iteration-table-wrap/.test(rootsCss) && /@media\s*\(max-width:\s*720px\)/.test(rootsCss)
+  Boolean(iterationTableScrollBlock && iterationTableFrameBlock && iterationTableHeaderBlock && narrowScreenMediaBlock)
 );
 
 check(
