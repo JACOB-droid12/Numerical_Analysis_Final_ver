@@ -115,10 +115,43 @@ check(
     /id="root-result-stage"/.test(html) ? "root-result-stage" : null
   ].filter(Boolean).join(", ") || "no required shell controls",
   /id="angle-toggle"/.test(html) &&
-    /id="status-angle"/.test(html) &&
+  /id="status-angle"/.test(html) &&
     /id="symbol-popover"/.test(html) &&
     /class="root-method-tabs"/.test(html) &&
     /id="root-result-stage"/.test(html)
+);
+
+check(
+  "Standalone entry includes a Roots first-run guide",
+  "root-start-guide with three steps",
+  /class="[^"]*root-start-guide[^"]*"/.test(html) &&
+    (html.match(/class="[^"]*root-start-step[^"]*"/g) || []).length >= 3
+    ? "first-run guide present"
+    : "first-run guide missing",
+  /class="[^"]*root-start-guide[^"]*"/.test(html) &&
+    (html.match(/class="[^"]*root-start-step[^"]*"/g) || []).length >= 3
+);
+
+check(
+  "Method tabs expose method categories",
+  "two bracket tabs, two open tabs, one fixed-point tab",
+  [
+    `bracket:${(html.match(/data-method-kind="bracket"/g) || []).length}`,
+    `open:${(html.match(/data-method-kind="open"/g) || []).length}`,
+    `fixed-point:${(html.match(/data-method-kind="fixed-point"/g) || []).length}`
+  ].join(", "),
+  (html.match(/data-method-kind="bracket"/g) || []).length === 2 &&
+    (html.match(/data-method-kind="open"/g) || []).length === 2 &&
+    (html.match(/data-method-kind="fixed-point"/g) || []).length === 1
+);
+
+check(
+  "Empty state gives a useful first action",
+  "root-empty includes a short action prompt",
+  /id="root-empty"[\s\S]*Pick a method[\s\S]*Run the method/.test(html)
+    ? "empty prompt present"
+    : "empty prompt missing",
+  /id="root-empty"[\s\S]*Pick a method[\s\S]*Run the method/.test(html)
 );
 
 check(
