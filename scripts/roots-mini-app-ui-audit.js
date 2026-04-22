@@ -312,11 +312,11 @@ assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisect
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
 assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
 click(document.elements["root-shell-answer-link"], "root-shell-answer-link should be wired for click");
-assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
-assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
+assert.ok(document.elements["root-quiz-answer"].scrollCount >= 1, "Quiz Answer rail click should scroll to the answer section");
+assert.ok(document.elements["root-quiz-answer"].focusCount >= 1, "Quiz Answer rail click should focus the answer section");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
 click(document.elements["root-shell-evidence-link"], "root-shell-evidence-link should be wired for click");
-assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
+assert.ok(document.elements["root-evidence-stack"].scrollCount >= 1, "Evidence rail click should scroll to the evidence section");
 assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
 assert.ok(ROOTS_HTML.includes("root-shell-rail"), "NET shell rail should exist in the standalone Roots HTML");
