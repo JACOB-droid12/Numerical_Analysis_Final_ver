@@ -33,6 +33,21 @@
     if (el) el.textContent = message || "";
   }
 
+  function setCurrentShellLink(activeId) {
+    [
+      "root-shell-methods-link",
+      "root-shell-setup-link",
+      "root-shell-answer-link",
+      "root-shell-evidence-link"
+    ].forEach(function updateLink(id) {
+      const link = byId(id);
+      if (!link) return;
+      const isActive = id === activeId;
+      if (link.classList && link.classList.toggle) link.classList.toggle("active", isActive);
+      if (link.setAttribute) link.setAttribute("aria-current", isActive ? "true" : "false");
+    });
+  }
+
   function syncBisectionToleranceControls() {
     const epsilonMode = byId("root-bis-stop-kind") && byId("root-bis-stop-kind").value === "epsilon";
     const wrap = byId("root-bis-tolerance-type-wrap");
@@ -206,6 +221,26 @@
     });
   }
 
+  function wireShellNavigation() {
+    const links = [
+      { id: "root-shell-methods-link", targetId: "root-method-section" },
+      { id: "root-shell-setup-link", targetId: "root-setup-card" },
+      { id: "root-shell-answer-link", targetId: "root-quiz-answer" },
+      { id: "root-shell-evidence-link", targetId: "root-evidence-stack" }
+    ];
+
+    links.forEach(function wireLink(item) {
+      const link = byId(item.id);
+      const target = byId(item.targetId);
+      if (!link || !target) return;
+      link.addEventListener("click", function onShellNavClick() {
+        setCurrentShellLink(item.id);
+        if (target.scrollIntoView) target.scrollIntoView({ block: "start", behavior: "smooth" });
+        if (target.focus) target.focus();
+      });
+    });
+  }
+
   function wireAngleToggle(state) {
     const button = byId("angle-toggle");
     if (!button) return;
@@ -224,6 +259,8 @@
     const state = globalScope.RootsState.createState();
     globalScope.RootsRender.resetResults(state);
     wireMethodControls(state);
+    wireShellNavigation();
+    setCurrentShellLink("root-shell-methods-link");
     wireAngleToggle(state);
     wireCopySolution(state);
     wireSymbols();
