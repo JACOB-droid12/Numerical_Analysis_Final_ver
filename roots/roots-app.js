@@ -234,13 +234,21 @@
       const target = byId(item.targetId);
       if (!link || !target) return;
       link.addEventListener("click", function onShellNavClick() {
-        setCurrentShellLink(item.id);
-        if (target.scrollIntoView) target.scrollIntoView({ block: "start", behavior: "smooth" });
-        if (target.focus) {
+        const resultStage = byId("root-result-stage");
+        const resultsHidden = !!(resultStage && resultStage.hidden);
+        const shouldRouteToSetup = resultsHidden && (item.id === "root-shell-answer-link" || item.id === "root-shell-evidence-link");
+        const nextLinkId = shouldRouteToSetup ? "root-shell-setup-link" : item.id;
+        const nextTarget = shouldRouteToSetup ? byId("root-setup-card") : target;
+
+        setCurrentShellLink(nextLinkId);
+        if (shouldRouteToSetup) setStatus("Run the method first, then review the answer and evidence.");
+
+        if (nextTarget && nextTarget.scrollIntoView) nextTarget.scrollIntoView({ block: "start", behavior: "smooth" });
+        if (nextTarget && nextTarget.focus) {
           try {
-            target.focus({ preventScroll: true });
+            nextTarget.focus({ preventScroll: true });
           } catch (err) {
-            target.focus();
+            nextTarget.focus();
           }
         }
       });
