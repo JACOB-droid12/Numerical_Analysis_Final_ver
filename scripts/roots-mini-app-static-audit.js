@@ -221,6 +221,58 @@ function hasAcademicStudioCss(source) {
   ].every((selector) => source.includes(selector));
 }
 
+function hasNetShellLayout(source) {
+  const shellHtml = getElementHtmlByClass(source, "div", "roots-net-layout");
+  const railHtml = getElementHtmlByClass(source, "nav", "root-shell-rail");
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const methodsHtml = getElementHtmlById(source, "section", "root-method-section");
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const answerHtml = getElementHtmlById(source, "section", "root-quiz-answer");
+  const evidenceHtml = getElementHtmlById(source, "section", "root-evidence-stack");
+  const railText = normalizedText(railHtml);
+  const headerText = normalizedText(headerHtml);
+  const methodsText = normalizedText(methodsHtml);
+
+  return Boolean(shellHtml) &&
+    Boolean(railHtml) &&
+    Boolean(headerHtml) &&
+    Boolean(methodsHtml) &&
+    Boolean(setupHtml) &&
+    Boolean(answerHtml) &&
+    Boolean(evidenceHtml) &&
+    railText.includes("NET+") &&
+    railText.includes("Methods") &&
+    railText.includes("Problem Setup") &&
+    railText.includes("Quiz Answer") &&
+    railText.includes("Evidence") &&
+    headerText.includes("Back to calculator") &&
+    headerText.includes("Angle") &&
+    headerText.includes("Use radians") &&
+    methodsText.includes("Methods") &&
+    methodsText.includes("Choose the root-finding method that fits the prompt");
+}
+
+function hasNetShellUtilities(source) {
+  return /class="root-shell-header"/.test(source) &&
+    /id="status-angle"/.test(source) &&
+    /id="angle-toggle"/.test(source) &&
+    /href="\.\.\/index\.html"/.test(source) &&
+    !/class="roots-toolbar"/.test(source);
+}
+
+function hasNetShellCss(source) {
+  return [
+    ".roots-net-layout",
+    ".root-shell-rail",
+    ".root-shell-brand",
+    ".root-shell-links",
+    ".root-shell-link",
+    ".root-shell-header",
+    ".root-shell-utilities",
+    ".root-method-section"
+  ].every((selector) => source.includes(selector));
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
@@ -291,20 +343,10 @@ check(
 );
 
 check(
-  "Standalone entry includes local shell controls",
-  "angle-toggle, status-angle, symbol-popover, root-method-tabs, root-result-stage",
-  [
-    /id="angle-toggle"/.test(html) ? "angle-toggle" : null,
-    /id="status-angle"/.test(html) ? "status-angle" : null,
-    /id="symbol-popover"/.test(html) ? "symbol-popover" : null,
-    /class="root-method-tabs"/.test(html) ? "root-method-tabs" : null,
-    /id="root-result-stage"/.test(html) ? "root-result-stage" : null
-  ].filter(Boolean).join(", ") || "no required shell controls",
-  /id="angle-toggle"/.test(html) &&
-  /id="status-angle"/.test(html) &&
-    /id="symbol-popover"/.test(html) &&
-    /class="root-method-tabs"/.test(html) &&
-    /id="root-result-stage"/.test(html)
+  "Standalone entry moves shell controls into the NET shell",
+  "root-shell-header owns Back to calculator, status-angle, and angle-toggle; legacy roots-toolbar removed",
+  hasNetShellUtilities(html) ? "shell utilities present" : "shell utilities missing",
+  hasNetShellUtilities(html)
 );
 
 check(
@@ -359,10 +401,10 @@ check(
 );
 
 check(
-  "Academic Studio layout is present",
-  "hero, workspace, method rail, setup card, answer card, and evidence stack",
-  hasAcademicStudioLayout(html) ? "present" : "missing",
-  hasAcademicStudioLayout(html)
+  "NET shell layout is present",
+  "shell rail, shell header, methods section, setup card, quiz answer, and evidence stack",
+  hasNetShellLayout(html) ? "present" : "missing",
+  hasNetShellLayout(html)
 );
 
 check(
@@ -477,10 +519,10 @@ check(
 );
 
 check(
-  "Academic Studio CSS hooks are present",
-  ".roots-studio-hero, .roots-studio-workspace, .root-method-rail, .root-setup-card, .root-answer-card, .root-evidence-stack, .root-academic-paper",
-  hasAcademicStudioCss(rootsCss) ? "present" : "missing",
-  hasAcademicStudioCss(rootsCss)
+  "NET shell CSS hooks are present",
+  ".roots-net-layout, .root-shell-rail, .root-shell-brand, .root-shell-links, .root-shell-link, .root-shell-header, .root-shell-utilities, .root-method-section",
+  hasNetShellCss(rootsCss) ? "present" : "missing",
+  hasNetShellCss(rootsCss)
 );
 
 check(
