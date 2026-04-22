@@ -129,6 +129,25 @@ const IDS = [
   "root-iteration-thead", "root-iteration-body", "root-solution-steps", "root-copy-solution", "root-copy-status"
 ];
 
+const BUTTON_IDS = new Set([
+  "angle-toggle",
+  "root-copy-solution",
+  "root-bis-compute",
+  "root-newton-compute",
+  "root-secant-compute",
+  "root-fp-compute",
+  "root-fpi-compute",
+  "root-tab-bisection",
+  "root-tab-newton",
+  "root-tab-secant",
+  "root-tab-falseposition",
+  "root-tab-fixedpoint",
+  "root-shell-methods-link",
+  "root-shell-setup-link",
+  "root-shell-answer-link",
+  "root-shell-evidence-link"
+]);
+
 function makeDocument() {
   const elements = {};
   function ensure(id, tag = "div") {
@@ -138,16 +157,7 @@ function makeDocument() {
 
   IDS.forEach((id) => ensure(
     id,
-    id.includes("compute") ||
-    id.includes("tab") ||
-    id === "angle-toggle" ||
-    id === "root-copy-solution" ||
-    id === "root-shell-methods-link" ||
-    id === "root-shell-setup-link" ||
-    id === "root-shell-answer-link" ||
-    id === "root-shell-evidence-link"
-      ? "button"
-      : "div"
+    BUTTON_IDS.has(id) ? "button" : "div"
   ));
 
   const symbolTriggers = [...ROOTS_HTML.matchAll(/<button[^>]*class="[^"]*symbol-trigger[^"]*"[^>]*>/gi)].map((match, index) => {
@@ -188,6 +198,12 @@ function makeDocument() {
 function click(el) {
   const handlers = el.listeners.click || [];
   assert.ok(handlers.length > 0, `${el.id || el.tagName} should be wired for click`);
+  handlers[0]();
+}
+
+function invokeFirstClickHandler(el, message) {
+  const handlers = el.listeners.click || [];
+  assert.ok(handlers.length > 0, message);
   handlers[0]();
 }
 
@@ -301,15 +317,17 @@ document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
 assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
 assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
-const shellAnswerClickHandlers = document.elements["root-shell-answer-link"].listeners.click || [];
-assert.ok(shellAnswerClickHandlers.length > 0, "root-shell-answer-link should be wired for click");
-shellAnswerClickHandlers[0]();
+invokeFirstClickHandler(
+  document.elements["root-shell-answer-link"],
+  "root-shell-answer-link should be wired for click"
+);
 assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
 assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
-const shellEvidenceClickHandlers = document.elements["root-shell-evidence-link"].listeners.click || [];
-assert.ok(shellEvidenceClickHandlers.length > 0, "root-shell-evidence-link should be wired for click");
-shellEvidenceClickHandlers[0]();
+invokeFirstClickHandler(
+  document.elements["root-shell-evidence-link"],
+  "root-shell-evidence-link should be wired for click"
+);
 assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
 assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
