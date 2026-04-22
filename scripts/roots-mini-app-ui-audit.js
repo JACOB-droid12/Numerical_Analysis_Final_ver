@@ -395,13 +395,19 @@ assert.ok(document.elements["root-sign-summary"].textContent.includes("E("), "fa
 
 click(document.elements["root-copy-solution"]);
 assert.strictEqual(document.elements["root-copy-status"].textContent, "Solution copied.");
+const copiedLines = clipboard.text.split(/\r?\n/);
+const nextActionIndex = copiedLines.indexOf("Next action");
+const evidenceIndex = copiedLines.indexOf("Evidence");
+assert.strictEqual(copiedLines[0], "Quiz-ready answer", "copied solution should start with quiz-ready answer");
+assert.ok(nextActionIndex >= 0, "copied solution should include next action heading");
+assert.ok(evidenceIndex >= 0, "copied solution should include evidence heading");
+assert.ok(evidenceIndex > nextActionIndex, "evidence heading should appear after next action");
 assert.ok(clipboard.text.includes("false position"), "copy should include current solution text");
 assert.ok(clipboard.text.includes("Method: False Position"), "copy should include method header");
 assert.ok(clipboard.text.includes("Approximate root:"), "copy should include approximate root");
 assert.ok(clipboard.text.includes("Stopping result:"), "copy should include stopping result");
 assert.ok(clipboard.text.includes("Stopping parameters:"), "copy should include stopping parameters");
 assert.ok(clipboard.text.includes("Next action"), "copy should include next action guidance");
-assert.ok(clipboard.text.includes("Quiz-ready answer"), "copied solution should start with quiz-ready answer");
 assert.ok(clipboard.text.includes("Evidence"), "copied solution should include evidence section");
 
 const bisTrigger = document.symbolTriggers.find((trigger) => trigger.dataset.symbolTarget === "root-bis-expression");

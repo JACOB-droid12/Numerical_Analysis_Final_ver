@@ -615,6 +615,7 @@
 
   function buildSolutionText(run) {
     const summary = run && run.summary ? run.summary : {};
+    const machine = run && run.machine ? run.machine : {};
     const method = run && run.method ? run.method : "";
     const rootDisplay = run && run.rootDisplay ? run.rootDisplay : (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18));
     const methodLabelText = methodLabel(method);
@@ -628,7 +629,12 @@
     }).join("\n");
     const lines = [
       "Quiz-ready answer",
-      "Approximate root: " + rootDisplay,
+      "Approximate root: " + rootDisplay
+    ];
+    if (machine.k != null && machine.mode) {
+      lines.push("Machine: " + machine.k + " significant digits, " + (machine.mode === "round" ? "rounding" : "chopping"));
+    }
+    lines.push(
       "Method: " + methodLabelText,
       "Stopping result: " + stoppingResult,
       "Stopping parameters: " + convergence,
@@ -642,7 +648,7 @@
       "",
       "Evidence",
       steps
-    ];
+    );
     return lines.join("\n");
   }
 
