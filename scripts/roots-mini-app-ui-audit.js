@@ -71,6 +71,8 @@ class FakeElement {
     this.classList = new FakeClassList();
     this.selectionStart = this.value.length;
     this.selectionEnd = this.value.length;
+    this.focusCount = 0;
+    this.scrollCount = 0;
   }
   addEventListener(type, handler) {
     if (!this.listeners[type]) this.listeners[type] = [];
@@ -86,7 +88,12 @@ class FakeElement {
   getAttribute(name) {
     return this.attributes[name];
   }
-  focus() {}
+  focus() {
+    this.focusCount += 1;
+  }
+  scrollIntoView() {
+    this.scrollCount += 1;
+  }
   setSelectionRange(start, end) {
     this.selectionStart = start;
     this.selectionEnd = end;
@@ -113,7 +120,8 @@ const IDS = [
   "root-fpi-expression", "root-fpi-x0", "root-fpi-k", "root-fpi-mode", "root-fpi-stop-kind",
   "root-fpi-stop-value", "root-fpi-compute",
   "root-empty", "root-result-stage", "root-approx", "root-stopping-result", "root-convergence",
-  "root-studio-workspace", "root-method-rail", "root-setup-card", "root-evidence-stack", "root-evidence-heading",
+  "root-shell-rail", "root-shell-header", "root-shell-methods-link", "root-shell-setup-link", "root-shell-answer-link", "root-shell-evidence-link",
+  "root-method-section", "root-studio-workspace", "root-setup-card", "root-quiz-answer", "root-evidence-stack", "root-evidence-heading",
   "root-active-method", "root-final-metric", "root-interpretation", "root-next-action",
   "root-method-guide", "root-method-title", "root-method-summary", "root-method-details",
   "root-error-msg", "root-status-msg", "root-diagnostics", "root-bracket-panel", "root-interval-status",
@@ -128,7 +136,16 @@ function makeDocument() {
     return elements[id];
   }
 
-  IDS.forEach((id) => ensure(id, id.includes("compute") || id.includes("tab") || id === "angle-toggle" || id === "root-copy-solution" ? "button" : "div"));
+  IDS.forEach((id) => ensure(
+    id,
+    id.includes("compute") ||
+    id.includes("tab") ||
+    id === "angle-toggle" ||
+    id === "root-copy-solution" ||
+    id.endsWith("-link")
+      ? "button"
+      : "div"
+  ));
 
   const symbolTriggers = [...ROOTS_HTML.matchAll(/<button[^>]*class="[^"]*symbol-trigger[^"]*"[^>]*>/gi)].map((match, index) => {
     const el = new FakeElement("button", "symbol-trigger-" + index);
@@ -272,6 +289,17 @@ assert.ok(
   ROOTS_HTML.includes("root-evidence-heading"),
   "Academic Studio evidence heading should exist in the standalone Roots HTML"
 );
+assert.ok(ROOTS_HTML.includes("root-shell-rail"), "NET shell rail should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-shell-header"), "NET shell header should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-method-section"), "Methods section should exist in the standalone Roots HTML");
+click(document.elements["root-shell-answer-link"]);
+assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
+assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
+click(document.elements["root-shell-evidence-link"]);
+assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
+assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
 assert.strictEqual(
   document.elements["root-evidence-heading"].textContent || "Evidence",
   "Evidence"
