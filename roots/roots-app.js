@@ -236,7 +236,13 @@
       link.addEventListener("click", function onShellNavClick() {
         setCurrentShellLink(item.id);
         if (target.scrollIntoView) target.scrollIntoView({ block: "start", behavior: "smooth" });
-        if (target.focus) target.focus();
+        if (target.focus) {
+          try {
+            target.focus({ preventScroll: true });
+          } catch (err) {
+            target.focus();
+          }
+        }
       });
     });
   }
