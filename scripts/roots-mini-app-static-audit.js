@@ -184,43 +184,6 @@ function hasQuizAnswerPanel(source) {
     quizAnswerText.includes("Try next");
 }
 
-function hasAcademicStudioLayout(source) {
-  const heroHtml = getElementHtmlByClass(source, "div", "roots-studio-hero");
-  const workspaceHtml = getElementHtmlByClass(source, "div", "roots-studio-workspace");
-  const methodRailHtml = getElementHtmlByClass(source, "aside", "root-method-rail");
-  const setupHtml = getElementHtmlByClass(source, "section", "root-setup-card");
-  const answerCardHtml = getElementHtmlByClass(source, "section", "root-answer-card");
-  const evidenceHtml = getElementHtmlByClass(source, "section", "root-evidence-stack");
-  const heroText = normalizedText(heroHtml);
-  const workspaceText = normalizedText(workspaceHtml);
-
-  return Boolean(heroHtml) &&
-    Boolean(workspaceHtml) &&
-    Boolean(methodRailHtml) &&
-    Boolean(setupHtml) &&
-    Boolean(answerCardHtml) &&
-    Boolean(evidenceHtml) &&
-    heroText.includes("Guided Solver Studio") &&
-    heroText.includes("Pick method") &&
-    heroText.includes("Enter values") &&
-    heroText.includes("Copy answer") &&
-    workspaceText.includes("Method") &&
-    workspaceText.includes("Problem setup") &&
-    workspaceText.includes("Evidence");
-}
-
-function hasAcademicStudioCss(source) {
-  return [
-    ".roots-studio-hero",
-    ".roots-studio-workspace",
-    ".root-method-rail",
-    ".root-setup-card",
-    ".root-answer-card",
-    ".root-evidence-stack",
-    ".root-academic-paper"
-  ].every((selector) => source.includes(selector));
-}
-
 function hasNetShellLayout(source) {
   const shellHtml = getElementHtmlByClass(source, "div", "roots-net-layout");
   const railHtml = getElementHtmlByClass(source, "nav", "root-shell-rail");
@@ -253,11 +216,16 @@ function hasNetShellLayout(source) {
 }
 
 function hasNetShellUtilities(source) {
-  return /class="root-shell-header"/.test(source) &&
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const toolbarHtml = getElementHtmlByClass(source, "div", "roots-toolbar") ||
+    getElementHtmlByClass(source, "nav", "roots-toolbar") ||
+    getElementHtmlByClass(source, "header", "roots-toolbar");
+
+  return Boolean(headerHtml) &&
     /id="status-angle"/.test(source) &&
     /id="angle-toggle"/.test(source) &&
     /href="\.\.\/index\.html"/.test(source) &&
-    !/class="roots-toolbar"/.test(source);
+    !toolbarHtml;
 }
 
 function hasNetShellCss(source) {
