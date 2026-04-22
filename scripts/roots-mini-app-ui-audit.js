@@ -398,8 +398,11 @@ assert.strictEqual(document.elements["root-copy-status"].textContent, "Solution 
 assert.ok(clipboard.text.includes("false position"), "copy should include current solution text");
 assert.ok(clipboard.text.includes("Method: False Position"), "copy should include method header");
 assert.ok(clipboard.text.includes("Approximate root:"), "copy should include approximate root");
-assert.ok(clipboard.text.includes("Stopping reason:"), "copy should include stopping reason");
-assert.ok(clipboard.text.includes("Next action:"), "copy should include next action guidance");
+assert.ok(clipboard.text.includes("Stopping result:"), "copy should include stopping result");
+assert.ok(clipboard.text.includes("Stopping parameters:"), "copy should include stopping parameters");
+assert.ok(clipboard.text.includes("Next action"), "copy should include next action guidance");
+assert.ok(clipboard.text.includes("Quiz-ready answer"), "copied solution should start with quiz-ready answer");
+assert.ok(clipboard.text.includes("Evidence"), "copied solution should include evidence section");
 
 const bisTrigger = document.symbolTriggers.find((trigger) => trigger.dataset.symbolTarget === "root-bis-expression");
 const sqrtButton = document.symbolButtons.find((button) => button.dataset.symbolInsert === "sqrt(");

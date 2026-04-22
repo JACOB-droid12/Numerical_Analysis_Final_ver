@@ -615,22 +615,35 @@
 
   function buildSolutionText(run) {
     const summary = run && run.summary ? run.summary : {};
-    const machine = run && run.machine ? run.machine : {};
     const method = run && run.method ? run.method : "";
-    const header = [
-      "Method: " + methodLabel(method),
-      "Approximate root: " + (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18)),
-      "Stopping reason: " + formatStopReason(summary.stopReason, method),
-      "Stopping: " + formatStoppingDetails(run),
-      "Next action: " + nextActionText(run)
-    ];
-    if (machine.k != null && machine.mode) {
-      header.splice(1, 0, "Machine: " + machine.k + " significant digits, " + (machine.mode === "round" ? "rounding" : "chopping"));
-    }
+    const rootDisplay = run && run.rootDisplay ? run.rootDisplay : (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18));
+    const methodLabelText = methodLabel(method);
+    const stoppingResult = formatStopReason(summary.stopReason, method);
+    const convergence = formatStoppingDetails(run);
+    const finalMetricText = finalMetric(run);
+    const interpretation = interpretationText(run);
+    const nextAction = nextActionText(run);
     const steps = solutionSteps(run).map(function numberStep(step, index) {
       return (index + 1) + ". " + step;
     }).join("\n");
-    return header.concat(["", "Solution steps:"], steps).join("\n");
+    const lines = [
+      "Quiz-ready answer",
+      "Approximate root: " + rootDisplay,
+      "Method: " + methodLabelText,
+      "Stopping result: " + stoppingResult,
+      "Stopping parameters: " + convergence,
+      "Final metric: " + finalMetricText,
+      "",
+      "Interpretation",
+      interpretation,
+      "",
+      "Next action",
+      nextAction,
+      "",
+      "Evidence",
+      steps
+    ];
+    return lines.join("\n");
   }
 
   globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText, renderMethodGuide };
