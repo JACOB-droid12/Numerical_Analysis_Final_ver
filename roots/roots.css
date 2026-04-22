@@ -200,7 +200,8 @@
   color: var(--root-ink-soft);
 }
 
-.root-method-rail .root-method-tab.active {
+.root-method-rail .root-method-tab.active,
+.root-method-rail .root-method-tab[aria-selected="true"] {
   color: var(--root-paper);
   background: var(--root-ink);
   box-shadow: 0 12px 30px rgba(36, 50, 29, 0.2);
