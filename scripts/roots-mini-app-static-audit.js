@@ -160,6 +160,7 @@ function hasGuidedSolverShell(source) {
       "Quick workflow",
       "Pick method",
       "Enter values",
+      "Run",
       "Copy answer"
     ].every((phrase) => heroText.includes(phrase)) &&
     guideText.includes("Active solver");
