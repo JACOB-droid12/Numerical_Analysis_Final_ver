@@ -1,5 +1,17 @@
 .roots-standalone {
+  --root-paper: #fff8e8;
+  --root-paper-strong: #f3e4bd;
+  --root-ink: #24321d;
+  --root-ink-soft: #44543a;
+  --root-sage: #dfeedd;
+  --root-sage-line: #b9cda9;
+  --root-gold-line: #d8c58f;
+  --root-shadow: 0 24px 70px rgba(54, 45, 25, 0.16);
   min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(218, 197, 143, 0.36), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(185, 205, 169, 0.42), transparent 30%),
+    linear-gradient(135deg, #f8f0df 0%, #edf5e8 100%);
 }
 
 .roots-app-shell {
@@ -14,6 +26,71 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.root-academic-paper {
+  border: 1px solid var(--root-gold-line);
+  border-radius: calc(var(--radius) + 6px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0)),
+    var(--root-paper);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.72) inset;
+}
+
+.roots-studio-hero {
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.root-studio-title-card,
+.root-studio-workflow {
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.root-studio-title-card h1 {
+  max-width: 12ch;
+  color: var(--root-ink);
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  line-height: 0.94;
+  letter-spacing: -0.06em;
+}
+
+.root-studio-workflow {
+  color: var(--root-paper);
+  border-color: rgba(36, 50, 29, 0.24);
+  background:
+    radial-gradient(circle at 85% 10%, rgba(223, 238, 221, 0.22), transparent 38%),
+    var(--root-ink);
+  box-shadow: var(--root-shadow);
+}
+
+.root-studio-workflow strong,
+.root-studio-workflow p {
+  color: inherit;
+}
+
+.roots-studio-workspace {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.34fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  margin-top: var(--space-4);
+}
+
+.root-method-rail {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.root-studio-main {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
 }
 
 .roots-guided-hero {
@@ -108,6 +185,35 @@
   line-height: 1.55;
 }
 
+.root-method-rail .root-method-tabs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.root-method-rail .root-method-tab {
+  justify-content: flex-start;
+  min-height: 48px;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--root-paper-strong) 72%, white);
+  color: var(--root-ink-soft);
+}
+
+.root-method-rail .root-method-tab.active {
+  color: var(--root-paper);
+  background: var(--root-ink);
+  box-shadow: 0 12px 30px rgba(36, 50, 29, 0.2);
+}
+
+.root-method-rail .root-method-guide {
+  grid-template-columns: 1fr;
+  margin: 0;
+  padding: var(--space-3);
+  border-color: var(--root-sage-line);
+  background: var(--root-sage);
+}
+
 .module-root .root-config-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--root-control-min, 180px)), 1fr));
@@ -115,6 +221,72 @@
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--line);
+}
+
+.root-section-heading {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.root-section-heading h2 {
+  margin: 0;
+  color: var(--root-ink);
+  font-size: clamp(1.25rem, 2.8vw, 1.9rem);
+  letter-spacing: -0.03em;
+}
+
+.root-section-heading p {
+  margin: 0;
+  color: var(--text-subtle);
+  line-height: 1.5;
+}
+
+.root-setup-card,
+.root-evidence-stack {
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+}
+
+.root-setup-card .calculator-band {
+  border-color: rgba(216, 197, 143, 0.76);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.root-answer-card {
+  border: 0;
+  color: var(--root-paper);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(223, 238, 221, 0.22), transparent 34%),
+    var(--root-ink);
+  box-shadow: var(--root-shadow);
+}
+
+.root-answer-card .root-answer-main,
+.root-answer-card .root-result-insight,
+.root-answer-card .root-answer-guidance > div {
+  border-color: rgba(255, 248, 232, 0.18);
+  background: rgba(255, 248, 232, 0.08);
+}
+
+.root-answer-card .result-label,
+.root-answer-card .answer-value,
+.root-answer-card strong,
+.root-answer-card p {
+  color: inherit;
+}
+
+.root-answer-card .result-label {
+  color: color-mix(in srgb, var(--root-sage) 84%, white);
+}
+
+.root-answer-card #root-approx {
+  color: #fff8e8;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.16);
+}
+
+.root-evidence-stack {
+  display: grid;
+  gap: var(--space-4);
 }
 
 .module-root .root-config-grid > label,
@@ -664,6 +836,23 @@
     grid-template-columns: 1fr;
   }
 
+  .roots-studio-hero,
+  .roots-studio-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .root-method-rail {
+    position: static;
+  }
+
+  .root-method-rail .root-method-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .root-studio-title-card h1 {
+    max-width: none;
+  }
+
   .root-answer-main {
     padding: var(--space-3);
   }
@@ -676,6 +865,10 @@
 
 @media (max-width: 720px) {
   .root-start-guide {
+    grid-template-columns: 1fr;
+  }
+
+  .root-method-rail .root-method-tabs {
     grid-template-columns: 1fr;
   }
 
