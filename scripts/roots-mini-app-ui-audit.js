@@ -195,15 +195,9 @@ function makeDocument() {
   };
 }
 
-function click(el) {
+function click(el, message) {
   const handlers = el.listeners.click || [];
-  assert.ok(handlers.length > 0, `${el.id || el.tagName} should be wired for click`);
-  handlers[0]();
-}
-
-function invokeFirstClickHandler(el, message) {
-  const handlers = el.listeners.click || [];
-  assert.ok(handlers.length > 0, message);
+  assert.ok(handlers.length > 0, message || `${el.id || el.tagName} should be wired for click`);
   handlers[0]();
 }
 
@@ -317,17 +311,11 @@ document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
 assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
 assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
-invokeFirstClickHandler(
-  document.elements["root-shell-answer-link"],
-  "root-shell-answer-link should be wired for click"
-);
+click(document.elements["root-shell-answer-link"], "root-shell-answer-link should be wired for click");
 assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
 assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
-invokeFirstClickHandler(
-  document.elements["root-shell-evidence-link"],
-  "root-shell-evidence-link should be wired for click"
-);
+click(document.elements["root-shell-evidence-link"], "root-shell-evidence-link should be wired for click");
 assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
 assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
 assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
