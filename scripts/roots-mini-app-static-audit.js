@@ -194,6 +194,7 @@ function hasAcademicStudioLayout(source) {
   const workspaceHtml = getElementHtmlByClass(source, "div", "roots-studio-workspace");
   const methodRailHtml = getElementHtmlByClass(source, "aside", "root-method-rail");
   const setupHtml = getElementHtmlByClass(source, "section", "root-setup-card");
+  const answerCardHtml = getElementHtmlByClass(source, "section", "root-answer-card");
   const evidenceHtml = getElementHtmlByClass(source, "section", "root-evidence-stack");
   const heroText = normalizedText(heroHtml);
   const workspaceText = normalizedText(workspaceHtml);
@@ -202,6 +203,7 @@ function hasAcademicStudioLayout(source) {
     Boolean(workspaceHtml) &&
     Boolean(methodRailHtml) &&
     Boolean(setupHtml) &&
+    Boolean(answerCardHtml) &&
     Boolean(evidenceHtml) &&
     heroText.includes("Guided Solver Studio") &&
     heroText.includes("Pick method") &&
