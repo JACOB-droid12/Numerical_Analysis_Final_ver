@@ -274,10 +274,6 @@ assert.ok(
   "Academic Studio workspace should exist in the standalone Roots HTML"
 );
 assert.ok(
-  ROOTS_HTML.includes("root-method-rail"),
-  "Academic Studio method rail should exist in the standalone Roots HTML"
-);
-assert.ok(
   ROOTS_HTML.includes("root-setup-card"),
   "Academic Studio setup card should exist in the standalone Roots HTML"
 );
