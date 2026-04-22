@@ -285,17 +285,6 @@ assert.ok(
   ROOTS_HTML.includes("root-evidence-heading"),
   "Academic Studio evidence heading should exist in the standalone Roots HTML"
 );
-assert.ok(ROOTS_HTML.includes("root-shell-rail"), "NET shell rail should exist in the standalone Roots HTML");
-assert.ok(ROOTS_HTML.includes("root-shell-header"), "NET shell header should exist in the standalone Roots HTML");
-assert.ok(ROOTS_HTML.includes("root-method-section"), "Methods section should exist in the standalone Roots HTML");
-click(document.elements["root-shell-answer-link"]);
-assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
-assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
-assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
-click(document.elements["root-shell-evidence-link"]);
-assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
-assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
-assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
 assert.strictEqual(
   document.elements["root-evidence-heading"].textContent || "Evidence",
   "Evidence"
@@ -305,6 +294,17 @@ document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
 assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
 assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
+click(document.elements["root-shell-answer-link"]);
+assert.strictEqual(document.elements["root-quiz-answer"].scrollCount, 1, "Quiz Answer rail click should scroll to the answer section");
+assert.strictEqual(document.elements["root-quiz-answer"].focusCount, 1, "Quiz Answer rail click should focus the answer section");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
+click(document.elements["root-shell-evidence-link"]);
+assert.strictEqual(document.elements["root-evidence-stack"].scrollCount, 1, "Evidence rail click should scroll to the evidence section");
+assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
+assert.ok(ROOTS_HTML.includes("root-shell-rail"), "NET shell rail should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-shell-header"), "NET shell header should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-method-section"), "Methods section should exist in the standalone Roots HTML");
 
 setValues(document, {
   "root-bis-expression": "x^2 + 1",
