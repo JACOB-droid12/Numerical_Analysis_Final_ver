@@ -142,7 +142,10 @@ function makeDocument() {
     id.includes("tab") ||
     id === "angle-toggle" ||
     id === "root-copy-solution" ||
-    id.endsWith("-link")
+    id === "root-shell-methods-link" ||
+    id === "root-shell-setup-link" ||
+    id === "root-shell-answer-link" ||
+    id === "root-shell-evidence-link"
       ? "button"
       : "div"
   ));
@@ -271,19 +274,23 @@ assert.strictEqual(document.elements["root-result-stage"].hidden, false);
 assert.ok(document.elements["root-convergence-graph"].innerHTML.includes("<svg"), "bisection graph should render an svg");
 assert.ok(
   ROOTS_HTML.includes("root-studio-workspace"),
-  "Academic Studio workspace should exist in the standalone Roots HTML"
+  "NET shell workspace should exist in the standalone Roots HTML"
 );
 assert.ok(
   ROOTS_HTML.includes("root-setup-card"),
-  "Academic Studio setup card should exist in the standalone Roots HTML"
+  "NET shell setup card should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-quiz-answer"),
+  "NET shell quiz answer section should exist in the standalone Roots HTML"
 );
 assert.ok(
   ROOTS_HTML.includes("root-evidence-stack"),
-  "Academic Studio evidence stack should exist in the standalone Roots HTML"
+  "NET shell evidence stack should exist in the standalone Roots HTML"
 );
 assert.ok(
   ROOTS_HTML.includes("root-evidence-heading"),
-  "Academic Studio evidence heading should exist in the standalone Roots HTML"
+  "NET shell evidence heading should exist in the standalone Roots HTML"
 );
 assert.strictEqual(
   document.elements["root-evidence-heading"].textContent || "Evidence",
