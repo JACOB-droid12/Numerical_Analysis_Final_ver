@@ -268,6 +268,10 @@ assert.ok(
   ROOTS_HTML.includes("root-evidence-stack"),
   "Academic Studio evidence stack should exist in the standalone Roots HTML"
 );
+assert.ok(
+  ROOTS_HTML.includes("root-evidence-heading"),
+  "Academic Studio evidence heading should exist in the standalone Roots HTML"
+);
 assert.strictEqual(
   document.elements["root-evidence-heading"].textContent || "Evidence",
   "Evidence"
