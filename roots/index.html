@@ -9,13 +9,38 @@
 </head>
 <body class="roots-standalone">
   <main class="roots-app-shell">
-    <header class="roots-toolbar">
-      <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
-      <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
-      <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
-    </header>
+    <div class="roots-net-layout">
+      <nav id="root-shell-rail" class="root-shell-rail" aria-label="NET section navigation">
+        <div class="root-shell-brand">
+          <span class="root-shell-brand-mark">NET+</span>
+          <span class="root-shell-brand-copy">Numerical Exploration Toolkit</span>
+        </div>
+        <div class="root-shell-module">
+          <p class="result-label">Module IV · Roots</p>
+          <p class="root-shell-module-title">Guided Solver Studio</p>
+          <p>Fast quiz answers, clear evidence, no workspace clutter.</p>
+        </div>
+        <div class="root-shell-links" role="group" aria-label="Roots sections">
+          <button id="root-shell-methods-link" class="root-shell-link active" type="button" data-target="root-method-section" aria-current="true">Methods</button>
+          <button id="root-shell-setup-link" class="root-shell-link" type="button" data-target="root-setup-card" aria-current="false">Problem Setup</button>
+          <button id="root-shell-answer-link" class="root-shell-link" type="button" data-target="root-quiz-answer" aria-current="false">Quiz Answer</button>
+          <button id="root-shell-evidence-link" class="root-shell-link" type="button" data-target="root-evidence-stack" aria-current="false">Evidence</button>
+        </div>
+      </nav>
+      <div class="root-shell-stage">
+        <header class="root-shell-header">
+          <div class="root-shell-header-copy">
+            <p class="eyebrow">NET+ workspace</p>
+            <h2>Roots</h2>
+          </div>
+          <div class="root-shell-utilities" aria-label="Roots utilities">
+            <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
+            <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+            <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
+          </div>
+        </header>
 
-    <section class="module-shell module-root roots-module-shell">
+        <section class="module-shell module-root roots-module-shell">
       <div class="module-header roots-guided-hero roots-studio-hero">
         <div class="root-academic-paper root-studio-title-card">
           <p class="eyebrow">Module IV · Roots</p>
@@ -30,9 +55,14 @@
       </div>
 
       <div id="root-studio-workspace" class="roots-studio-workspace">
-        <aside id="root-method-rail" class="root-method-rail root-academic-paper" aria-label="Root method selection">
-          <p class="result-label">Method</p>
-          <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
+        <div class="root-studio-main">
+          <section id="root-method-section" class="root-method-section root-academic-paper" aria-label="Methods" tabindex="-1">
+            <div class="root-section-heading">
+              <p class="result-label">Methods</p>
+              <h2>Choose the root-finding method that fits the prompt</h2>
+              <p>Switch methods here. The active solver note updates immediately and the setup block below stays aligned with the current choice.</p>
+            </div>
+            <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
             <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
             <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
             <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
@@ -48,9 +78,7 @@
             </div>
             <p id="root-method-details" class="root-method-details">Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking.</p>
           </section>
-        </aside>
-        <div class="root-studio-main">
-          <section id="root-setup-card" class="root-setup-card root-academic-paper" aria-label="Problem setup">
+          <section id="root-setup-card" class="root-setup-card root-academic-paper" aria-label="Problem setup" tabindex="-1">
             <div class="root-section-heading">
               <p class="result-label">1 · Problem setup</p>
               <h2>Enter the function and method values</h2>
@@ -188,7 +216,7 @@
       </section>
 
       <section id="root-result-stage" class="result-stage" hidden>
-        <section id="root-quiz-answer" class="root-quiz-answer root-answer-card" aria-label="Quiz-ready answer">
+        <section id="root-quiz-answer" class="root-quiz-answer root-answer-card" aria-label="Quiz-ready answer" tabindex="-1">
           <p class="visually-hidden">Quiz-ready answer</p>
           <div class="root-answer-main">
             <p class="result-label">Approximate root</p>
@@ -220,7 +248,7 @@
             </div>
           </div>
         </section>
-        <section id="root-evidence-stack" class="root-evidence-stack root-academic-paper" aria-label="Evidence and solution trace">
+        <section id="root-evidence-stack" class="root-evidence-stack root-academic-paper" aria-label="Evidence and solution trace" tabindex="-1">
           <div class="root-section-heading">
             <p class="result-label">3 · Evidence</p>
             <h2 id="root-evidence-heading">Evidence</h2>
@@ -251,8 +279,9 @@
         </section>
       </section>
         </div>
+        </section>
       </div>
-    </section>
+    </div>
   </main>
 
   <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>
