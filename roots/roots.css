@@ -516,6 +516,20 @@
   color: var(--text);
 }
 
+.root-studio-workflow.root-hero-card .root-hero-kicker {
+  color: #efe2b7;
+}
+
+.root-answer-card .root-answer-method,
+.root-answer-card .root-answer-method strong,
+.root-answer-card .root-answer-guidance p {
+  color: inherit;
+}
+
+.root-answer-card .root-answer-guidance .result-label {
+  color: color-mix(in srgb, var(--root-sage) 84%, white);
+}
+
 .root-start-guide {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
