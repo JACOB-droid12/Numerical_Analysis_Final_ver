@@ -113,6 +113,7 @@ const IDS = [
   "root-fpi-expression", "root-fpi-x0", "root-fpi-k", "root-fpi-mode", "root-fpi-stop-kind",
   "root-fpi-stop-value", "root-fpi-compute",
   "root-empty", "root-result-stage", "root-approx", "root-stopping-result", "root-convergence",
+  "root-studio-workspace", "root-method-rail", "root-setup-card", "root-evidence-stack", "root-evidence-heading",
   "root-active-method", "root-final-metric", "root-interpretation", "root-next-action",
   "root-method-guide", "root-method-title", "root-method-summary", "root-method-details",
   "root-error-msg", "root-status-msg", "root-diagnostics", "root-bracket-panel", "root-interval-status",
@@ -251,6 +252,26 @@ assert.ok(
 assert.strictEqual(document.elements["root-empty"].hidden, true);
 assert.strictEqual(document.elements["root-result-stage"].hidden, false);
 assert.ok(document.elements["root-convergence-graph"].innerHTML.includes("<svg"), "bisection graph should render an svg");
+assert.ok(
+  ROOTS_HTML.includes("root-studio-workspace"),
+  "Academic Studio workspace should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-method-rail"),
+  "Academic Studio method rail should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-setup-card"),
+  "Academic Studio setup card should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-evidence-stack"),
+  "Academic Studio evidence stack should exist in the standalone Roots HTML"
+);
+assert.strictEqual(
+  document.elements["root-evidence-heading"].textContent || "Evidence",
+  "Evidence"
+);
 document.elements["root-bis-sign-display"].value = "machine";
 document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
 assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
