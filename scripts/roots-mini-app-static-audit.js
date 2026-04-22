@@ -189,6 +189,41 @@ function hasQuizAnswerPanel(source) {
     quizAnswerText.includes("Try next");
 }
 
+function hasAcademicStudioLayout(source) {
+  const heroHtml = getElementHtmlByClass(source, "div", "roots-studio-hero");
+  const workspaceHtml = getElementHtmlByClass(source, "div", "roots-studio-workspace");
+  const methodRailHtml = getElementHtmlByClass(source, "aside", "root-method-rail");
+  const setupHtml = getElementHtmlByClass(source, "section", "root-setup-card");
+  const evidenceHtml = getElementHtmlByClass(source, "section", "root-evidence-stack");
+  const heroText = normalizedText(heroHtml);
+  const workspaceText = normalizedText(workspaceHtml);
+
+  return Boolean(heroHtml) &&
+    Boolean(workspaceHtml) &&
+    Boolean(methodRailHtml) &&
+    Boolean(setupHtml) &&
+    Boolean(evidenceHtml) &&
+    heroText.includes("Guided Solver Studio") &&
+    heroText.includes("Pick method") &&
+    heroText.includes("Enter values") &&
+    heroText.includes("Copy answer") &&
+    workspaceText.includes("Method") &&
+    workspaceText.includes("Problem setup") &&
+    workspaceText.includes("Evidence");
+}
+
+function hasAcademicStudioCss(source) {
+  return [
+    ".roots-studio-hero",
+    ".roots-studio-workspace",
+    ".root-method-rail",
+    ".root-setup-card",
+    ".root-answer-card",
+    ".root-evidence-stack",
+    ".root-academic-paper"
+  ].every((selector) => source.includes(selector));
+}
+
 const exists = fs.existsSync(ROOTS_HTML);
 const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
 const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
@@ -327,6 +362,13 @@ check(
 );
 
 check(
+  "Academic Studio layout is present",
+  "hero, workspace, method rail, setup card, answer card, and evidence stack",
+  hasAcademicStudioLayout(html) ? "present" : "missing",
+  hasAcademicStudioLayout(html)
+);
+
+check(
   "Quiz answer panel exposes result interpretation landmarks",
   "active method, final metric, interpretation, next action, and copy solution",
   hasQuizAnswerPanel(html)
@@ -435,6 +477,13 @@ check(
     ? "guided solver styling present"
     : "guided solver styling missing",
   Boolean(guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock)
+);
+
+check(
+  "Academic Studio CSS hooks are present",
+  ".roots-studio-hero, .roots-studio-workspace, .root-method-rail, .root-setup-card, .root-answer-card, .root-evidence-stack, .root-academic-paper",
+  hasAcademicStudioCss(rootsCss) ? "present" : "missing",
+  hasAcademicStudioCss(rootsCss)
 );
 
 check(
