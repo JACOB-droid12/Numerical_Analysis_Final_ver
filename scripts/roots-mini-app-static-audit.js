@@ -123,21 +123,15 @@ function getElementHtmlByClass(source, tagName, className) {
   return "";
 }
 
-function hasQuickStartGuide(source) {
-  const guideHtml = source.match(
-    /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>[\s\S]*?<\/section>/i
-  )?.[0] || "";
-  const guideText = normalizedText(guideHtml);
-  return /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>/i.test(guideHtml) &&
-    countMatches(guideHtml, /class="[^"]*\broot-start-step\b[^"]*"/g) >= 3 &&
+function hasAcademicStudioSetupGuide(source) {
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const setupText = normalizedText(setupHtml);
+  return Boolean(setupHtml) &&
     [
-      "Pick a method",
-      "Use bracket methods when you have an interval, or open methods when you have starting guesses.",
-      "Enter the function",
-      "Type f(x), choose the machine rule, then set iterations or tolerance.",
-      "Read the run",
-      "Check the approximate root, stopping reason, diagnostics, graph, and iteration table."
-    ].every((phrase) => guideText.includes(phrase));
+      "Problem setup",
+      "Enter the function and method values",
+      "Use the active method panel below. Press the equals button to run the solver."
+    ].every((phrase) => setupText.includes(phrase));
 }
 
 function hasEmptyStateContract(source) {
@@ -160,13 +154,13 @@ function hasGuidedSolverShell(source) {
     /id="root-method-summary"/.test(guideHtml) &&
     /id="root-method-details"/.test(guideHtml) &&
     [
-      "Module IV",
+      "Module IV · Roots",
       "Guided Solver Studio",
-      "Fast root solving",
-      "quizzes and worksheets",
-      "Answer first",
-      "Explanation second",
-      "Trace when you need it"
+      "Fast quiz answers with enough explanation to show your work.",
+      "Quick workflow",
+      "Pick method",
+      "Enter values",
+      "Copy answer"
     ].every((phrase) => heroText.includes(phrase)) &&
     guideText.includes("Active solver");
 }
@@ -314,11 +308,11 @@ check(
 
 check(
   "Standalone entry includes a Roots first-run guide",
-  "root-start-guide with three steps",
-  hasQuickStartGuide(html)
+  "root-setup-card with the problem setup copy",
+  hasAcademicStudioSetupGuide(html)
     ? "first-run guide present"
     : "first-run guide missing",
-  hasQuickStartGuide(html)
+  hasAcademicStudioSetupGuide(html)
 );
 
 check(
