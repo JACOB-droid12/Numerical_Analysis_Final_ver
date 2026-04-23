@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "sync:legacy": "node -e \"console.log('Task 2 placeholder: legacy sync is added in Task 3.')\""
+    "sync:legacy": "node scripts/sync-legacy-engines.mjs"
   },
   "dependencies": {
     "react": "^19.2.5",
