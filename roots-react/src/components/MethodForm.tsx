@@ -62,6 +62,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
   const renderField = useCallback(
     (field: MethodFieldConfig) => {
       const value = formState[field.id] ?? field.defaultValue ?? '';
+      const fieldDomId = `roots-${config.method}-${field.id}`;
       const commonClassName =
         'w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 transition placeholder:text-slate-500 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400';
 
@@ -70,6 +71,8 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
           <span className="text-sm font-medium text-slate-200">{field.label}</span>
           {field.kind === 'select' ? (
             <select
+              id={fieldDomId}
+              name={field.id}
               value={value}
               onChange={(event) => onChange(config.method, field.id, event.target.value)}
               className={commonClassName}
@@ -83,6 +86,8 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
           ) : (
             <input
               ref={field.id === config.expressionFieldId ? expressionRef : undefined}
+              id={fieldDomId}
+              name={field.id}
               type={field.kind === 'number' ? 'number' : 'text'}
               inputMode={field.kind === 'number' ? 'decimal' : undefined}
               value={value}
