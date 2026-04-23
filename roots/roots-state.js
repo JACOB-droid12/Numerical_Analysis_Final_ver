@@ -61,7 +61,7 @@
   function createState() {
     return {
       activeMethod: "bisection",
-      angleMode: "deg",
+      angleMode: "rad",
       runs: Object.create(null),
       methodConfigs: METHOD_CONFIGS,
       emptyTextById: {

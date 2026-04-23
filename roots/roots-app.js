@@ -423,14 +423,20 @@
     });
   }
 
+  function syncAngleToggleUI(state) {
+    const status = byId("status-angle");
+    const button = byId("angle-toggle");
+    if (status) status.textContent = state.angleMode.toUpperCase();
+    if (button) button.textContent = state.angleMode === "deg" ? "Use radians" : "Use degrees";
+  }
+
   function wireAngleToggle(state) {
     const button = byId("angle-toggle");
     if (!button) return;
+    syncAngleToggleUI(state);
     button.addEventListener("click", function onAngleToggle() {
       state.angleMode = state.angleMode === "deg" ? "rad" : "deg";
-      const status = byId("status-angle");
-      if (status) status.textContent = state.angleMode.toUpperCase();
-      button.textContent = state.angleMode === "deg" ? "Use radians" : "Use degrees";
+      syncAngleToggleUI(state);
       globalScope.RootsState.clearAllRuns(state);
       globalScope.RootsRender.resetResults(state);
       setStatus("Angle mode changed. Re-run to update trig values.");
