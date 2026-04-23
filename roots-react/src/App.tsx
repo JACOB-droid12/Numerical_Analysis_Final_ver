@@ -2,6 +2,8 @@ import { useId } from 'react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
+import { CompareMethodsCallout } from './components/CompareMethodsCallout';
+import { ConfidenceSummary } from './components/ConfidenceSummary';
 import { EmptyState } from './components/EmptyState';
 import { EvidencePanel } from './components/EvidencePanel';
 import { EvidencePreview } from './components/EvidencePreview';
@@ -51,9 +53,9 @@ export default function App() {
           <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
         </header>
 
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
           <div className="space-y-6">
-            <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
+            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
               <div className="space-y-3">
                 <div>
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -71,7 +73,7 @@ export default function App() {
               </div>
             </section>
 
-            <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
+            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
               <div className="space-y-5">
                 <div>
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -94,18 +96,21 @@ export default function App() {
             </section>
           </div>
 
-          <div className="space-y-6">
-            {hasRun ? (
-              <AnswerPanel
-                run={displayedRun}
-                freshness={displayRun.freshness}
-                staleReason={displayRun.staleReason}
-              />
-            ) : (
-              <EmptyState />
-            )}
+          <div className="space-y-4">
             {hasRun ? (
               <>
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
+                  <AnswerPanel
+                    run={displayedRun}
+                    freshness={displayRun.freshness}
+                    staleReason={displayRun.staleReason}
+                  />
+                  <ConfidenceSummary
+                    run={displayedRun}
+                    freshness={displayRun.freshness}
+                    staleReason={displayRun.staleReason}
+                  />
+                </div>
                 <EvidencePreview
                   fullWorkRegionId={fullWorkRegionId}
                   expanded={evidenceExpanded}
@@ -114,6 +119,10 @@ export default function App() {
                   onToggle={() => setEvidenceExpanded((current) => !current)}
                 />
                 {!evidenceExpanded ? <div id={fullWorkRegionId} hidden /> : null}
+                <CompareMethodsCallout
+                  visible={displayRun.hasCompareEntry}
+                  freshness={displayRun.freshness}
+                />
                 <EvidencePanel
                   config={displayConfig}
                   contentId={fullWorkRegionId}
@@ -121,7 +130,9 @@ export default function App() {
                   run={displayedRun}
                 />
               </>
-            ) : null}
+            ) : (
+              <EmptyState />
+            )}
           </div>
         </section>
       </div>
