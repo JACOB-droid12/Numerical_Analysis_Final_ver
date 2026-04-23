@@ -1,18 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  answerText,
-  formatValue,
-  interpretationText,
-  methodLabel,
-  nextActionText,
-  stopReasonLabel,
-  stoppingText,
-} from '../lib/resultFormatters';
-import type { RootRunResult } from '../types/roots';
+import { answerText, formatValue, methodLabel } from '../lib/resultFormatters';
+import type { RootRunResult, RunFreshness } from '../types/roots';
 
 interface AnswerPanelProps {
   run: RootRunResult | null;
+  freshness?: RunFreshness;
+  staleReason?: string | null;
 }
 
 type CopyStatus = 'idle' | 'success' | 'error';
@@ -43,7 +37,18 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-export function AnswerPanel({ run }: AnswerPanelProps) {
+function freshnessLabel(freshness: RunFreshness): string {
+  return freshness === 'stale' ? 'Outdated result' : 'Current result';
+}
+
+function freshnessNote(freshness: RunFreshness, staleReason: string | null): string {
+  if (freshness === 'stale') {
+    return staleReason ?? 'This result is outdated because the inputs changed after it was computed.';
+  }
+  return 'Copy the answer now or inspect the confidence and evidence below.';
+}
+
+export function AnswerPanel({ run, freshness = 'current', staleReason = null }: AnswerPanelProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
   const timerRef = useRef<number | null>(null);
 
@@ -71,11 +76,6 @@ export function AnswerPanel({ run }: AnswerPanelProps) {
 
   const summary = run.summary;
   const approximation = formatValue(summary?.approximation, 18);
-  const stopReason = stopReasonLabel(summary?.stopReason, run.method);
-  const stopping = stoppingText(run);
-  const finalMetric = formatValue(summary?.error ?? summary?.bound ?? summary?.residual);
-  const interpretation = interpretationText(run);
-  const nextAction = nextActionText(run);
   const copyDisabled = !copyPayload;
 
   return (
@@ -128,45 +128,26 @@ export function AnswerPanel({ run }: AnswerPanelProps) {
         </button>
       </div>
 
+      <div className="mt-4 flex flex-col gap-2 rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
+              freshness === 'stale'
+                ? 'border-amber-900/60 bg-amber-950/40 text-amber-200'
+                : 'border-emerald-900/60 bg-emerald-950/40 text-emerald-200'
+            }`}
+          >
+            {freshnessLabel(freshness)}
+          </span>
+          <p className="text-sm text-slate-200">{freshnessNote(freshness, staleReason)}</p>
+        </div>
+      </div>
+
       <div className="mt-4 rounded-md border border-slate-800 bg-slate-900/70 px-4 py-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Approximate root
         </p>
         <p className="mt-2 break-words text-3xl font-semibold text-sky-300">{approximation}</p>
-      </div>
-
-      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Stopping result
-          </dt>
-          <dd className="mt-1 text-sm text-slate-200">{stopReason}</dd>
-        </div>
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Stopping parameters
-          </dt>
-          <dd className="mt-1 text-sm text-slate-200">{stopping}</dd>
-        </div>
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Final metric
-          </dt>
-          <dd className="mt-1 text-sm text-slate-200">{finalMetric}</dd>
-        </div>
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Interpretation
-          </dt>
-          <dd className="mt-1 text-sm leading-6 text-slate-200">{interpretation}</dd>
-        </div>
-      </dl>
-
-      <div className="mt-4 rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Next action
-        </p>
-        <p className="mt-1 text-sm leading-6 text-slate-200">{nextAction}</p>
       </div>
 
       {summary?.stopDetail ? (

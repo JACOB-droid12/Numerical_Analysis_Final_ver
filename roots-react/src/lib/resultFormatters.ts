@@ -193,6 +193,32 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
   return reason ? map[reason] ?? reason : EMPTY;
 }
 
+export interface ConfidenceItem {
+  label: string;
+  value: string;
+}
+
+export function compactConfidenceItems(run: RootRunResult): ConfidenceItem[] {
+  return [
+    {
+      label: 'Stop',
+      value: stopReasonLabel(run.summary?.stopReason ?? null, run.method),
+    },
+    {
+      label: 'Metric',
+      value: formatValue(run.summary?.error ?? run.summary?.bound ?? run.summary?.residual),
+    },
+    {
+      label: 'Basis',
+      value: run.summary?.residualBasis ?? (run.decisionBasis ? `${run.decisionBasis} signs` : 'Current precision'),
+    },
+  ];
+}
+
+export function staleStatusText(staleReason: string | null): string {
+  return staleReason ?? 'This result is from the most recent successful run.';
+}
+
 export function stoppingText(run: RootRunResult | null): string {
   if (!run?.stopping) return EMPTY;
   const stopping = run.stopping;
