@@ -193,6 +193,17 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
   return reason ? map[reason] ?? reason : EMPTY;
 }
 
+export function diagnosticsPreviewText(run: RootRunResult): string {
+  if (run.warnings?.length) {
+    const message = run.warnings[0]?.message?.trim();
+    return message || 'Warnings were reported for this run.';
+  }
+
+  const stop = stopReasonLabel(run.summary?.stopReason, run.method);
+  const metric = formatValue(run.summary?.error ?? run.summary?.bound ?? run.summary?.residual);
+  return `${stop}; final metric: ${metric}.`;
+}
+
 export interface ConfidenceItem {
   label: string;
   value: string;

@@ -1,8 +1,9 @@
-import { formatValue, stopReasonLabel } from '../lib/resultFormatters';
+import { diagnosticsPreviewText, formatValue, stopReasonLabel } from '../lib/resultFormatters';
 import type { RootRunResult } from '../types/roots';
 
 interface DiagnosticsPanelProps {
   run: RootRunResult;
+  compact?: boolean;
 }
 
 function bracketDiagnostics(run: RootRunResult) {
@@ -49,7 +50,18 @@ function bracketDiagnostics(run: RootRunResult) {
   );
 }
 
-export function DiagnosticsPanel({ run }: DiagnosticsPanelProps) {
+export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps) {
+  if (compact) {
+    return (
+      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          Diagnostic preview
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-200">{diagnosticsPreviewText(run)}</p>
+      </section>
+    );
+  }
+
   const warnings = run.warnings ?? [];
 
   return (

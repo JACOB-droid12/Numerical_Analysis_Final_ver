@@ -1,7 +1,10 @@
+import { useId } from 'react';
+
 import type { RootMethod, RootRunResult, IterationRow } from '../types/roots';
 
 interface ConvergenceGraphProps {
   run: RootRunResult;
+  compact?: boolean;
 }
 
 function parseNumericString(value: string): number | null {
@@ -90,8 +93,14 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
   return null;
 }
 
-export function ConvergenceGraph({ run }: ConvergenceGraphProps) {
+export function ConvergenceGraph({ run, compact = false }: ConvergenceGraphProps) {
   const rows = run.rows ?? [];
+  const titleId = useId();
+  const svgTitleId = useId();
+  const descId = useId();
+  const wrapperClassName = compact
+    ? 'rounded-lg border border-slate-800 bg-slate-900/60 p-3'
+    : 'rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20';
   const points = rows
     .map((row, index) => ({
       x: typeof row.iteration === 'number' ? row.iteration : index + 1,
@@ -109,8 +118,8 @@ export function ConvergenceGraph({ run }: ConvergenceGraphProps) {
 
   if (points.length < 2) {
     return (
-      <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+      <section className={wrapperClassName}>
+        <h2 id={titleId} className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           Convergence graph
         </h2>
         <p className="mt-2 text-sm text-slate-300">{graphSummary}</p>
@@ -131,16 +140,12 @@ export function ConvergenceGraph({ run }: ConvergenceGraphProps) {
   const maxY = Math.max(...ys);
   const xSpan = maxX - minX || 1;
   const ySpan = maxY - minY || 1;
-  const titleId = 'convergence-graph-heading';
-  const svgTitleId = 'convergence-graph-title';
-  const descId = 'convergence-graph-desc';
-
   const toSvgX = (value: number) => padX + ((value - minX) / xSpan) * (width - padX * 2);
   const toSvgY = (value: number) => height - padY - ((value - minY) / ySpan) * (height - padY * 2);
   const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${toSvgX(point.x)} ${toSvgY(point.y)}`).join(' ');
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className={wrapperClassName}>
       <div className="flex items-center justify-between gap-3">
         <h2 id={titleId} className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           Convergence graph

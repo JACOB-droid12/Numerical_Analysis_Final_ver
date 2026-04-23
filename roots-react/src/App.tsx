@@ -1,19 +1,24 @@
+import { useId } from 'react';
+
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
 import { EmptyState } from './components/EmptyState';
 import { EvidencePanel } from './components/EvidencePanel';
+import { EvidencePreview } from './components/EvidencePreview';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
 import { RunControls } from './components/RunControls';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 
 export default function App() {
+  const fullWorkRegionId = useId();
   const {
     activeConfig,
     activeForm,
     activeMethod,
-    activeRun,
     angleMode,
+    displayConfig,
+    displayRun,
     evidenceExpanded,
     methodConfigs,
     runActiveMethod,
@@ -24,7 +29,8 @@ export default function App() {
     updateField,
   } = useRootsWorkbench();
 
-  const hasRun = activeRun !== null;
+  const displayedRun = displayRun.run;
+  const hasRun = displayedRun !== null;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
@@ -89,14 +95,32 @@ export default function App() {
           </div>
 
           <div className="space-y-6">
-            {hasRun ? <AnswerPanel run={activeRun} /> : <EmptyState />}
             {hasRun ? (
-              <EvidencePanel
-                config={activeConfig}
-                expanded={evidenceExpanded}
-                run={activeRun}
-                onToggle={() => setEvidenceExpanded((current) => !current)}
+              <AnswerPanel
+                run={displayedRun}
+                freshness={displayRun.freshness}
+                staleReason={displayRun.staleReason}
               />
+            ) : (
+              <EmptyState />
+            )}
+            {hasRun ? (
+              <>
+                <EvidencePreview
+                  fullWorkRegionId={fullWorkRegionId}
+                  expanded={evidenceExpanded}
+                  freshness={displayRun.freshness}
+                  run={displayedRun}
+                  onToggle={() => setEvidenceExpanded((current) => !current)}
+                />
+                {!evidenceExpanded ? <div id={fullWorkRegionId} hidden /> : null}
+                <EvidencePanel
+                  config={displayConfig}
+                  contentId={fullWorkRegionId}
+                  expanded={evidenceExpanded}
+                  run={displayedRun}
+                />
+              </>
             ) : null}
           </div>
         </section>
