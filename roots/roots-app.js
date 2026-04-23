@@ -24,13 +24,49 @@
   function showError(err) {
     const el = byId("root-error-msg");
     if (!el) return;
-    el.textContent = err && err.message ? err.message : "Root calculation failed.";
+    el.textContent = err && err.message ? err.message : "The root calculation could not finish.";
     el.hidden = false;
   }
 
   function setStatus(message) {
     const el = byId("root-status-msg");
     if (el) el.textContent = message || "";
+  }
+
+  function prefersReducedMotion() {
+    return !!(globalScope.matchMedia && globalScope.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function scrollBehavior() {
+    return prefersReducedMotion() ? "auto" : "smooth";
+  }
+
+  function scrollElementIntoView(target) {
+    if (!target || !target.scrollIntoView) return;
+    target.scrollIntoView({ block: "start", behavior: scrollBehavior() });
+  }
+
+  function revealQuizAnswer() {
+    const answer = byId("root-quiz-answer");
+    if (!answer || !answer.getBoundingClientRect || !globalScope.scrollTo) return;
+    const scroll = function scrollToAnswer() {
+      try {
+        const top = answer.getBoundingClientRect().top + (globalScope.pageYOffset || 0) - 14;
+        globalScope.scrollTo({ top: Math.max(0, top), behavior: scrollBehavior() });
+      } catch (err) {
+        try {
+          const fallbackTop = answer.getBoundingClientRect().top + (globalScope.pageYOffset || 0) - 14;
+          globalScope.scrollTo(0, Math.max(0, fallbackTop));
+        } catch (fallbackErr) {
+          // Some non-browser audit environments do not implement scrolling.
+        }
+      }
+    };
+    if (globalScope.requestAnimationFrame) {
+      globalScope.requestAnimationFrame(scroll);
+    } else {
+      scroll();
+    }
   }
 
   function setCurrentShellLink(activeId) {
@@ -48,12 +84,31 @@
     });
   }
 
-  function syncBisectionToleranceControls() {
-    const epsilonMode = byId("root-bis-stop-kind") && byId("root-bis-stop-kind").value === "epsilon";
-    const wrap = byId("root-bis-tolerance-type-wrap");
-    const note = byId("root-bis-tolerance-note");
-    if (wrap) wrap.hidden = !epsilonMode;
-    if (note) note.hidden = !epsilonMode;
+  function syncStoppingControls() {
+    [
+      { prefix: "root-bis", toleranceWrapId: "root-bis-tolerance-type-wrap", toleranceNoteId: "root-bis-tolerance-note" },
+      { prefix: "root-newton" },
+      { prefix: "root-secant" },
+      { prefix: "root-fp" },
+      { prefix: "root-fpi" }
+    ].forEach(function syncControl(config) {
+      const stopKind = byId(config.prefix + "-stop-kind");
+      const stopValueLabel = byId(config.prefix + "-stop-value-label-text");
+      const stopValueInput = byId(config.prefix + "-stop-value");
+      const epsilonMode = !!(stopKind && stopKind.value === "epsilon");
+      if (stopValueLabel) stopValueLabel.textContent = epsilonMode ? "Tolerance (epsilon)" : "Iterations (n)";
+      if (stopValueInput && stopValueInput.setAttribute) {
+        stopValueInput.setAttribute("aria-label", epsilonMode ? "Tolerance epsilon" : "Iterations n");
+      }
+      if (config.toleranceWrapId) {
+        const wrap = byId(config.toleranceWrapId);
+        if (wrap) wrap.hidden = !epsilonMode;
+      }
+      if (config.toleranceNoteId) {
+        const note = byId(config.toleranceNoteId);
+        if (note) note.hidden = !epsilonMode;
+      }
+    });
   }
 
   function activateMethod(state, method) {
@@ -71,6 +126,7 @@
       if (tab) {
         if (tab.classList && tab.classList.toggle) tab.classList.toggle("active", isActive);
         if (tab.setAttribute) tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        tab.tabIndex = isActive ? 0 : -1;
       }
       if (panel) panel.hidden = !isActive;
     });
@@ -101,8 +157,9 @@
       globalScope.RootsState.storeRun(state, config.name, run);
       globalScope.RootsRender.renderRun(run);
       const approx = run.summary && run.summary.approximation != null ? byId("root-approx").textContent : "N/A";
-      setStatus("Result updated. Approximate root = " + approx + ".");
+      setStatus("Answer ready. Approximate root: " + approx + ".");
       clearError();
+      revealQuizAnswer();
     } catch (err) {
       globalScope.RootsState.clearRun(state, config.name);
       globalScope.RootsRender.resetResults(state);
@@ -135,9 +192,50 @@
   }
 
   function wireMethodControls(state) {
+    function focusMethodAt(nextIndex) {
+      const count = state.methodConfigs.length;
+      if (!count) return;
+      const normalizedIndex = ((nextIndex % count) + count) % count;
+      const nextConfig = state.methodConfigs[normalizedIndex];
+      if (!nextConfig) return;
+      activateMethod(state, nextConfig.name);
+      const nextTab = byId(nextConfig.tabId);
+      if (nextTab && nextTab.focus) nextTab.focus();
+    }
+
     state.methodConfigs.forEach(function wireConfig(config) {
       const tab = byId(config.tabId);
-      if (tab) tab.addEventListener("click", function onTabClick() { activateMethod(state, config.name); });
+      if (tab) {
+        tab.addEventListener("click", function onTabClick() { activateMethod(state, config.name); });
+        tab.addEventListener("keydown", function onTabKeydown(event) {
+          const currentIndex = state.methodConfigs.findIndex(function findMethod(item) {
+            return item.name === config.name;
+          });
+          if (currentIndex === -1) return;
+          switch (event.key) {
+            case "ArrowRight":
+            case "ArrowDown":
+              event.preventDefault();
+              focusMethodAt(currentIndex + 1);
+              break;
+            case "ArrowLeft":
+            case "ArrowUp":
+              event.preventDefault();
+              focusMethodAt(currentIndex - 1);
+              break;
+            case "Home":
+              event.preventDefault();
+              focusMethodAt(0);
+              break;
+            case "End":
+              event.preventDefault();
+              focusMethodAt(state.methodConfigs.length - 1);
+              break;
+            default:
+              break;
+          }
+        });
+      }
 
       const compute = byId(config.computeId);
       if (compute) compute.addEventListener("click", function onComputeClick() {
@@ -152,7 +250,7 @@
           el.addEventListener("input", function onInput() { handleInputChange(state, config.name); });
         }
         el.addEventListener("change", function onChange() {
-          if (id === "root-bis-stop-kind") syncBisectionToleranceControls();
+          if (/-stop-kind$/.test(id)) syncStoppingControls();
           if (globalScope.RootsState.isPresentationField(config, id)) {
             handlePresentationChange(state, config.name, id);
           } else {
@@ -175,17 +273,11 @@
 
   function wireSymbols() {
     const popover = byId("symbol-popover");
-    let targetId = null;
+    let popoverTargetId = null;
 
-    Array.prototype.forEach.call(document.querySelectorAll(".symbol-trigger"), function wireTrigger(trigger) {
-      trigger.addEventListener("click", function onSymbolTrigger() {
-        targetId = trigger.dataset ? trigger.dataset.symbolTarget : null;
-        if (popover) popover.hidden = false;
-      });
-    });
-
-    Array.prototype.forEach.call(document.querySelectorAll(".symbol-btn"), function wireButton(button) {
+    function wireSymbolButton(button) {
       button.addEventListener("click", function onSymbolButton() {
+        const targetId = button.dataset ? (button.dataset.symbolTarget || popoverTargetId) : popoverTargetId;
         const target = targetId ? byId(targetId) : null;
         const insert = button.dataset ? button.dataset.symbolInsert : "";
         if (target && insert) {
@@ -193,6 +285,28 @@
           if (target.dispatchEvent && typeof Event === "function") target.dispatchEvent(new Event("input", { bubbles: true }));
         }
         if (popover) popover.hidden = true;
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".symbol-trigger"), function wireTrigger(trigger) {
+      trigger.addEventListener("click", function onSymbolTrigger() {
+        popoverTargetId = trigger.dataset ? trigger.dataset.symbolTarget : null;
+        if (popover) popover.hidden = false;
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".symbol-btn"), wireSymbolButton);
+    Array.prototype.forEach.call(document.querySelectorAll(".root-symbol-insert"), wireSymbolButton);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".root-symbol-toggle"), function wireToggle(button) {
+      button.addEventListener("click", function onToggle() {
+        const targetId = button.dataset ? button.dataset.symbolMoreTarget : null;
+        const target = targetId ? byId(targetId) : null;
+        if (!target) return;
+        const shouldExpand = !!target.hidden;
+        target.hidden = !shouldExpand;
+        button.setAttribute("aria-expanded", shouldExpand ? "true" : "false");
+        button.textContent = shouldExpand ? "Fewer symbols" : "More symbols";
       });
     });
   }
@@ -204,11 +318,11 @@
       const run = state.runs[state.activeMethod];
       const status = byId("root-copy-status");
       if (!run) {
-        if (status) status.textContent = "Run the method first, then copy the solution.";
+        if (status) status.textContent = "Run a method first, then copy the full work.";
         return;
       }
       if (!navigator.clipboard || !navigator.clipboard.writeText) {
-        if (status) status.textContent = "Clipboard not available. Select and copy the steps manually.";
+        if (status) status.textContent = "Clipboard access is unavailable. Select and copy the full work manually.";
         return;
       }
       navigator.clipboard.writeText(globalScope.RootsRender.buildSolutionText(run))
@@ -216,8 +330,58 @@
           if (status) status.textContent = "Solution copied.";
         })
         .catch(function failed() {
-          if (status) status.textContent = "Copy failed. Select the steps and copy manually.";
+          if (status) status.textContent = "Copy failed. Select and copy the full work manually.";
         });
+    });
+  }
+
+  function wireCopyAnswer(state) {
+    const button = byId("root-copy-answer");
+    if (!button) return;
+    button.addEventListener("click", function onCopyAnswer() {
+      const run = state.runs[state.activeMethod];
+      const status = byId("root-answer-copy-status");
+      if (!run) {
+        if (status) status.textContent = "Run a method first to copy the answer.";
+        return;
+      }
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        if (status) status.textContent = "Clipboard access is unavailable. Select and copy the answer manually.";
+        return;
+      }
+      navigator.clipboard.writeText(globalScope.RootsRender.buildAnswerText(run))
+        .then(function copied() {
+          if (status) status.textContent = "Quiz-ready answer copied.";
+        })
+        .catch(function failed() {
+          if (status) status.textContent = "Copy failed. Select and copy the answer manually.";
+        });
+    });
+  }
+
+  function wireEvidenceToggle() {
+    const button = byId("root-evidence-toggle");
+    const evidence = byId("root-evidence-stack");
+    if (!button || !evidence) return;
+    button.addEventListener("click", function onToggleEvidence() {
+      const shouldExpand = evidence.hidden;
+      if (globalScope.RootsRender && globalScope.RootsRender.setEvidenceExpanded) {
+        globalScope.RootsRender.setEvidenceExpanded(shouldExpand);
+      } else {
+        evidence.hidden = !shouldExpand;
+        button.setAttribute("aria-expanded", shouldExpand ? "true" : "false");
+        button.textContent = shouldExpand ? "Hide full work" : "Show full work";
+      }
+      if (shouldExpand) {
+        scrollElementIntoView(evidence);
+        if (evidence.focus) {
+          try {
+            evidence.focus({ preventScroll: true });
+          } catch (err) {
+            evidence.focus();
+          }
+        }
+      }
     });
   }
 
@@ -235,15 +399,19 @@
       if (!link || !target) return;
       link.addEventListener("click", function onShellNavClick() {
         const resultStage = byId("root-result-stage");
+        const evidence = byId("root-evidence-stack");
         const resultsHidden = !!(resultStage && resultStage.hidden);
         const shouldRouteToSetup = resultsHidden && (item.id === "root-shell-answer-link" || item.id === "root-shell-evidence-link");
         const nextLinkId = shouldRouteToSetup ? "root-shell-setup-link" : item.id;
         const nextTarget = shouldRouteToSetup ? byId("root-setup-card") : target;
 
         setCurrentShellLink(nextLinkId);
-        if (shouldRouteToSetup) setStatus("Run the method first, then review the answer and evidence.");
+        if (shouldRouteToSetup) setStatus("Run a method first, then open the answer or the full work.");
+        if (!shouldRouteToSetup && item.id === "root-shell-evidence-link" && evidence && evidence.hidden && globalScope.RootsRender && globalScope.RootsRender.setEvidenceExpanded) {
+          globalScope.RootsRender.setEvidenceExpanded(true);
+        }
 
-        if (nextTarget && nextTarget.scrollIntoView) nextTarget.scrollIntoView({ block: "start", behavior: "smooth" });
+        scrollElementIntoView(nextTarget);
         if (nextTarget && nextTarget.focus) {
           try {
             nextTarget.focus({ preventScroll: true });
@@ -265,7 +433,7 @@
       button.textContent = state.angleMode === "deg" ? "Use radians" : "Use degrees";
       globalScope.RootsState.clearAllRuns(state);
       globalScope.RootsRender.resetResults(state);
-      setStatus("Angle mode changed. Re-run the method for updated trig values.");
+      setStatus("Angle mode changed. Re-run to update trig values.");
     });
   }
 
@@ -277,8 +445,10 @@
     setCurrentShellLink("root-shell-methods-link");
     wireAngleToggle(state);
     wireCopySolution(state);
+    wireCopyAnswer(state);
+    wireEvidenceToggle();
     wireSymbols();
-    syncBisectionToleranceControls();
+    syncStoppingControls();
     activateMethod(state, state.activeMethod);
   });
 })(window);

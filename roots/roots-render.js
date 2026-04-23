@@ -2,7 +2,7 @@
 
 (function initRootsRender(globalScope) {
   const C = globalScope.CalcEngine;
-  const EMPTY = "Not calculated yet";
+  const EMPTY = "Not available yet";
 
   const TABLE_CONFIGS = {
     bisection: { headers: ["i", "a", "b", "c", "f(a)", "f(b)", "f(c)", "Signs", "Decision", "Width", "Bound", "Error", "Note"], colSpan: 13 },
@@ -57,6 +57,17 @@
   function setHidden(id, hidden) {
     const el = byId(id);
     if (el) el.hidden = !!hidden;
+  }
+
+  function setEvidenceExpanded(expanded) {
+    const toggle = byId("root-evidence-toggle");
+    const evidence = byId("root-evidence-stack");
+    const isExpanded = !!expanded;
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+      toggle.textContent = isExpanded ? "Hide full work" : "Show full work";
+    }
+    if (evidence) evidence.hidden = !isExpanded;
   }
 
   function escapeHtml(value) {
@@ -119,19 +130,19 @@
   function formatStopReason(reason, method) {
     const map = {
       "iteration-limit": "Completed the requested iterations",
-      "iteration-cap": "Stopped at the safety iteration cap",
+      "iteration-cap": "Stopped at the safety cap",
       "tolerance-reached": "Reached the requested tolerance",
-      "tolerance-already-met": "Initial interval already satisfies the tolerance",
-      "endpoint-root": "An endpoint is already a root",
+      "tolerance-already-met": "Starting interval already meets the tolerance",
+      "endpoint-root": "An endpoint is already the root",
       "exact-zero": method === "fixedPoint" ? "The iteration reached an exact fixed point" : "Reference value is exactly zero",
       "machine-zero": "Machine value is zero or near zero",
       "invalid-starting-interval": "Not a valid starting bracket",
       "invalid-input": "Input was rejected",
       "discontinuity-detected": "Stopped at a discontinuity or singularity",
-      "singularity-encountered": "Evaluator raised an error inside the iteration",
-      "non-finite-evaluation": "Evaluator produced a non-finite value",
-      "derivative-zero": "Derivative is zero; method cannot continue",
-      "stagnation": "Method stalled because the denominator is near zero",
+      "singularity-encountered": "Function evaluation failed during the iteration",
+      "non-finite-evaluation": "Function evaluation returned a non-finite value",
+      "derivative-zero": "Derivative is zero, so the method cannot continue",
+      "stagnation": "The method stalled because the denominator is near zero",
       "diverged": "Iteration diverged",
       "diverged-step": "Step grew too quickly",
       "step-small-residual-large": "Step is small but residual remains large",
@@ -190,19 +201,19 @@
     const reason = summary.stopReason;
     const method = run && run.method;
     if (summary.intervalStatus === "invalid-bracket" || reason === "invalid-starting-interval") {
-      return "The endpoints do not bracket a sign change, so this bracket method cannot start safely.";
+      return "The endpoints do not bracket a sign change, so this bracket method cannot start.";
     }
     if (reason === "iteration-limit") {
-      return "The requested iterations completed. Use this root when the quiz asks for this fixed n.";
+      return "You stopped after the requested iterations, so this is the answer for the fixed-n version of the problem.";
     }
     if (reason === "tolerance-reached") {
       return "The method reached the requested tolerance, so the last approximation satisfies your stopping rule.";
     }
     if (reason === "tolerance-already-met") {
-      return "The starting interval already satisfies the requested tolerance.";
+      return "The starting interval already meets the requested tolerance.";
     }
     if (reason === "endpoint-root") {
-      return "One endpoint is already a root, so no iteration is needed.";
+      return "One endpoint is already the root, so no iteration is needed.";
     }
     if (reason === "exact-zero" || reason === "machine-zero") {
       return method === "fixedPoint"
@@ -219,21 +230,21 @@
       return "False Position kept the same endpoint too long, so the run stopped before claiming convergence.";
     }
     if (reason === "diverged" || reason === "diverged-step") {
-      return "The iterates moved away from a stable answer instead of settling toward a root.";
+      return "The iterates moved away instead of settling toward a root.";
     }
     if (reason === "cycle-detected") {
       return "The fixed-point iteration repeated a cycle instead of settling to one value.";
     }
     if (reason === "iteration-cap") {
-      return "The safety cap was reached before the requested tolerance was satisfied.";
+      return "The safety cap was reached before the requested tolerance was met.";
     }
     if (reason === "discontinuity-detected" || reason === "singularity-encountered" || reason === "non-finite-evaluation") {
-      return "The evaluator hit an undefined or non-finite value during the run.";
+      return "The function became undefined or non-finite during the run.";
     }
     if (reason === "invalid-input") {
-      return "The run could not start because one or more inputs were rejected.";
+      return "The run could not start because one or more inputs were invalid.";
     }
-    return "The run completed with the displayed stopping result.";
+    return "The run ended with the stopping result shown above.";
   }
 
   function nextActionText(run) {
@@ -243,10 +254,10 @@
       return "Choose endpoints where f(a) and f(b) have opposite signs.";
     }
     if (reason === "iteration-limit") {
-      return "Need a tighter answer? Increase n or switch to tolerance mode.";
+      return "Need a smaller error? Increase n or switch to tolerance mode.";
     }
     if (reason === "tolerance-reached" || reason === "exact-zero" || reason === "machine-zero" || reason === "endpoint-root") {
-      return "Copy the answer or inspect the table if your solution needs shown work.";
+      return "Copy the answer, or open the full work if you need to show the steps.";
     }
     if (reason === "derivative-zero") {
       return "Change the starting point or check that f'(x) was entered correctly.";
@@ -255,10 +266,10 @@
       return "Use different starting guesses or switch to a bracket method.";
     }
     if (reason === "retained-endpoint-stagnation") {
-      return "Try Bisection for guaranteed interval shrinkage or choose a better bracket.";
+      return "Try Bisection for guaranteed interval shrinkage, or choose a better bracket.";
     }
     if (reason === "diverged" || reason === "diverged-step") {
-      return "Choose a closer starting point or use a bracket method when an interval is known.";
+      return "Choose a closer starting point, or use a bracket method when an interval is known.";
     }
     if (reason === "cycle-detected") {
       return "Try a different g(x) form or a different starting value.";
@@ -270,7 +281,7 @@
       return "Move the interval or starting value away from undefined points.";
     }
     if (reason === "invalid-input") {
-      return "Check the expression, machine precision, and stopping value.";
+      return "Check the function, method values, and stopping rule.";
     }
     return "Review the diagnostics and table before trusting the approximation.";
   }
@@ -278,7 +289,11 @@
   function collectDiagnostics(run) {
     const out = [];
     (run.warnings || []).forEach(function addWarning(warning) {
-      out.push({ title: warning.code || "Warning", message: warning.message || "", level: "warning" });
+      const rawCode = warning && warning.code ? String(warning.code) : "";
+      const title = rawCode
+        ? rawCode.replace(/[-_]+/g, " ").replace(/\b\w/g, function upper(ch) { return ch.toUpperCase(); })
+        : "Warning";
+      out.push({ title: title, message: warning.message || "", level: "warning" });
     });
     const summary = run.summary || {};
     if (summary.stopDetail) {
@@ -291,7 +306,7 @@
       out.push({ title: "Final error", message: "|error| = " + fmtErr(summary.error), level: "info" });
     }
     if (summary.bound != null) {
-      out.push({ title: "Bound", message: "Bound = " + fmtErr(summary.bound), level: "info" });
+      out.push({ title: "Error bound", message: "Bound = " + fmtErr(summary.bound), level: "info" });
     }
     if (summary.cyclePeriod != null) {
       out.push({ title: "Cycle detected", message: "Cycle period = " + summary.cyclePeriod, level: "warning" });
@@ -571,6 +586,7 @@
     const summary = run.summary || {};
     setHidden("root-empty", true);
     setHidden("root-result-stage", false);
+    setEvidenceExpanded(false);
     setText("root-approx", summary.intervalStatus === "invalid-bracket" || summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18));
     setText("root-stopping-result", formatStopReason(summary.stopReason, run.method));
     setText("root-convergence", formatStoppingDetails(run));
@@ -582,6 +598,7 @@
     renderConvergenceSummary(run);
     renderSolutionSteps(run);
     renderTable(run);
+    setOptionalText("root-answer-copy-status", "");
   }
 
   function resetResults(state) {
@@ -590,11 +607,12 @@
     });
     renderMethodGuide(state.activeMethod);
     setText("root-active-method", state.activeMethod ? methodLabel(state.activeMethod) : EMPTY);
-    setText("root-final-metric", "Not calculated yet");
-    setOptionalText("root-interpretation", "Run the method to see a short interpretation.");
-    setOptionalText("root-next-action", "Run the method to see the next recommended action.");
+    setText("root-final-metric", EMPTY);
+    setOptionalText("root-interpretation", "After you run a method, this box explains what the stopping result means.");
+    setOptionalText("root-next-action", "After you run a method, this box suggests the next change to try.");
     setHidden("root-empty", false);
     setHidden("root-result-stage", true);
+    setEvidenceExpanded(false);
     setHidden("root-bracket-panel", true);
     const diagnostics = byId("root-diagnostics");
     if (diagnostics) {
@@ -605,11 +623,12 @@
     if (graph) graph.innerHTML = "";
     setOptionalText("root-rate-summary", "");
     const list = byId("root-solution-steps");
-    if (list) list.innerHTML = "<li>Run the method to see steps.</li>";
+    if (list) list.innerHTML = "<li>Run a method to show the step-by-step work.</li>";
     const thead = byId("root-iteration-thead");
     const body = byId("root-iteration-body");
     if (thead) thead.innerHTML = "";
     if (body) body.innerHTML = "<tr class=\"empty-row\"><td colspan=\"13\">No steps yet.</td></tr>";
+    setOptionalText("root-answer-copy-status", "");
     setOptionalText("root-copy-status", "");
   }
 
@@ -652,5 +671,12 @@
     return lines.join("\n");
   }
 
-  globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText, renderMethodGuide };
+  function buildAnswerText(run) {
+    const summary = run && run.summary ? run.summary : {};
+    const method = run && run.method ? run.method : "";
+    const rootDisplay = run && run.rootDisplay ? run.rootDisplay : (summary.approximation == null ? "N/A" : fmtVal(summary.approximation, 18));
+    return methodLabel(method) + ": approximate root = " + rootDisplay + "; " + formatStoppingDetails(run) + "; " + finalMetric(run);
+  }
+
+  globalScope.RootsRender = { renderRun, renderBisection: renderRun, resetResults, buildSolutionText, buildAnswerText, renderMethodGuide, setEvidenceExpanded };
 })(window);

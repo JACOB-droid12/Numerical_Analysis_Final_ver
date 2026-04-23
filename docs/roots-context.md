@@ -41,3 +41,12 @@ node scripts/roots-mini-app-ui-audit.js
 ## Cutover Note
 
 The main calculator now links to `roots/index.html`. The main app no longer loads `root-engine.js` or `root-ui.js`, and the legacy `root-ui.js` file has been removed.
+
+## Current Design Direction
+
+- Tone: designed, but still a disciplined lab instrument.
+- Primary promise: fast quiz answers. The function input and run action should dominate the first viewport.
+- Evidence model: answer first; solution record, diagnostics, graphs, steps, and tables expand on demand.
+- Method visibility: keep all five methods equally visible. Do not demote False Position or Fixed Point behind menus.
+- Current priority order from critique follow-up: first-viewport speed, then setup-field organization, then answer-copy convenience.
+- Evidence order decision: keep diagnostics and graph before solution steps.
