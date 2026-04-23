@@ -159,6 +159,27 @@ export interface MethodConfig {
   tableHeaders: string[];
 }
 
+export type RunFreshness = 'empty' | 'current' | 'stale';
+
+export interface RunRequestSnapshot {
+  method: RootMethod;
+  angleMode: AngleMode;
+  values: MethodFormState;
+}
+
+export interface StoredRunState {
+  result: RootRunResult;
+  request: RunRequestSnapshot;
+}
+
+export interface DisplayedRunState {
+  run: RootRunResult | null;
+  request: RunRequestSnapshot | null;
+  freshness: RunFreshness;
+  staleReason: string | null;
+  hasCompareEntry: boolean;
+}
+
 export interface WorkbenchStatus {
   kind: 'idle' | 'loading' | 'ready' | 'error';
   message: string;

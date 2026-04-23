@@ -5,9 +5,11 @@ import { loadLegacyEngines } from '../lib/legacyEngineLoader';
 import { errorMessage, runRootMethod } from '../lib/rootEngineAdapter';
 import type {
   AngleMode,
+  DisplayedRunState,
   MethodFormState,
   RootMethod,
-  RootRunResult,
+  RunRequestSnapshot,
+  StoredRunState,
   WorkbenchStatus,
 } from '../types/roots';
 
@@ -27,13 +29,48 @@ const ANGLE_MODE_CHANGED_STATUS: WorkbenchStatus = {
 
 type EngineStatusKind = 'loading' | 'ready' | 'error';
 
+function createRequestSnapshot(
+  method: RootMethod,
+  forms: Record<RootMethod, MethodFormState>,
+  angleMode: AngleMode,
+): RunRequestSnapshot {
+  return {
+    method,
+    angleMode,
+    values: { ...forms[method] },
+  };
+}
+
+function sameSnapshot(left: RunRequestSnapshot | null, right: RunRequestSnapshot): boolean {
+  if (!left) return false;
+  if (left.method !== right.method || left.angleMode !== right.angleMode) return false;
+
+  const leftEntries = Object.entries(left.values);
+  const rightEntries = Object.entries(right.values);
+  if (leftEntries.length !== rightEntries.length) return false;
+
+  return rightEntries.every(([key, value]) => left.values[key] === value);
+}
+
+function staleReason(
+  previous: RunRequestSnapshot | null,
+  current: RunRequestSnapshot,
+): string | null {
+  if (!previous) return null;
+  if (previous.method !== current.method) return 'Method changed. Run again to update the answer.';
+  if (previous.angleMode !== current.angleMode) {
+    return 'Angle mode changed. Re-run to update trig values.';
+  }
+  return 'Inputs changed. Run again to update the answer.';
+}
+
 export function useRootsWorkbench() {
   const [activeMethod, setActiveMethod] = useState<RootMethod>('bisection');
   const [angleMode, setAngleMode] = useState<AngleMode>('deg');
   const [forms, setForms] = useState<Record<RootMethod, MethodFormState>>(() =>
     createDefaultFormState(),
   );
-  const [runs, setRuns] = useState<Partial<Record<RootMethod, RootRunResult>>>({});
+  const [lastRun, setLastRun] = useState<StoredRunState | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatusKind>('loading');
   const [engineErrorMessage, setEngineErrorMessage] = useState('');
   const [workbenchStatus, setWorkbenchStatus] = useState<WorkbenchStatus>(READY_STATUS);
@@ -68,7 +105,38 @@ export function useRootsWorkbench() {
   );
 
   const activeForm = useMemo(() => forms[activeMethod], [activeMethod, forms]);
-  const activeRun = useMemo(() => runs[activeMethod] ?? null, [activeMethod, runs]);
+  const activeRequest = useMemo(
+    () => createRequestSnapshot(activeMethod, forms, angleMode),
+    [activeMethod, angleMode, forms],
+  );
+  const displayRun = useMemo<DisplayedRunState>(() => {
+    if (!lastRun) {
+      return {
+        run: null,
+        request: null,
+        freshness: 'empty',
+        staleReason: null,
+        hasCompareEntry: false,
+      };
+    }
+
+    const freshness = sameSnapshot(lastRun.request, activeRequest) ? 'current' : 'stale';
+    return {
+      run: lastRun.result,
+      request: lastRun.request,
+      freshness,
+      staleReason: freshness === 'stale' ? staleReason(lastRun.request, activeRequest) : null,
+      hasCompareEntry: true,
+    };
+  }, [activeRequest, lastRun]);
+  const activeRun = useMemo(
+    () => (displayRun.freshness === 'current' ? displayRun.run : null),
+    [displayRun.freshness, displayRun.run],
+  );
+  const displayConfig = useMemo(() => {
+    const displayMethod = displayRun.run?.method ?? activeMethod;
+    return METHOD_CONFIGS.find((config) => config.method === displayMethod) ?? METHOD_CONFIGS[0];
+  }, [activeMethod, displayRun.run]);
   const methodConfigs = useMemo(() => METHOD_CONFIGS, []);
   const status = useMemo<WorkbenchStatus>(() => {
     if (engineStatus === 'loading') {
@@ -89,14 +157,6 @@ export function useRootsWorkbench() {
           [fieldId]: value,
         },
       }));
-      setRuns((current) => {
-        if (!(method in current)) {
-          return current;
-        }
-        const next = { ...current };
-        delete next[method];
-        return next;
-      });
       setWorkbenchStatus(INPUTS_CHANGED_STATUS);
       setEvidenceExpanded(false);
     },
@@ -109,22 +169,12 @@ export function useRootsWorkbench() {
     }
 
     try {
+      const request = createRequestSnapshot(activeMethod, forms, angleMode);
       const result = runRootMethod(activeMethod, forms[activeMethod], angleMode);
-      setRuns((current) => ({
-        ...current,
-        [activeMethod]: result,
-      }));
+      setLastRun({ result, request });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
       setEvidenceExpanded(false);
     } catch (error) {
-      setRuns((current) => {
-        if (!(activeMethod in current)) {
-          return current;
-        }
-        const next = { ...current };
-        delete next[activeMethod];
-        return next;
-      });
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
     }
@@ -132,7 +182,6 @@ export function useRootsWorkbench() {
 
   const toggleAngleMode = useCallback(() => {
     setAngleMode((current) => (current === 'deg' ? 'rad' : 'deg'));
-    setRuns({});
     setEvidenceExpanded(false);
     setWorkbenchStatus(ANGLE_MODE_CHANGED_STATUS);
   }, []);
@@ -143,12 +192,24 @@ export function useRootsWorkbench() {
     setEvidenceExpanded(false);
   }, []);
 
+  const runs = useMemo<Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>>(() => {
+    if (!lastRun || displayRun.freshness !== 'current') {
+      return {};
+    }
+
+    return {
+      [lastRun.result.method]: lastRun.result,
+    } as Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>;
+  }, [displayRun.freshness, lastRun]);
+
   return {
     activeConfig,
     activeForm,
     activeMethod,
     activeRun,
     angleMode,
+    displayConfig,
+    displayRun,
     evidenceExpanded,
     forms,
     methodConfigs,
