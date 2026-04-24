@@ -6,9 +6,10 @@ This document defines the deployment workflow for promoting the Roots React stag
 
 ## Branch Roles
 
-- `codex/roots-react-pilot`: release-candidate branch for Roots React staging validation.
-- Vercel preview deployments: staging review environments created from non-production branches.
-- Production branch: `master` or `main`, matching the repository default.
+- Feature branches such as `codex/roots-react-pilot`: active implementation branches only. They are not the private staging release branch.
+- `staging`: private release-candidate branch. Feature branches merge or cherry-pick into `staging`, and `staging` is expected to produce the private staging deployment.
+- `master`: production branch for this repository unless the repository default is changed later.
+- Promotion path: feature branch -> staging -> master.
 
 Do not promote to production until the local promotion gate and staging smoke checklist both pass for the exact commit being promoted.
 
@@ -23,6 +24,8 @@ Output directory: dist
 Production branch: master or main, matching the repository default
 ```
 
+Keep `Install command: npm install` for the initial Vercel setup because the release plan requires that exact setting. `npm ci` can be considered later after Vercel setup is stable.
+
 Because Vercel builds from roots-react as the project root, files above roots-react are not available during the Vercel build. Always run npm run sync:legacy before committing a release candidate so the copied legacy engine files inside roots-react are current.
 
 ## Private Staging Access
@@ -31,29 +34,32 @@ Enable Vercel Deployment Protection with Vercel Authentication and Standard Prot
 
 ## Local Promotion Gate
 
-Before creating or updating a release candidate commit:
+Before merging or cherry-picking a feature branch into `staging`, run the canonical release check, `scripts/roots-react-release-check.ps1`, from the repository root:
 
-1. Run `npm run sync:legacy` from `roots-react`.
-2. Run the Roots React local build and test commands defined for the pilot.
-3. Run the repository audit scripts relevant to the changed surface, including `node scripts/engine-correctness-audit.js` if any engine file changed.
-4. Confirm the legacy static calculator files remain untouched unless the release explicitly includes approved legacy changes.
-5. Record the candidate commit SHA for staging review.
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
+The script runs the engine audit, root-engine audit, `sync:legacy`, stale synced legacy diff guard, typecheck, and build. Treat a passing run as the local gate for moving implementation work from a feature branch into `staging`.
+
+After the gate passes, confirm the legacy static calculator files remain untouched unless the release explicitly includes approved legacy changes, then record the candidate commit SHA for staging review.
 
 ## Staging Deployment Steps
 
-1. Push the release-candidate branch to the remote repository.
-2. Confirm Vercel creates a preview deployment using the project settings above.
-3. Verify Deployment Protection is enabled before sharing the preview URL.
-4. Share the preview URL only with approved reviewers.
-5. Complete `docs/deployment/roots-react-staging-smoke-checklist.md` against the preview deployment and exact commit SHA.
-6. Resolve any blocking findings on the release-candidate branch and repeat staging review for the new commit.
+1. Merge or cherry-pick the approved feature branch changes into `staging`.
+2. Push `staging` to the remote repository.
+3. Confirm Vercel creates the private staging preview deployment from `staging` using the project settings above.
+4. Verify Deployment Protection is enabled before sharing the preview URL.
+5. Share the preview URL only with approved reviewers.
+6. Complete `docs/deployment/roots-react-staging-smoke-checklist.md` against the staging deployment and exact commit SHA.
+7. Resolve any blocking findings on a feature branch, rerun the local promotion gate, merge or cherry-pick the fix into `staging`, and repeat staging review for the new commit.
 
 ## Production Promotion Steps
 
 1. Confirm the local promotion gate passed for the exact commit being promoted.
 2. Confirm the staging smoke checklist passed for the same commit SHA.
-3. Merge the release-candidate branch into the repository default branch using the approved project workflow.
-4. Confirm Vercel creates a production deployment from the default branch.
+3. Merge `staging` into `master` using the approved project workflow.
+4. Confirm Vercel creates a production deployment from `master`.
 5. Smoke test the production URL using the same high-level checks as staging.
 6. Record the production deployment URL and promoted commit SHA in the release notes or handoff.
 
