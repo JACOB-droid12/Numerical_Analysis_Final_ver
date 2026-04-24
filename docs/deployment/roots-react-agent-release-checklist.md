@@ -69,3 +69,12 @@ Record result:
 - [ ] Summary includes verification commands and results.
 - [ ] Summary includes deployment URL when applicable.
 - [ ] Summary includes any deferred risks or account-side Vercel setup still needed.
+
+## Account-Side Vercel Follow-Up
+
+- [ ] Existing Vercel project checked: `marvillarq20-3593s-projects/roots-react`
+- [ ] GitHub repository connected: `JACOB-droid12/Numerical_Analysis_Final_ver`
+- [ ] Root Directory confirmed: `roots-react`
+- [ ] Production Branch confirmed: `master`
+- [ ] Preview deployments confirmed for `staging`
+- [ ] Deployment Protection confirmed for preview deployments, or staging URL treated as unlisted.
