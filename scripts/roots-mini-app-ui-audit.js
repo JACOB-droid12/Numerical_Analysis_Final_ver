@@ -71,6 +71,8 @@ class FakeElement {
     this.classList = new FakeClassList();
     this.selectionStart = this.value.length;
     this.selectionEnd = this.value.length;
+    this.focusCount = 0;
+    this.scrollCount = 0;
   }
   addEventListener(type, handler) {
     if (!this.listeners[type]) this.listeners[type] = [];
@@ -86,7 +88,12 @@ class FakeElement {
   getAttribute(name) {
     return this.attributes[name];
   }
-  focus() {}
+  focus() {
+    this.focusCount += 1;
+  }
+  scrollIntoView() {
+    this.scrollCount += 1;
+  }
   setSelectionRange(start, end) {
     this.selectionStart = start;
     this.selectionEnd = end;
@@ -113,10 +120,33 @@ const IDS = [
   "root-fpi-expression", "root-fpi-x0", "root-fpi-k", "root-fpi-mode", "root-fpi-stop-kind",
   "root-fpi-stop-value", "root-fpi-compute",
   "root-empty", "root-result-stage", "root-approx", "root-stopping-result", "root-convergence",
+  "root-shell-rail", "root-shell-header", "root-shell-methods-link", "root-shell-setup-link", "root-shell-answer-link", "root-shell-evidence-link",
+  "root-method-section", "root-studio-workspace", "root-setup-card", "root-quiz-answer", "root-evidence-stack", "root-evidence-heading",
+  "root-active-method", "root-final-metric", "root-interpretation", "root-next-action",
+  "root-method-guide", "root-method-title", "root-method-summary", "root-method-details",
   "root-error-msg", "root-status-msg", "root-diagnostics", "root-bracket-panel", "root-interval-status",
   "root-sign-summary", "root-decision-summary", "root-convergence-graph", "root-rate-summary",
   "root-iteration-thead", "root-iteration-body", "root-solution-steps", "root-copy-solution", "root-copy-status"
 ];
+
+const BUTTON_IDS = new Set([
+  "angle-toggle",
+  "root-copy-solution",
+  "root-bis-compute",
+  "root-newton-compute",
+  "root-secant-compute",
+  "root-fp-compute",
+  "root-fpi-compute",
+  "root-tab-bisection",
+  "root-tab-newton",
+  "root-tab-secant",
+  "root-tab-falseposition",
+  "root-tab-fixedpoint",
+  "root-shell-methods-link",
+  "root-shell-setup-link",
+  "root-shell-answer-link",
+  "root-shell-evidence-link"
+]);
 
 function makeDocument() {
   const elements = {};
@@ -125,7 +155,10 @@ function makeDocument() {
     return elements[id];
   }
 
-  IDS.forEach((id) => ensure(id, id.includes("compute") || id.includes("tab") || id === "angle-toggle" || id === "root-copy-solution" ? "button" : "div"));
+  IDS.forEach((id) => ensure(
+    id,
+    BUTTON_IDS.has(id) ? "button" : "div"
+  ));
 
   const symbolTriggers = [...ROOTS_HTML.matchAll(/<button[^>]*class="[^"]*symbol-trigger[^"]*"[^>]*>/gi)].map((match, index) => {
     const el = new FakeElement("button", "symbol-trigger-" + index);
@@ -162,9 +195,9 @@ function makeDocument() {
   };
 }
 
-function click(el) {
+function click(el, message) {
   const handlers = el.listeners.click || [];
-  assert.ok(handlers.length > 0, `${el.id || el.tagName} should be wired for click`);
+  assert.ok(handlers.length > 0, message || `${el.id || el.tagName} should be wired for click`);
   handlers[0]();
 }
 
@@ -227,14 +260,68 @@ setValues(document, {
 });
 click(document.elements["root-bis-compute"]);
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375");
+assert.strictEqual(document.elements["root-active-method"].textContent, "Bisection");
+assert.ok(
+  document.elements["root-final-metric"].textContent.includes("epsilon <=") ||
+    document.elements["root-final-metric"].textContent.includes("Final |error|"),
+  "bisection final metric should summarize error or bound"
+);
+assert.ok(
+  document.elements["root-interpretation"].textContent.includes("requested iterations"),
+  "bisection interpretation should explain the stopping result"
+);
+assert.ok(
+  document.elements["root-next-action"].textContent.includes("Increase n") ||
+    document.elements["root-next-action"].textContent.includes("tolerance"),
+  "bisection next action should guide tighter answers"
+);
+assert.ok(
+  document.elements["root-method-summary"].textContent.includes("interval"),
+  "bisection method guide should explain interval use"
+);
 assert.strictEqual(document.elements["root-empty"].hidden, true);
 assert.strictEqual(document.elements["root-result-stage"].hidden, false);
 assert.ok(document.elements["root-convergence-graph"].innerHTML.includes("<svg"), "bisection graph should render an svg");
+assert.ok(
+  ROOTS_HTML.includes("root-studio-workspace"),
+  "NET shell workspace should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-setup-card"),
+  "NET shell setup card should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-quiz-answer"),
+  "NET shell quiz answer section should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-evidence-stack"),
+  "NET shell evidence stack should exist in the standalone Roots HTML"
+);
+assert.ok(
+  ROOTS_HTML.includes("root-evidence-heading"),
+  "NET shell evidence heading should exist in the standalone Roots HTML"
+);
+assert.strictEqual(
+  document.elements["root-evidence-heading"].textContent || "Evidence",
+  "Evidence"
+);
 document.elements["root-bis-sign-display"].value = "machine";
 document.elements["root-bis-sign-display"].dispatchEvent({ type: "change" });
 assert.strictEqual(document.elements["root-result-stage"].hidden, false, "bisection sign display change should keep results visible");
 assert.strictEqual(document.elements["root-approx"].textContent, "1.4375", "bisection sign display change should preserve cached approximation");
 assert.ok(document.elements["root-sign-summary"].textContent.includes("M("), "bisection sign summary should re-render with machine signs");
+click(document.elements["root-shell-answer-link"], "root-shell-answer-link should be wired for click");
+assert.ok(document.elements["root-quiz-answer"].scrollCount >= 1, "Quiz Answer rail click should scroll to the answer section");
+assert.ok(document.elements["root-quiz-answer"].focusCount >= 1, "Quiz Answer rail click should focus the answer section");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "true", "Quiz Answer rail link should become current");
+click(document.elements["root-shell-evidence-link"], "root-shell-evidence-link should be wired for click");
+assert.ok(document.elements["root-evidence-stack"].scrollCount >= 1, "Evidence rail click should scroll to the evidence section");
+assert.strictEqual(document.elements["root-shell-evidence-link"].getAttribute("aria-current"), "true", "Evidence rail link should become current");
+assert.strictEqual(document.elements["root-shell-answer-link"].getAttribute("aria-current"), "false", "Previous rail link should clear current state");
+assert.ok(ROOTS_HTML.includes("root-shell-rail"), "NET shell rail should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-shell-header"), "NET shell header should exist in the standalone Roots HTML");
+assert.ok(ROOTS_HTML.includes("root-method-section"), "Methods section should exist in the standalone Roots HTML");
 
 setValues(document, {
   "root-bis-expression": "x^2 + 1",
@@ -250,6 +337,14 @@ setValues(document, {
 assert.doesNotThrow(() => click(document.elements["root-bis-compute"]));
 assert.strictEqual(document.elements["root-approx"].textContent, "N/A");
 assert.strictEqual(document.elements["root-stopping-result"].textContent, "Not a valid starting bracket");
+assert.ok(
+  document.elements["root-interpretation"].textContent.includes("do not bracket"),
+  "invalid bracket interpretation should explain the sign problem"
+);
+assert.ok(
+  document.elements["root-next-action"].textContent.includes("opposite signs"),
+  "invalid bracket next action should tell the user how to recover"
+);
 
 setValues(document, {
   "root-bis-expression": "x^2 - 2",
@@ -274,6 +369,8 @@ click(document.elements["angle-toggle"]);
 assert.strictEqual(document.elements["status-angle"].textContent, "RAD");
 
 click(document.elements["root-tab-newton"]);
+assert.strictEqual(document.elements["root-method-title"].textContent, "Newton-Raphson");
+assert.ok(document.elements["root-method-summary"].textContent.includes("derivative"));
 setValues(document, {
   "root-newton-expression": "x^2 - 2",
   "root-newton-df": "2x",
@@ -288,6 +385,8 @@ assert.strictEqual(document.elements["root-approx"].textContent, "1.41421356237"
 assert.ok(document.elements["root-solution-steps"].innerHTML.includes("Newton-Raphson"));
 
 click(document.elements["root-tab-fixedpoint"]);
+assert.strictEqual(document.elements["root-method-title"].textContent, "Fixed Point");
+assert.ok(document.elements["root-method-summary"].textContent.includes("g(x)"));
 setValues(document, {
   "root-fpi-expression": "cos(x)",
   "root-fpi-x0": "1",
@@ -337,7 +436,20 @@ assert.ok(document.elements["root-sign-summary"].textContent.includes("E("), "fa
 
 click(document.elements["root-copy-solution"]);
 assert.strictEqual(document.elements["root-copy-status"].textContent, "Solution copied.");
+const copiedLines = clipboard.text.split(/\r?\n/);
+const nextActionIndex = copiedLines.indexOf("Next action");
+const evidenceIndex = copiedLines.indexOf("Evidence");
+assert.strictEqual(copiedLines[0], "Quiz-ready answer", "copied solution should start with quiz-ready answer");
+assert.ok(nextActionIndex >= 0, "copied solution should include next action heading");
+assert.ok(evidenceIndex >= 0, "copied solution should include evidence heading");
+assert.ok(evidenceIndex > nextActionIndex, "evidence heading should appear after next action");
 assert.ok(clipboard.text.includes("false position"), "copy should include current solution text");
+assert.ok(clipboard.text.includes("Method: False Position"), "copy should include method header");
+assert.ok(clipboard.text.includes("Approximate root:"), "copy should include approximate root");
+assert.ok(clipboard.text.includes("Stopping result:"), "copy should include stopping result");
+assert.ok(clipboard.text.includes("Stopping parameters:"), "copy should include stopping parameters");
+assert.ok(clipboard.text.includes("Next action"), "copy should include next action guidance");
+assert.ok(clipboard.text.includes("Evidence"), "copied solution should include evidence section");
 
 const bisTrigger = document.symbolTriggers.find((trigger) => trigger.dataset.symbolTarget === "root-bis-expression");
 const sqrtButton = document.symbolButtons.find((button) => button.dataset.symbolInsert === "sqrt(");

@@ -9,52 +9,82 @@
 </head>
 <body class="roots-standalone">
   <main class="roots-app-shell">
-    <header class="roots-toolbar">
-      <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
-      <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
-      <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
-    </header>
+    <div class="roots-net-layout">
+      <nav id="root-shell-rail" class="root-shell-rail" aria-label="NET section navigation">
+        <div class="root-shell-brand">
+          <span class="root-shell-brand-mark">NET+</span>
+          <span class="root-shell-brand-copy">Numerical Exploration Toolkit</span>
+        </div>
+        <div class="root-shell-module">
+          <p class="result-label">Module IV · Roots</p>
+          <p class="root-shell-module-title">Guided Solver Studio</p>
+          <p>Fast quiz answers, clear evidence, no workspace clutter.</p>
+        </div>
+        <div class="root-shell-links" role="group" aria-label="Roots sections">
+          <button id="root-shell-methods-link" class="root-shell-link active" type="button" data-target="root-method-section" aria-current="true">Methods</button>
+          <button id="root-shell-setup-link" class="root-shell-link" type="button" data-target="root-setup-card" aria-current="false">Problem Setup</button>
+          <button id="root-shell-answer-link" class="root-shell-link" type="button" data-target="root-quiz-answer" aria-current="false">Quiz Answer</button>
+          <button id="root-shell-evidence-link" class="root-shell-link" type="button" data-target="root-evidence-stack" aria-current="false">Evidence</button>
+        </div>
+      </nav>
+      <div class="root-shell-stage">
+        <header class="root-shell-header">
+          <div class="root-shell-header-copy">
+            <p class="eyebrow">NET+ workspace</p>
+            <p class="root-shell-title">Roots</p>
+          </div>
+          <div class="root-shell-utilities" aria-label="Roots utilities">
+            <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
+            <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+            <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
+          </div>
+        </header>
 
-    <section class="module-shell module-root roots-module-shell">
-      <div class="module-header">
-        <div>
-          <p class="eyebrow">Module IV</p>
-          <h1>Root finding workbench</h1>
-          <p class="module-subtitle">Solve f(x) = 0 with the same five methods, tables, diagnostics, and convergence views from the calculator.</p>
+        <section class="module-shell module-root roots-module-shell">
+      <div class="module-header roots-guided-hero roots-studio-hero">
+        <div class="root-academic-paper root-studio-title-card">
+          <p class="eyebrow">Module IV · Roots</p>
+          <h1>Guided Solver Studio</h1>
+          <p class="module-subtitle">Fast quiz answers with enough explanation to show your work.</p>
+        </div>
+        <div class="root-hero-card root-studio-workflow" role="note" aria-label="Guided solver priorities">
+          <span class="root-hero-kicker">Quick workflow</span>
+          <strong>Pick method. Enter values. Run. Copy answer.</strong>
+          <p>Method guidance stays visible, while tables and diagnostics stay available below the answer.</p>
         </div>
       </div>
 
-      <section class="root-start-guide" aria-label="Roots quick start">
-        <div class="root-start-step">
-          <span class="root-step-number" aria-hidden="true">1</span>
-          <div>
-            <h2>Pick a method</h2>
-            <p>Use bracket methods when you have an interval, or open methods when you have starting guesses.</p>
-          </div>
-        </div>
-        <div class="root-start-step">
-          <span class="root-step-number" aria-hidden="true">2</span>
-          <div>
-            <h2>Enter the function</h2>
-            <p>Type f(x), choose the machine rule, then set iterations or tolerance.</p>
-          </div>
-        </div>
-        <div class="root-start-step">
-          <span class="root-step-number" aria-hidden="true">3</span>
-          <div>
-            <h2>Read the run</h2>
-            <p>Check the approximate root, stopping reason, diagnostics, graph, and iteration table.</p>
-          </div>
-        </div>
-      </section>
+      <div id="root-studio-workspace" class="roots-studio-workspace">
+        <div class="root-studio-main">
+          <section id="root-method-section" class="root-method-section root-academic-paper" aria-label="Methods" tabindex="-1">
+            <div class="root-section-heading">
+              <p class="result-label">Methods</p>
+              <h2>Choose the root-finding method that fits the prompt</h2>
+              <p>Switch methods here. The active solver note updates immediately and the setup block below stays aligned with the current choice.</p>
+            </div>
+            <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
+            <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
+            <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
+            <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
+            <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
+            <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
+          </nav>
 
-      <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
-        <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
-        <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
-        <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
-        <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
-        <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
-      </nav>
+          <section id="root-method-guide" class="root-method-guide" aria-label="Active method guidance">
+            <div>
+              <p class="result-label">Active solver</p>
+              <h2 id="root-method-title">Bisection</h2>
+              <p id="root-method-summary" class="root-method-summary">Use an interval where f(a) and f(b) have opposite signs.</p>
+            </div>
+            <p id="root-method-details" class="root-method-details">Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking.</p>
+          </section>
+          </section>
+          <section id="root-setup-card" class="root-setup-card root-academic-paper" aria-label="Problem setup" tabindex="-1">
+            <div class="root-section-heading">
+              <p class="result-label">1 · Problem setup</p>
+              <h2>Enter the function and method values</h2>
+              <p>Use the active method panel below. Press the equals button to run the solver.</p>
+            </div>
 
       <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
         <div class="omnipotent-search-bar calculator-band">
@@ -175,6 +205,7 @@
           </div>
         </div>
       </section>
+          </section>
 
       <p id="root-error-msg" class="inline-error" role="alert" hidden></p>
       <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
@@ -186,35 +217,73 @@
       </section>
 
       <section id="root-result-stage" class="result-stage" hidden>
-        <div class="root-summary-grid">
-          <div class="answer-hero answer-hero-major"><p class="result-label">Approximate root</p><p id="root-approx" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping result</p><p id="root-stopping-result" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero answer-hero-major"><p class="result-label">Stopping parameters</p><p id="root-convergence" class="answer-value">Not calculated yet</p></div>
-        </div>
-        <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
-        <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
-          <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value">Not calculated yet</p></div>
-          <div class="answer-hero"><p class="result-label">Decision basis</p><p id="root-decision-summary" class="answer-value">Not calculated yet</p></div>
-        </div>
-        <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
-        <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
-        <section class="root-solution-panel answer-hero" aria-label="Solution steps">
-          <div class="root-solution-header">
-            <h2>Solution steps</h2>
-            <button id="root-copy-solution" type="button" class="link">Copy solution</button>
+        <section id="root-quiz-answer" class="root-quiz-answer root-answer-card" aria-label="Quiz-ready answer" tabindex="-1">
+          <p class="visually-hidden">Quiz-ready answer</p>
+          <div class="root-answer-main">
+            <p class="result-label">Approximate root</p>
+            <p id="root-approx" class="answer-value">Not calculated yet</p>
+            <p class="root-answer-method">Method: <strong id="root-active-method">Not calculated yet</strong></p>
           </div>
-          <ol id="root-solution-steps" class="root-solution-steps"></ol>
-          <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
+          <div class="root-answer-context">
+            <div class="root-result-insight">
+              <p class="result-label">Stopping result</p>
+              <p id="root-stopping-result" class="answer-value">Not calculated yet</p>
+            </div>
+            <div class="root-result-insight">
+              <p class="result-label">Stopping parameters</p>
+              <p id="root-convergence" class="answer-value">Not calculated yet</p>
+            </div>
+            <div class="root-result-insight">
+              <p class="result-label">Final metric</p>
+              <p id="root-final-metric" class="answer-value">Not calculated yet</p>
+            </div>
+          </div>
+          <div class="root-answer-guidance">
+            <div>
+              <p class="result-label">What this means</p>
+              <p id="root-interpretation">Run the method to see a short interpretation.</p>
+            </div>
+            <div>
+              <p class="result-label">Try next</p>
+              <p id="root-next-action">Run the method to see the next recommended action.</p>
+            </div>
+          </div>
         </section>
-        <div class="root-iteration-table-wrap">
-          <table class="root-iteration-table">
-            <thead id="root-iteration-thead"></thead>
-            <tbody id="root-iteration-body"></tbody>
-          </table>
+        <section id="root-evidence-stack" class="root-evidence-stack root-academic-paper" aria-label="Evidence and solution trace" tabindex="-1">
+          <div class="root-section-heading">
+            <p class="result-label">3 · Evidence</p>
+            <h2 id="root-evidence-heading">Evidence</h2>
+            <p>Use these details when you need diagnostics, graph behavior, solution steps, or the full iteration table.</p>
+          </div>
+          <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
+          <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
+            <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
+            <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value">Not calculated yet</p></div>
+            <div class="answer-hero"><p class="result-label">Decision basis</p><p id="root-decision-summary" class="answer-value">Not calculated yet</p></div>
+          </div>
+          <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
+          <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
+          <section class="root-solution-panel answer-hero" aria-label="Solution steps">
+            <div class="root-solution-header">
+              <h2>Solution steps</h2>
+              <button id="root-copy-solution" type="button" class="link">Copy solution</button>
+            </div>
+            <ol id="root-solution-steps" class="root-solution-steps"></ol>
+            <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
+          </section>
+          <div class="root-iteration-table-wrap">
+            <table class="root-iteration-table">
+              <thead id="root-iteration-thead"></thead>
+              <tbody id="root-iteration-body"></tbody>
+            </table>
+          </div>
+        </section>
+        </section>
         </div>
+      </div>
       </section>
-    </section>
+    </div>
+    </div>
   </main>
 
   <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>

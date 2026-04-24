@@ -101,21 +101,37 @@ function getElementHtmlById(source, tagName, id) {
   return "";
 }
 
-function hasQuickStartGuide(source) {
-  const guideHtml = source.match(
-    /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>[\s\S]*?<\/section>/i
-  )?.[0] || "";
-  const guideText = normalizedText(guideHtml);
-  return /<section\b(?=[^>]*\bclass="[^"]*\broot-start-guide\b[^"]*")(?=[^>]*\baria-label="Roots quick start")[^>]*>/i.test(guideHtml) &&
-    countMatches(guideHtml, /class="[^"]*\broot-start-step\b[^"]*"/g) >= 3 &&
+function getElementHtmlByClass(source, tagName, className) {
+  const startPattern = new RegExp(
+    `<${tagName}\\b(?=[^>]*\\bclass="[^"]*\\b${escapeRegExp(className)}\\b[^"]*")[^>]*>`,
+    "i"
+  );
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function hasAcademicStudioSetupGuide(source) {
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const setupText = normalizedText(setupHtml);
+  return Boolean(setupHtml) &&
     [
-      "Pick a method",
-      "Use bracket methods when you have an interval, or open methods when you have starting guesses.",
-      "Enter the function",
-      "Type f(x), choose the machine rule, then set iterations or tolerance.",
-      "Read the run",
-      "Check the approximate root, stopping reason, diagnostics, graph, and iteration table."
-    ].every((phrase) => guideText.includes(phrase));
+      "Problem setup",
+      "Enter the function and method values",
+      "Use the active method panel below. Press the equals button to run the solver."
+    ].every((phrase) => setupText.includes(phrase));
 }
 
 function hasEmptyStateContract(source) {
@@ -125,6 +141,104 @@ function hasEmptyStateContract(source) {
       "Pick a method, enter a function, and run the method.",
       "Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table."
     ].every((phrase) => normalizedText(source).includes(phrase));
+}
+
+function hasGuidedSolverShell(source) {
+  const heroHtml = getElementHtmlByClass(source, "div", "roots-guided-hero");
+  const guideHtml = getElementHtmlById(source, "section", "root-method-guide");
+  const heroText = normalizedText(heroHtml);
+  const guideText = normalizedText(guideHtml);
+  return Boolean(heroHtml) &&
+    Boolean(guideHtml) &&
+    /id="root-method-title"/.test(guideHtml) &&
+    /id="root-method-summary"/.test(guideHtml) &&
+    /id="root-method-details"/.test(guideHtml) &&
+    [
+      "Module IV · Roots",
+      "Guided Solver Studio",
+      "Fast quiz answers with enough explanation to show your work.",
+      "Quick workflow",
+      "Pick method",
+      "Enter values",
+      "Run",
+      "Copy answer"
+    ].every((phrase) => heroText.includes(phrase)) &&
+    guideText.includes("Active solver");
+}
+
+function hasQuizAnswerPanel(source) {
+  const resultStageHtml = extractSectionById(source, "root-result-stage");
+  const quizAnswerHtml = extractSectionById(resultStageHtml, "root-quiz-answer");
+  const quizAnswerText = normalizedText(quizAnswerHtml);
+  return Boolean(resultStageHtml) &&
+    Boolean(quizAnswerHtml) &&
+    /id="root-active-method"/.test(quizAnswerHtml) &&
+    /id="root-final-metric"/.test(quizAnswerHtml) &&
+    /id="root-interpretation"/.test(quizAnswerHtml) &&
+    /id="root-next-action"/.test(quizAnswerHtml) &&
+    /id="root-copy-solution"/.test(resultStageHtml) &&
+    quizAnswerText.includes("Quiz-ready answer") &&
+    quizAnswerText.includes("Approximate root") &&
+    quizAnswerText.includes("Stopping result") &&
+    quizAnswerText.includes("What this means") &&
+    quizAnswerText.includes("Try next");
+}
+
+function hasNetShellLayout(source) {
+  const shellHtml = getElementHtmlByClass(source, "div", "roots-net-layout");
+  const railHtml = getElementHtmlByClass(source, "nav", "root-shell-rail");
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const methodsHtml = getElementHtmlById(source, "section", "root-method-section");
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const answerHtml = getElementHtmlById(source, "section", "root-quiz-answer");
+  const evidenceHtml = getElementHtmlById(source, "section", "root-evidence-stack");
+  const railText = normalizedText(railHtml);
+  const headerText = normalizedText(headerHtml);
+  const methodsText = normalizedText(methodsHtml);
+
+  return Boolean(shellHtml) &&
+    Boolean(railHtml) &&
+    Boolean(headerHtml) &&
+    Boolean(methodsHtml) &&
+    Boolean(setupHtml) &&
+    Boolean(answerHtml) &&
+    Boolean(evidenceHtml) &&
+    railText.includes("NET+") &&
+    railText.includes("Methods") &&
+    railText.includes("Problem Setup") &&
+    railText.includes("Quiz Answer") &&
+    railText.includes("Evidence") &&
+    headerText.includes("Back to calculator") &&
+    headerText.includes("Angle") &&
+    headerText.includes("Use radians") &&
+    methodsText.includes("Methods") &&
+    methodsText.includes("Choose the root-finding method that fits the prompt");
+}
+
+function hasNetShellUtilities(source) {
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const toolbarHtml = getElementHtmlByClass(source, "div", "roots-toolbar") ||
+    getElementHtmlByClass(source, "nav", "roots-toolbar") ||
+    getElementHtmlByClass(source, "header", "roots-toolbar");
+
+  return Boolean(headerHtml) &&
+    /id="status-angle"/.test(source) &&
+    /id="angle-toggle"/.test(source) &&
+    /href="\.\.\/index\.html"/.test(source) &&
+    !toolbarHtml;
+}
+
+function hasNetShellCss(source) {
+  return [
+    ".roots-net-layout",
+    ".root-shell-rail",
+    ".root-shell-brand",
+    ".root-shell-links",
+    ".root-shell-link",
+    ".root-shell-header",
+    ".root-shell-utilities",
+    ".root-method-section"
+  ].every((selector) => source.includes(selector));
 }
 
 const exists = fs.existsSync(ROOTS_HTML);
@@ -197,29 +311,19 @@ check(
 );
 
 check(
-  "Standalone entry includes local shell controls",
-  "angle-toggle, status-angle, symbol-popover, root-method-tabs, root-result-stage",
-  [
-    /id="angle-toggle"/.test(html) ? "angle-toggle" : null,
-    /id="status-angle"/.test(html) ? "status-angle" : null,
-    /id="symbol-popover"/.test(html) ? "symbol-popover" : null,
-    /class="root-method-tabs"/.test(html) ? "root-method-tabs" : null,
-    /id="root-result-stage"/.test(html) ? "root-result-stage" : null
-  ].filter(Boolean).join(", ") || "no required shell controls",
-  /id="angle-toggle"/.test(html) &&
-  /id="status-angle"/.test(html) &&
-    /id="symbol-popover"/.test(html) &&
-    /class="root-method-tabs"/.test(html) &&
-    /id="root-result-stage"/.test(html)
+  "Standalone entry moves shell controls into the NET shell",
+  "root-shell-header owns Back to calculator, status-angle, and angle-toggle; legacy roots-toolbar removed",
+  hasNetShellUtilities(html) ? "shell utilities present" : "shell utilities missing",
+  hasNetShellUtilities(html)
 );
 
 check(
   "Standalone entry includes a Roots first-run guide",
-  "root-start-guide with three steps",
-  hasQuickStartGuide(html)
+  "root-setup-card with the problem setup copy",
+  hasAcademicStudioSetupGuide(html)
     ? "first-run guide present"
     : "first-run guide missing",
-  hasQuickStartGuide(html)
+  hasAcademicStudioSetupGuide(html)
 );
 
 check(
@@ -253,6 +357,31 @@ check(
     ? "empty prompt present"
     : "empty prompt missing",
   hasEmptyStateContract(rootEmptyHtml)
+);
+
+check(
+  "Guided Solver shell is present",
+  "hero, active method guide, and fast quiz copy",
+  hasGuidedSolverShell(html)
+    ? "guided solver shell present"
+    : "guided solver shell missing",
+  hasGuidedSolverShell(html)
+);
+
+check(
+  "NET shell layout is present",
+  "shell rail, shell header, methods section, setup card, quiz answer, and evidence stack",
+  hasNetShellLayout(html) ? "present" : "missing",
+  hasNetShellLayout(html)
+);
+
+check(
+  "Quiz answer panel exposes result interpretation landmarks",
+  "active method, final metric, interpretation, next action, and copy solution",
+  hasQuizAnswerPanel(html)
+    ? "quiz answer landmarks present"
+    : "quiz answer landmarks missing",
+  hasQuizAnswerPanel(html)
 );
 
 check(
@@ -310,6 +439,34 @@ const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreen
 const narrowScreenMediaTableBlock =
   narrowScreenMediaBlock.includes(".root-iteration-table") &&
   narrowScreenMediaBlock.includes("min-width: 640px");
+const guidedHeroBlocks = getCssBlocks(rootsCss, ".roots-guided-hero");
+const guidedHeroBlock = guidedHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const methodGuideBlocks = getCssBlocks(rootsCss, ".root-method-guide");
+const methodGuideBlock = methodGuideBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const quizAnswerBlocks = getCssBlocks(rootsCss, ".root-quiz-answer");
+const quizAnswerBlock = quizAnswerBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line-strong)"
+  ])
+);
+const resultInsightBlocks = getCssBlocks(rootsCss, ".root-result-insight");
+const resultInsightBlock = resultInsightBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
 
 check(
   "Roots CSS keeps the approximate root visually primary",
@@ -318,6 +475,22 @@ check(
     ? "primary summary styling present"
     : "primary summary styling missing",
   Boolean(primaryRootHeroBlock && rootHeroValueBlock)
+);
+
+check(
+  "Roots CSS includes Guided Solver hierarchy",
+  "guided hero, method guide, quiz answer panel, and insight cards",
+  guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock
+    ? "guided solver styling present"
+    : "guided solver styling missing",
+  Boolean(guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock)
+);
+
+check(
+  "NET shell CSS hooks are present",
+  ".roots-net-layout, .root-shell-rail, .root-shell-brand, .root-shell-links, .root-shell-link, .root-shell-header, .root-shell-utilities, .root-method-section",
+  hasNetShellCss(rootsCss) ? "present" : "missing",
+  hasNetShellCss(rootsCss)
 );
 
 check(

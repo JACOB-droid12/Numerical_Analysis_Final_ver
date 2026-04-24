@@ -33,6 +33,21 @@
     if (el) el.textContent = message || "";
   }
 
+  function setCurrentShellLink(activeId) {
+    [
+      "root-shell-methods-link",
+      "root-shell-setup-link",
+      "root-shell-answer-link",
+      "root-shell-evidence-link"
+    ].forEach(function updateLink(id) {
+      const link = byId(id);
+      if (!link) return;
+      const isActive = id === activeId;
+      if (link.classList && link.classList.toggle) link.classList.toggle("active", isActive);
+      if (link.setAttribute) link.setAttribute("aria-current", isActive ? "true" : "false");
+    });
+  }
+
   function syncBisectionToleranceControls() {
     const epsilonMode = byId("root-bis-stop-kind") && byId("root-bis-stop-kind").value === "epsilon";
     const wrap = byId("root-bis-tolerance-type-wrap");
@@ -46,6 +61,9 @@
     if (!config) return;
 
     state.activeMethod = method;
+    if (globalScope.RootsRender.renderMethodGuide) {
+      globalScope.RootsRender.renderMethodGuide(method);
+    }
     state.methodConfigs.forEach(function updateMethod(item) {
       const isActive = item.name === method;
       const tab = byId(item.tabId);
@@ -203,6 +221,40 @@
     });
   }
 
+  function wireShellNavigation() {
+    const links = [
+      { id: "root-shell-methods-link", targetId: "root-method-section" },
+      { id: "root-shell-setup-link", targetId: "root-setup-card" },
+      { id: "root-shell-answer-link", targetId: "root-quiz-answer" },
+      { id: "root-shell-evidence-link", targetId: "root-evidence-stack" }
+    ];
+
+    links.forEach(function wireLink(item) {
+      const link = byId(item.id);
+      const target = byId(item.targetId);
+      if (!link || !target) return;
+      link.addEventListener("click", function onShellNavClick() {
+        const resultStage = byId("root-result-stage");
+        const resultsHidden = !!(resultStage && resultStage.hidden);
+        const shouldRouteToSetup = resultsHidden && (item.id === "root-shell-answer-link" || item.id === "root-shell-evidence-link");
+        const nextLinkId = shouldRouteToSetup ? "root-shell-setup-link" : item.id;
+        const nextTarget = shouldRouteToSetup ? byId("root-setup-card") : target;
+
+        setCurrentShellLink(nextLinkId);
+        if (shouldRouteToSetup) setStatus("Run the method first, then review the answer and evidence.");
+
+        if (nextTarget && nextTarget.scrollIntoView) nextTarget.scrollIntoView({ block: "start", behavior: "smooth" });
+        if (nextTarget && nextTarget.focus) {
+          try {
+            nextTarget.focus({ preventScroll: true });
+          } catch (err) {
+            nextTarget.focus();
+          }
+        }
+      });
+    });
+  }
+
   function wireAngleToggle(state) {
     const button = byId("angle-toggle");
     if (!button) return;
@@ -221,6 +273,8 @@
     const state = globalScope.RootsState.createState();
     globalScope.RootsRender.resetResults(state);
     wireMethodControls(state);
+    wireShellNavigation();
+    setCurrentShellLink("root-shell-methods-link");
     wireAngleToggle(state);
     wireCopySolution(state);
     wireSymbols();
