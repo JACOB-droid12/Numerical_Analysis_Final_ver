@@ -81,7 +81,7 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
   const copyDisabled = !copyPayload;
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className="rounded-xl border border-sky-300/20 bg-slate-950/80 p-4 shadow-[0_24px_80px_rgba(14,165,233,0.14)]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -156,7 +156,7 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Approximate root
         </p>
-        <p className="mt-2 break-words text-3xl font-semibold text-sky-300">{approximation}</p>
+        <p className="mt-2 break-words text-4xl font-semibold tracking-normal text-sky-200 sm:text-5xl">{approximation}</p>
       </div>
 
       {summary?.stopDetail ? (

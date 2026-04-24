@@ -1,15 +1,10 @@
 import { useId } from 'react';
 
-import { AngleToggle } from './components/AngleToggle';
-import { AnswerPanel } from './components/AnswerPanel';
-import { CompareMethodsCallout } from './components/CompareMethodsCallout';
-import { ConfidenceSummary } from './components/ConfidenceSummary';
-import { EmptyState } from './components/EmptyState';
-import { EvidencePanel } from './components/EvidencePanel';
-import { EvidencePreview } from './components/EvidencePreview';
-import { MethodForm } from './components/MethodForm';
-import { MethodPicker } from './components/MethodPicker';
-import { RunControls } from './components/RunControls';
+import { AnswerRail } from './components/AnswerRail';
+import { InputComposer } from './components/InputComposer';
+import { MethodRail } from './components/MethodRail';
+import { WorkbenchHeader } from './components/WorkbenchHeader';
+import { WorkbenchShell } from './components/WorkbenchShell';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 
 export default function App() {
@@ -31,111 +26,35 @@ export default function App() {
     updateField,
   } = useRootsWorkbench();
 
-  const displayedRun = displayRun.run;
-  const hasRun = displayedRun !== null;
-
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-slate-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">
-              Roots React pilot
-            </p>
-            <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
-              NET+ Roots Workbench
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-              Choose a method, set the inputs, and inspect the answer together with the
-              supporting numerical evidence.
-            </p>
-          </div>
-          <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-        </header>
-
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
-          <div className="space-y-6">
-            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
-              <div className="space-y-3">
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                    Method
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Select the numerical method you want to run.
-                  </p>
-                </div>
-                <MethodPicker
-                  activeMethod={activeMethod}
-                  methods={methodConfigs}
-                  onSelect={setMethod}
-                />
-              </div>
-            </section>
-
-            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                    Method inputs
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">{activeConfig.summary}</p>
-                </div>
-                <MethodForm
-                  config={activeConfig}
-                  formState={activeForm}
-                  onChange={updateField}
-                />
-                <RunControls
-                  disabled={status.kind === 'loading'}
-                  runLabel={activeConfig.runLabel}
-                  status={status}
-                  onRun={runActiveMethod}
-                />
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-4">
-            {hasRun ? (
-              <>
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
-                  <AnswerPanel
-                    run={displayedRun}
-                    freshness={displayRun.freshness}
-                    staleReason={displayRun.staleReason}
-                  />
-                  <ConfidenceSummary
-                    run={displayedRun}
-                    freshness={displayRun.freshness}
-                    staleReason={displayRun.staleReason}
-                  />
-                </div>
-                <EvidencePreview
-                  fullWorkRegionId={fullWorkRegionId}
-                  expanded={evidenceExpanded}
-                  freshness={displayRun.freshness}
-                  run={displayedRun}
-                  onToggle={() => setEvidenceExpanded((current) => !current)}
-                />
-                {!evidenceExpanded ? <div id={fullWorkRegionId} hidden /> : null}
-                <CompareMethodsCallout
-                  visible={displayRun.hasCompareEntry}
-                  freshness={displayRun.freshness}
-                />
-                <EvidencePanel
-                  config={displayConfig}
-                  contentId={fullWorkRegionId}
-                  expanded={evidenceExpanded}
-                  run={displayedRun}
-                />
-              </>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
+    <WorkbenchShell
+      header={<WorkbenchHeader angleMode={angleMode} onToggleAngleMode={toggleAngleMode} />}
+      methodRail={
+        <MethodRail
+          activeConfig={activeConfig}
+          activeMethod={activeMethod}
+          methods={methodConfigs}
+          onSelect={setMethod}
+        />
+      }
+      inputComposer={
+        <InputComposer
+          activeConfig={activeConfig}
+          activeForm={activeForm}
+          status={status}
+          onChange={updateField}
+          onRun={runActiveMethod}
+        />
+      }
+      answerRail={
+        <AnswerRail
+          config={displayConfig}
+          evidenceExpanded={evidenceExpanded}
+          fullWorkRegionId={fullWorkRegionId}
+          displayRun={displayRun}
+          onToggleEvidence={() => setEvidenceExpanded((current) => !current)}
+        />
+      }
+    />
   );
 }
