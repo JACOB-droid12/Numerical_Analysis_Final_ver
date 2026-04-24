@@ -21,7 +21,7 @@ Framework preset: Vite
 Install command: npm install
 Build command: npm run build
 Output directory: dist
-Production branch: master or main, matching the repository default
+Production branch: master
 ```
 
 Keep `Install command: npm install` for the initial Vercel setup because the release plan requires that exact setting. `npm ci` can be considered later after Vercel setup is stable.
