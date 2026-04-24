@@ -34,6 +34,8 @@ For Vercel, release, staging, or production work, start with:
 | `docs/deployment/README.md` | Deployment entry point and route table for agents |
 | `docs/deployment/roots-react-vercel-release.md` | Vercel settings, branch flow, staging, promotion, rollback |
 | `docs/deployment/roots-react-staging-smoke-checklist.md` | Manual staging and production smoke checklist |
+| `docs/deployment/roots-react-agent-release-checklist.md` | Copyable PR, staging, and production handoff checklist |
+| `docs/deployment/roots-react-pr-body.md` | Reusable GitHub PR body for Roots React changes |
 | `scripts/roots-react-release-check.ps1` | Canonical local release gate |
 | `roots-react/vercel.json` | Vercel build metadata for the React pilot |
 | `roots-react/package.json` | React app scripts |
@@ -51,6 +53,14 @@ Branch flow for the React pilot:
 ```text
 feature branch -> staging -> master
 ```
+
+Every Roots React handoff should include:
+
+- branch name,
+- commit SHA,
+- `.\scripts\roots-react-release-check.ps1` result,
+- Vercel URL when deployed,
+- whether the legacy static backup stayed untouched.
 
 The current production URL is `https://roots-react.vercel.app`.
 
