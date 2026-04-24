@@ -15,11 +15,15 @@ export function useRunRevealMotion<T extends HTMLElement>(runKey: string | null)
       return;
     }
 
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       element,
       { opacity: 0.86, y: 8 },
       { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out' },
     );
+
+    return () => {
+      tween.kill();
+    };
   }, [runKey]);
 
   return elementRef;
