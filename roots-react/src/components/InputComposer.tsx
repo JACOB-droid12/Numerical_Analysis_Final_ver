@@ -28,10 +28,12 @@ export function InputComposer({
           </p>
           <h2 className="mt-1 text-xl font-semibold text-white">{activeConfig.runLabel}</h2>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-100">
-          <Play aria-hidden="true" className="size-3.5" />
-          Ready to run
-        </div>
+        {status.kind === 'idle' || status.kind === 'ready' ? (
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-100">
+            <Play aria-hidden="true" className="size-3.5" />
+            Ready to run
+          </div>
+        ) : null}
       </div>
       <div className="space-y-5">
         <MethodForm config={activeConfig} formState={activeForm} onChange={onChange} />

@@ -25,7 +25,10 @@ export function AnswerRail({
 
   if (!run) {
     return (
-      <section className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-xl shadow-black/20 backdrop-blur">
+      <section
+        aria-label="Answer"
+        className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-xl shadow-black/20 backdrop-blur"
+      >
         <EmptyState />
       </section>
     );

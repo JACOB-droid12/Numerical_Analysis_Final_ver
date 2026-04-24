@@ -19,9 +19,19 @@ export function WorkbenchShell({
       <div className="mx-auto flex min-h-screen w-full max-w-[1480px] flex-col gap-5 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
         {header}
         <section className="grid min-h-0 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_minmax(360px,420px)]">
-          <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">{methodRail}</aside>
+          <aside
+            aria-label="Method selection"
+            className="min-w-0 xl:sticky xl:top-6 xl:self-start"
+          >
+            {methodRail}
+          </aside>
           <section className="min-w-0">{inputComposer}</section>
-          <aside className="min-w-0 xl:sticky xl:top-6 xl:self-start">{answerRail}</aside>
+          <aside
+            aria-label="Answer"
+            className="min-w-0 xl:sticky xl:top-6 xl:self-start"
+          >
+            {answerRail}
+          </aside>
         </section>
       </div>
     </main>
