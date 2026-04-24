@@ -1,12 +1,11 @@
 import { useId } from 'react';
+import { CircleHelp, Command } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
-import { CompareMethodsCallout } from './components/CompareMethodsCallout';
 import { ConfidenceSummary } from './components/ConfidenceSummary';
 import { EmptyState } from './components/EmptyState';
 import { EvidencePanel } from './components/EvidencePanel';
-import { EvidencePreview } from './components/EvidencePreview';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
 import { RunControls } from './components/RunControls';
@@ -23,8 +22,8 @@ export default function App() {
     displayRun,
     evidenceExpanded,
     methodConfigs,
+    resetActiveMethod,
     runActiveMethod,
-    setEvidenceExpanded,
     setMethod,
     status,
     toggleAngleMode,
@@ -35,71 +34,56 @@ export default function App() {
   const hasRun = displayedRun !== null;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-slate-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-300">
-              Roots React pilot
-            </p>
-            <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
-              NET+ Roots Workbench
-            </h1>
-            <p className="max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-              Choose a method, set the inputs, and inspect the answer together with the
-              supporting numerical evidence.
-            </p>
+    <main className="app-shell">
+      <div className="workbench-frame">
+        <aside className="method-rail" aria-label="Root method picker">
+          <div className="rail-head">
+            <span className="brand-mark" aria-hidden="true">R</span>
+            <div>
+              <p className="rail-title">Roots</p>
+              <p className="rail-subtitle">One method active</p>
+            </div>
           </div>
-          <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-        </header>
+          <MethodPicker
+            activeMethod={activeMethod}
+            methods={methodConfigs}
+            onSelect={setMethod}
+          />
+          <p className="system-ready"><span /> Engine ready</p>
+        </aside>
 
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
-          <div className="space-y-6">
-            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
-              <div className="space-y-3">
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                    Method
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Select the numerical method you want to run.
-                  </p>
-                </div>
-                <MethodPicker
-                  activeMethod={activeMethod}
-                  methods={methodConfigs}
-                  onSelect={setMethod}
-                />
-              </div>
+        <div className="workbench-main">
+          <header className="top-command">
+            <div>
+              <p className="section-kicker">Roots React Workbench</p>
+              <h1>Answer workstation</h1>
+            </div>
+            <nav aria-label="Utility controls">
+              <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
+              <button type="button"><CircleHelp aria-hidden="true" /> Help</button>
+              <button type="button" className="quick-command"><Command aria-hidden="true" /> Quick Command</button>
+            </nav>
+          </header>
+
+          <section className="console-grid">
+            <section id="equation-studio" className="equation-studio" aria-label="Equation studio">
+              <MethodForm
+                config={activeConfig}
+                formState={activeForm}
+                onChange={updateField}
+              />
+              <RunControls
+                disabled={status.kind === 'loading'}
+                runLabel={activeConfig.runLabel}
+                status={status}
+                onRun={runActiveMethod}
+                onReset={resetActiveMethod}
+              />
             </section>
 
-            <section className="rounded-xl border border-slate-800 bg-slate-950/80 p-5 shadow-sm shadow-slate-950/20">
-              <div className="space-y-5">
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                    Method inputs
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-500">{activeConfig.summary}</p>
-                </div>
-                <MethodForm
-                  config={activeConfig}
-                  formState={activeForm}
-                  onChange={updateField}
-                />
-                <RunControls
-                  disabled={status.kind === 'loading'}
-                  runLabel={activeConfig.runLabel}
-                  status={status}
-                  onRun={runActiveMethod}
-                />
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-4">
-            {hasRun ? (
-              <>
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)]">
+            <aside className="result-console" aria-label="Result console">
+              {hasRun ? (
+                <>
                   <AnswerPanel
                     run={displayedRun}
                     freshness={displayRun.freshness}
@@ -110,31 +94,24 @@ export default function App() {
                     freshness={displayRun.freshness}
                     staleReason={displayRun.staleReason}
                   />
-                </div>
-                <EvidencePreview
-                  fullWorkRegionId={fullWorkRegionId}
-                  expanded={evidenceExpanded}
-                  freshness={displayRun.freshness}
-                  run={displayedRun}
-                  onToggle={() => setEvidenceExpanded((current) => !current)}
-                />
-                {!evidenceExpanded ? <div id={fullWorkRegionId} hidden /> : null}
-                <CompareMethodsCallout
-                  visible={displayRun.hasCompareEntry}
-                  freshness={displayRun.freshness}
-                />
-                <EvidencePanel
-                  config={displayConfig}
-                  contentId={fullWorkRegionId}
-                  expanded={evidenceExpanded}
-                  run={displayedRun}
-                />
-              </>
-            ) : (
-              <EmptyState />
-            )}
+                </>
+              ) : (
+                <EmptyState />
+              )}
+            </aside>
+          </section>
+
+          <div id="evidence" className="evidence-shell">
+            {hasRun ? (
+              <EvidencePanel
+                config={displayConfig}
+                contentId={fullWorkRegionId}
+                expanded={evidenceExpanded}
+                run={displayedRun}
+              />
+            ) : null}
           </div>
-        </section>
+        </div>
       </div>
     </main>
   );

@@ -5,7 +5,7 @@ const machineFields = (prefix: string) => [
     id: `${prefix}-k`,
     label: 'k digits',
     kind: 'number' as const,
-    defaultValue: '6',
+    defaultValue: '8',
   },
   {
     id: `${prefix}-mode`,
@@ -31,7 +31,7 @@ const machineFields = (prefix: string) => [
     id: `${prefix}-stop-value`,
     label: 'Iterations (n) / epsilon',
     kind: 'text' as const,
-    defaultValue: '4',
+    defaultValue: '5',
   },
 ];
 
@@ -196,10 +196,19 @@ export const METHOD_BY_NAME = new Map<RootMethod, MethodConfig>(
 );
 
 export function createDefaultFormState(): Record<RootMethod, MethodFormState> {
+  const keepDefaultValue = (fieldId: string) =>
+    fieldId.endsWith('-k') ||
+    fieldId.endsWith('-mode') ||
+    fieldId.endsWith('-stop-kind') ||
+    fieldId.endsWith('-stop-value') ||
+    fieldId.endsWith('-tolerance-type') ||
+    fieldId.endsWith('-sign-display') ||
+    fieldId.endsWith('-decision-basis');
+
   return METHOD_CONFIGS.reduce(
     (acc, config) => {
       acc[config.method] = Object.fromEntries(
-        config.fields.map((field) => [field.id, field.defaultValue]),
+        config.fields.map((field) => [field.id, keepDefaultValue(field.id) ? field.defaultValue : '']),
       );
       return acc;
     },

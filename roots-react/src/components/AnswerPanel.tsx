@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, X } from 'lucide-react';
 
-import { Button } from './ui/Button';
 import { answerText, formatValue, methodLabel } from '../lib/resultFormatters';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
@@ -12,6 +11,32 @@ interface AnswerPanelProps {
 }
 
 type CopyStatus = 'idle' | 'success' | 'error';
+
+function numericApproximation(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  if ('approx' in record) return numericApproximation(record.approx);
+  if ('machine' in record) return numericApproximation(record.machine);
+  if ('value' in record) return numericApproximation(record.value);
+  if ('sign' in record && 'num' in record && 'den' in record) {
+    const sign = Number(record.sign);
+    const num = typeof record.num === 'bigint' ? Number(record.num) : Number(record.num);
+    const den = typeof record.den === 'bigint' ? Number(record.den) : Number(record.den);
+    if (Number.isFinite(sign) && Number.isFinite(num) && Number.isFinite(den) && den !== 0) {
+      return (sign < 0 ? -1 : 1) * (num / den);
+    }
+  }
+  return null;
+}
+
+function formatRootValue(value: unknown): string {
+  const numeric = numericApproximation(value);
+  if (numeric != null) {
+    return numeric.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+  }
+  return formatValue(value, 18);
+}
 
 async function copyText(text: string): Promise<boolean> {
   if (navigator.clipboard?.writeText) {
@@ -37,10 +62,6 @@ async function copyText(text: string): Promise<boolean> {
   } finally {
     document.body.removeChild(textarea);
   }
-}
-
-function freshnessLabel(freshness: RunFreshness): string {
-  return freshness === 'stale' ? 'Outdated result' : 'Current result';
 }
 
 function freshnessNote(freshness: RunFreshness, staleReason: string | null): string {
@@ -77,21 +98,19 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
   }
 
   const summary = run.summary;
-  const approximation = formatValue(summary?.approximation, 18);
+  const approximation = formatRootValue(summary?.approximation);
   const copyDisabled = !copyPayload;
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Answer
-          </p>
-          <h2 className="text-lg font-semibold text-slate-100">{methodLabel(run.method)}</h2>
+    <section className="answer-panel">
+      <header>
+        <div>
+          <p className="section-kicker">Root (Approximate)</p>
+          <p className="answer-root numeric-value">{approximation}</p>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
+        <button
+          type="button"
+          className="copy-icon-button"
           disabled={copyDisabled}
           onClick={async () => {
             if (copyDisabled) {
@@ -129,38 +148,24 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
           ) : (
             <Copy aria-hidden="true" className="size-4" />
           )}
-          {copyStatus === 'success'
-            ? 'Copied'
-            : copyStatus === 'error'
-              ? 'Copy failed'
-              : 'Copy answer'}
-        </Button>
-      </div>
+        </button>
+      </header>
 
-      <div className="mt-4 flex flex-col gap-2 rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-        <div className="flex items-center gap-2">
+      <div className="meta-row">
           <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${
+            className={`status-pill ${
               freshness === 'stale'
-                ? 'border-amber-900/60 bg-amber-950/40 text-amber-200'
-                : 'border-emerald-900/60 bg-emerald-950/40 text-emerald-200'
+                ? 'border-[rgba(180,119,93,0.5)] bg-[rgba(180,119,93,0.12)] text-[var(--clay)]'
+                : ''
             }`}
           >
-            {freshnessLabel(freshness)}
+            {freshness === 'stale' ? 'Outdated' : 'Current'}
           </span>
-          <p className="text-sm text-slate-200">{freshnessNote(freshness, staleReason)}</p>
-        </div>
+          <span>Updated: just now</span>
+          <span>Method: {methodLabel(run.method)}</span>
       </div>
-
-      <div className="mt-4 rounded-md border border-slate-800 bg-slate-900/70 px-4 py-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Approximate root
-        </p>
-        <p className="mt-2 break-words text-3xl font-semibold text-sky-300">{approximation}</p>
-      </div>
-
       {summary?.stopDetail ? (
-        <p className="mt-3 text-xs leading-5 text-slate-500">{summary.stopDetail}</p>
+        <p className="mt-3 text-xs leading-5 muted-copy">{freshnessNote(freshness, staleReason)} {summary.stopDetail}</p>
       ) : null}
     </section>
   );

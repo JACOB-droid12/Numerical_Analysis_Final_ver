@@ -11,22 +11,23 @@ export function IterationTable({ config, run }: IterationTableProps) {
   const tableCaption = `${config.shortLabel} iteration table showing ${rows.length} row${rows.length === 1 ? '' : 's'} with ${config.tableHeaders.length} columns.`;
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className="iteration-panel">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="section-kicker">
           Iteration table
         </h2>
-        <p className="text-xs text-slate-500">{rows.length} rows</p>
+        <button type="button" className="copy-icon-button h-8 w-auto px-3 text-xs">Download CSV</button>
       </div>
 
       {rows.length ? (
-        <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full border-collapse text-left text-sm">
+        <>
+        <div className="table-shell premium-scrollbar mt-4">
+          <table className="iteration-table numeric-value">
             <caption className="sr-only">{tableCaption}</caption>
             <thead>
-              <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
                 {config.tableHeaders.map((header) => (
-                  <th key={header} scope="col" className="px-3 py-2 font-semibold">
+                  <th key={header} scope="col">
                     {header}
                   </th>
                 ))}
@@ -40,9 +41,9 @@ export function IterationTable({ config, run }: IterationTableProps) {
                 );
 
                 return (
-                  <tr key={`${row.iteration}-${index}`} className="border-b border-slate-900">
+                  <tr key={`${row.iteration}-${index}`}>
                     {alignedValues.map((value, cellIndex) => (
-                      <td key={`${cellIndex}-${value}`} className="max-w-[16rem] px-3 py-2 align-top text-slate-200">
+                      <td key={`${cellIndex}-${value}`}>
                         <span className="block break-words">{value}</span>
                       </td>
                     ))}
@@ -52,8 +53,10 @@ export function IterationTable({ config, run }: IterationTableProps) {
             </tbody>
           </table>
         </div>
+        <p className="table-footnote">Showing {rows.length} of {rows.length} iterations • Scroll horizontally to view more columns</p>
+        </>
       ) : (
-        <p className="mt-3 text-sm text-slate-300">No iteration data available.</p>
+        <p className="mt-3 text-sm text-[var(--text)]">No iteration data available.</p>
       )}
     </section>
   );

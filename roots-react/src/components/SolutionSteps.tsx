@@ -59,13 +59,14 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
   };
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className="solution-panel">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-            Solution steps
+          <h2 className="section-kicker">
+            Solution steps (Derivation)
           </h2>
-          <p className="mt-1 text-sm text-slate-500">{steps.length} step{steps.length === 1 ? '' : 's'}</p>
+          <p className="mt-3 text-sm text-[var(--ink)]">Newton-Raphson iteration formula:</p>
+          <p className="mt-2 font-serif text-lg italic">x<sub>n+1</sub> = x<sub>n</sub> − f(x<sub>n</sub>) / f′(x<sub>n</sub>)</p>
         </div>
         <button
           type="button"
@@ -98,7 +99,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
                 ? 'Copy solution failed'
                 : 'Copy solution'
           }
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
+          className="sr-only"
         >
           {copyStatus === 'success'
             ? 'Copied'
@@ -108,19 +109,19 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
         </button>
       </div>
 
-      <ol className="mt-4 space-y-2">
+      <ol className="solution-list">
         {steps.map((step, index) => (
           <li
             key={`${index}-${step}`}
-            className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm leading-6 text-slate-200"
           >
-            <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <span className="step-number">
               {index + 1}
             </span>
-            {step}
+            <span>{step}</span>
           </li>
         ))}
       </ol>
+      <p className="mt-5 text-right text-sm text-[var(--ink)]">View full derivation →</p>
     </section>
   );
 }

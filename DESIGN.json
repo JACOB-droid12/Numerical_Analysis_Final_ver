@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-25T07:05:00+08:00",
+  "title": "Design System: Numerical Analysis Teaching Lab",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#f7f8f5",
+        "tonalRamp": ["oklch(16% 0.006 145)", "oklch(28% 0.006 145)", "oklch(40% 0.006 145)", "oklch(52% 0.006 145)", "oklch(64% 0.006 145)", "oklch(76% 0.006 145)", "oklch(88% 0.006 145)", "oklch(96% 0.006 145)"]
+      },
+      "action-blue": {
+        "role": "primary",
+        "displayName": "Action Blue",
+        "canonical": "#1f6feb",
+        "tonalRamp": ["oklch(18% 0.08 260)", "oklch(30% 0.11 260)", "oklch(42% 0.15 260)", "oklch(54% 0.17 260)", "oklch(66% 0.13 260)", "oklch(78% 0.09 260)", "oklch(88% 0.05 260)", "oklch(95% 0.025 260)"]
+      },
+      "graph-green": {
+        "role": "secondary",
+        "displayName": "Graph Green",
+        "canonical": "#16855f",
+        "tonalRamp": ["oklch(18% 0.06 165)", "oklch(30% 0.08 165)", "oklch(42% 0.10 165)", "oklch(54% 0.11 165)", "oklch(66% 0.09 165)", "oklch(78% 0.06 165)", "oklch(88% 0.035 165)", "oklch(95% 0.018 165)"]
+      },
+      "graph-orange": {
+        "role": "secondary",
+        "displayName": "Graph Orange",
+        "canonical": "#c66a18",
+        "tonalRamp": ["oklch(18% 0.06 55)", "oklch(30% 0.08 55)", "oklch(42% 0.11 55)", "oklch(54% 0.12 55)", "oklch(66% 0.09 55)", "oklch(78% 0.06 55)", "oklch(88% 0.035 55)", "oklch(95% 0.018 55)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#171817",
+        "tonalRamp": ["oklch(14% 0.004 145)", "oklch(24% 0.004 145)", "oklch(36% 0.004 145)", "oklch(50% 0.004 145)", "oklch(64% 0.004 145)", "oklch(76% 0.004 145)", "oklch(88% 0.004 145)", "oklch(95% 0.004 145)"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Modern Product Display",
+        "purpose": "Major workbench headers only."
+      },
+      "body": {
+        "displayName": "Modern Calculator Body",
+        "purpose": "Controls, guidance, labels, and explanatory copy."
+      },
+      "mono": {
+        "displayName": "Mathematical Evidence Mono",
+        "purpose": "Expressions, values, traces, and comparable numeric output."
+      }
+    },
+    "shadows": [
+      {
+        "name": "surface-lift",
+        "value": "0 1px 2px rgba(23, 24, 23, 0.05), 0 12px 30px -18px rgba(23, 24, 23, 0.22)",
+        "purpose": "Focused result panels, active popovers, and selected calculator surfaces."
+      },
+      {
+        "name": "control-focus-glow",
+        "value": "0 0 0 4px rgba(31, 111, 235, 0.14)",
+        "purpose": "Focused inputs and selected segmented controls."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-fast",
+        "value": "160ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Hover, active, focus, and selected state changes."
+      },
+      {
+        "name": "state-standard",
+        "value": "220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Panel reveals and graph/result updates."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "desktop",
+        "value": "1024px"
+      },
+      {
+        "name": "tablet",
+        "value": "768px"
+      },
+      {
+        "name": "mobile",
+        "value": "640px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary calculator action for running, confirming, and applying changes.",
+      "html": "<button class=\"ds-btn-primary\">Calculate</button>",
+      "css": ".ds-btn-primary { border: 1px solid #1f6feb; border-radius: 8px; background: #1f6feb; color: #ffffff; padding: 10px 16px; font: 650 0.95rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-btn-primary:hover { background: #1557c0; border-color: #1557c0; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #1f6feb; outline-offset: 2px; box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.14); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action for resets, options, and supporting commands.",
+      "html": "<button class=\"ds-btn-secondary\">Reset</button>",
+      "css": ".ds-btn-secondary { border: 1px solid #e0e4dd; border-radius: 8px; background: #ffffff; color: #171817; padding: 10px 16px; font: 650 0.95rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-btn-secondary:hover { background: #eef0eb; border-color: #c9d0c6; } .ds-btn-secondary:active { transform: scale(0.98); } .ds-btn-secondary:focus-visible { outline: 2px solid #1f6feb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Expression Input",
+      "kind": "input",
+      "refersTo": "input-expression",
+      "description": "Prominent formula field for expression entry.",
+      "html": "<label class=\"ds-field\"><span>Function</span><input class=\"ds-input\" value=\"cos(x) - x\" /></label>",
+      "css": ".ds-field { display: grid; gap: 8px; color: #646964; font: 650 0.82rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; } .ds-input { width: 100%; min-height: 52px; padding: 14px 16px; border: 1px solid #e0e4dd; border-radius: 12px; background: #ffffff; color: #171817; font: 500 1.05rem JetBrains Mono, SFMono-Regular, Consolas, monospace; transition: border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-input:focus-visible { outline: none; border-color: #1f6feb; box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.14); }"
+    },
+    {
+      "name": "Result Console",
+      "kind": "card",
+      "refersTo": "result-surface",
+      "description": "Primary answer surface for final value, convergence status, and short interpretation.",
+      "html": "<article class=\"ds-result\"><span class=\"ds-label\">Root estimate</span><strong>0.7390851332</strong><p>Converged within tolerance after 5 iterations.</p></article>",
+      "css": ".ds-result { display: grid; gap: 8px; padding: 16px; border: 1px solid #e0e4dd; border-radius: 12px; background: #ffffff; color: #171817; box-shadow: 0 1px 2px rgba(23, 24, 23, 0.05), 0 12px 30px -18px rgba(23, 24, 23, 0.22); } .ds-result strong { font: 650 1.45rem JetBrains Mono, SFMono-Regular, Consolas, monospace; } .ds-result p { margin: 0; color: #646964; font: 400 0.95rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; } .ds-label { color: #646964; font: 650 0.76rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; }"
+    },
+    {
+      "name": "Method Chip",
+      "kind": "chip",
+      "refersTo": "method-chip",
+      "description": "Compact method selector for numerical algorithms.",
+      "html": "<button class=\"ds-method-chip ds-selected\">Newton</button>",
+      "css": ".ds-method-chip { border: 1px solid #e0e4dd; border-radius: 8px; background: #ffffff; color: #171817; padding: 8px 12px; font: 650 0.9rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; cursor: pointer; transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-method-chip:hover { background: #eef0eb; } .ds-method-chip.ds-selected { border-color: #1f6feb; background: rgba(31, 111, 235, 0.10); color: #1557c0; } .ds-method-chip:focus-visible { outline: 2px solid #1f6feb; outline-offset: 2px; }"
+    },
+    {
+      "name": "Graph Surface",
+      "kind": "custom",
+      "refersTo": "graph-surface",
+      "description": "Neutral plot container for roots, convergence, and comparison data.",
+      "html": "<section class=\"ds-graph\"><div class=\"ds-axis\"></div><strong>f(x)</strong><span></span></section>",
+      "css": ".ds-graph { position: relative; min-height: 220px; border: 1px solid #e0e4dd; border-radius: 12px; background: linear-gradient(#e0e4dd 1px, transparent 1px), linear-gradient(90deg, #e0e4dd 1px, transparent 1px), #fcfcf8; background-size: 40px 40px; color: #171817; padding: 16px; overflow: hidden; } .ds-graph strong { position: relative; z-index: 1; font: 650 0.9rem Inter, SF Pro Text, Segoe UI, system-ui, sans-serif; } .ds-graph span { position: absolute; left: 18%; right: 12%; top: 54%; height: 3px; border-radius: 999px; background: #16855f; transform: rotate(-9deg); } .ds-axis { position: absolute; inset: 50% 0 auto; height: 1px; background: #c9d0c6; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Modern Math Console",
+    "overview": "This system is the target new design direction, not a record of the old UI. It should feel like a premium online calculator built for numerical analysis: fast, quiet, exact, and beautiful. The reference mix is Apple for spatial discipline and finish, and Desmos for approachable mathematical interaction.\n\nThe design serves students, instructors, and self-guided learners who need to enter formulas, compare exact and finite-precision results, inspect graphs, and understand iteration behavior. The interface must make the relationship between input, method, result, graph, and explanation feel immediate.\n\nIt explicitly rejects the old warm foundry look, decorative academic paper styling, generic dashboard patterns, neon calculator skins, and any visual effect that competes with formulas or graphs.",
+    "finalShapedDirection": {
+      "name": "Console First",
+      "scope": "Roots React workbench redesign",
+      "summary": "A focused answer workstation for students taking examinations and quizzes. It starts blank, expects students to enter their own quiz problem, and keeps one selected numerical method active at a time.",
+      "layoutModel": [
+        "Left method rail: compact method picker for Bisection, Newton, Secant, False Position, and Fixed Point.",
+        "Center work stack: equation input, method-specific parameters, tolerance controls, and calculate/reset actions.",
+        "Right Result Console: primary visual anchor for final root estimate, convergence status, tolerance, iteration count, and short interpretation.",
+        "Supporting evidence: graph and iteration table sit below or adjacent to the result console as evidence, not competing primary panels."
+      ],
+      "firstLoad": [
+        "Start blank. Do not preload a sample equation.",
+        "Show the method picker and equation input immediately.",
+        "Keep result, graph, and iteration evidence in empty states until the student runs a calculation.",
+        "Empty states should be quiet and functional, not instructional marketing."
+      ],
+      "examUxRules": [
+        "Keep the screen task-focused and low-distraction.",
+        "Avoid long teaching prose in the primary workflow.",
+        "Make invalid input, non-convergence, and interval mistakes obvious without moving the student away from the workbench.",
+        "Preserve keyboard-friendly entry for formulas and numeric parameters.",
+        "On mobile, stack solve-first: equation input, selected method parameters, calculate action, Result Console, then graph and table."
+      ]
+    },
+    "keyCharacteristics": [
+      "Clean light-first calculator surface with a practical dark mode.",
+      "One primary action color used with discipline.",
+      "System-sans typography for modern product clarity.",
+      "Mono math values for exact comparison and trust.",
+      "Spacious enough to feel premium, dense enough for repeated coursework.",
+      "Graphs, tables, and result panels treated as first-class calculator surfaces."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Action Blue is the only primary accent. Do not introduce copper, purple, gold, or academic paper colors from the previous design.",
+        "section": "colors"
+      },
+      {
+        "name": "The Graph Color Rule",
+        "body": "Green and orange belong to plotted data, convergence, and method comparison. They are not decorative theme colors.",
+        "section": "colors"
+      },
+      {
+        "name": "The Modern Product Type Rule",
+        "body": "Do not use serif display typography in the new design. This should feel like a precise modern calculator, not a paper handout.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Evidence Rule",
+        "body": "Any value the user compares numerically must use mono or tabular numerals.",
+        "section": "typography"
+      },
+      {
+        "name": "The Earned Depth Rule",
+        "body": "Depth appears when a surface is interactive, selected, or primary. Static panels stay flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do make the input, selected method, graph, iteration table, and final result feel connected.",
+      "Do use Action Blue as the single primary accent.",
+      "Do use system-sans typography for the product shell and mono typography for mathematical evidence.",
+      "Do keep controls familiar, fast, and keyboard-friendly.",
+      "Do design graph and result surfaces as core calculator objects, not supporting decoration.",
+      "Do keep dark mode calm, readable, and practical."
+    ],
+    "donts": [
+      "Don't reuse old warm foundry, copper, gold, sage, or decorative paper styling.",
+      "Don't use serif display typography for the new product direction.",
+      "Don't use neon, glassmorphism, purple-blue AI gradients, or heavy decorative backgrounds.",
+      "Don't make the app look like a generic corporate dashboard.",
+      "Don't let decoration compete with formulas, graphs, iteration tables, or result summaries.",
+      "Don't use side-stripe borders greater than 1px as decorative accents on cards or callouts.",
+      "Don't use gradient text.",
+      "Don't use identical card grids for core calculator workflows."
+    ]
+  }
+}

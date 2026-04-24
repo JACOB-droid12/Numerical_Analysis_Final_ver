@@ -13,7 +13,7 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function formatRationalLike(value: Record<string, unknown>): string | null {
+function formatRationalLike(value: Record<string, unknown>, digits: number): string | null {
   if (!Object.prototype.hasOwnProperty.call(value, 'sign')) return null;
   const sign = Number(value.sign);
   const num = value.num;
@@ -25,6 +25,11 @@ function formatRationalLike(value: Record<string, unknown>): string | null {
   const denominator = `${typeof den === 'bigint' ? den.toString() : String(den)}`;
   if (denominator === '1') {
     return sign < 0 ? `-${numerator}` : numerator;
+  }
+  const numericNum = typeof num === 'bigint' ? Number(num) : num;
+  const numericDen = typeof den === 'bigint' ? Number(den) : den;
+  if (Number.isFinite(numericNum) && Number.isFinite(numericDen) && numericDen !== 0) {
+    return Number(((sign < 0 ? -1 : 1) * Number(numericNum)) / Number(numericDen)).toPrecision(digits);
   }
   return sign < 0 && numerator !== '0' ? `-${numerator}/${denominator}` : `${numerator}/${denominator}`;
 }
@@ -146,7 +151,7 @@ export function formatValue(value: unknown, digits = 12): string {
     const complexLike = formatComplexLike(value, digits);
     if (complexLike) return complexLike;
 
-    const rationalLike = formatRationalLike(value);
+    const rationalLike = formatRationalLike(value, digits);
     if (rationalLike) return rationalLike;
 
     if ('approx' in value) {

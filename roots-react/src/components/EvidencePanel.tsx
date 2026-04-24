@@ -1,5 +1,4 @@
 import { ConvergenceGraph } from './ConvergenceGraph';
-import { DiagnosticsPanel } from './DiagnosticsPanel';
 import { IterationTable } from './IterationTable';
 import { SolutionSteps } from './SolutionSteps';
 import type { MethodConfig, RootRunResult } from '../types/roots';
@@ -17,18 +16,17 @@ export function EvidencePanel({ config, contentId, expanded, run }: EvidencePane
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className="evidence-panel">
+      <header>
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Full work</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="section-kicker">Evidence workspace</h2>
+          <p className="mt-1 text-sm muted-copy">
             Diagnostics, graph, steps, and iteration table for {config.shortLabel}.
           </p>
         </div>
-      </div>
+      </header>
 
-      <div id={contentId} role="region" aria-label="Full work details" className="mt-4 space-y-4">
-        <DiagnosticsPanel run={run} />
+      <div id={contentId} role="region" aria-label="Full work details" className="evidence-grid">
         <ConvergenceGraph run={run} />
         <SolutionSteps run={run} />
         <IterationTable config={config} run={run} />

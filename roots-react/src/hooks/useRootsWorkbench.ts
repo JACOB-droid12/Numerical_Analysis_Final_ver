@@ -65,8 +65,8 @@ function staleReason(
 }
 
 export function useRootsWorkbench() {
-  const [activeMethod, setActiveMethod] = useState<RootMethod>('bisection');
-  const [angleMode, setAngleMode] = useState<AngleMode>('deg');
+  const [activeMethod, setActiveMethod] = useState<RootMethod>('newton');
+  const [angleMode, setAngleMode] = useState<AngleMode>('rad');
   const [forms, setForms] = useState<Record<RootMethod, MethodFormState>>(() =>
     createDefaultFormState(),
   );
@@ -74,7 +74,7 @@ export function useRootsWorkbench() {
   const [engineStatus, setEngineStatus] = useState<EngineStatusKind>('loading');
   const [engineErrorMessage, setEngineErrorMessage] = useState('');
   const [workbenchStatus, setWorkbenchStatus] = useState<WorkbenchStatus>(READY_STATUS);
-  const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+  const [evidenceExpanded, setEvidenceExpanded] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,7 +173,7 @@ export function useRootsWorkbench() {
       const result = runRootMethod(activeMethod, forms[activeMethod], angleMode);
       setLastRun({ result, request });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
-      setEvidenceExpanded(false);
+      setEvidenceExpanded(true);
     } catch (error) {
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
@@ -191,6 +191,16 @@ export function useRootsWorkbench() {
     setWorkbenchStatus(READY_STATUS);
     setEvidenceExpanded(false);
   }, []);
+
+  const resetActiveMethod = useCallback(() => {
+    setForms((current) => ({
+      ...current,
+      [activeMethod]: createDefaultFormState()[activeMethod],
+    }));
+    setLastRun(null);
+    setWorkbenchStatus(READY_STATUS);
+    setEvidenceExpanded(false);
+  }, [activeMethod]);
 
   const runs = useMemo<Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>>(() => {
     if (!lastRun || displayRun.freshness !== 'current') {
@@ -216,6 +226,7 @@ export function useRootsWorkbench() {
     runs,
     setEvidenceExpanded,
     setMethod,
+    resetActiveMethod,
     status,
     toggleAngleMode,
     updateField,

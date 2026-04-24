@@ -22,6 +22,7 @@ function loadEngines() {
     vm.runInContext(source, context, { filename: file });
   }
   return {
+    M: context.MathEngine,
     C: context.CalcEngine,
     E: context.ExpressionEngine,
     R: context.RootEngine
@@ -70,7 +71,7 @@ function realOrMessage(C, value, label) {
 }
 
 function run() {
-  const { C, E, R } = loadEngines();
+  const { M, C, E, R } = loadEngines();
   const report = makeReporter();
 
   {
@@ -115,6 +116,38 @@ function run() {
     });
 
     report.check("Iteration mode computes epsilon bound", "Stopping formulas", "0.0625", C.formatReal(run.stopping.epsilonBound, 8), C.formatReal(run.stopping.epsilonBound, 8) === "0.0625");
+  }
+
+  {
+    const required = R.iterationsFromTolerance(
+      M.makeRational(1, 1n, 1n),
+      M.makeRational(1, 2n, 1n),
+      M.makeRational(1, 1n, 1000n)
+    );
+    report.check(
+      "Lecture bisection bound computes ten iterations for [1,2] and 10^-3",
+      "Stopping formulas",
+      "10",
+      String(required),
+      required === 10,
+      "This matches the professor's inequality 2^-N < 10^-3 for a unit-width bracket."
+    );
+  }
+
+  {
+    const epsilon = R.toleranceFromIterations(
+      M.makeRational(1, 1n, 1n),
+      M.makeRational(1, 2n, 1n),
+      10
+    );
+    report.check(
+      "Lecture bisection bound returns width / 2^n for ten iterations",
+      "Stopping formulas",
+      "0.00097656",
+      C.formatReal(epsilon, 8),
+      C.formatReal(epsilon, 8) === "0.00097656",
+      "For [1,2], the guaranteed absolute bound after 10 iterations is 1 / 2^10."
+    );
   }
 
   {

@@ -5,6 +5,7 @@ import type { RootMethod, RootRunResult, IterationRow } from '../types/roots';
 interface ConvergenceGraphProps {
   run: RootRunResult;
   compact?: boolean;
+  hero?: boolean;
 }
 
 function parseNumericString(value: string): number | null {
@@ -93,14 +94,13 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
   return null;
 }
 
-export function ConvergenceGraph({ run, compact = false }: ConvergenceGraphProps) {
+export function ConvergenceGraph({ run, compact = false, hero = false }: ConvergenceGraphProps) {
   const rows = run.rows ?? [];
   const titleId = useId();
   const svgTitleId = useId();
   const descId = useId();
-  const wrapperClassName = compact
-    ? 'rounded-lg border border-slate-800 bg-slate-900/60 p-3'
-    : 'rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20';
+  const lineGradientId = `${svgTitleId.replace(/[^a-zA-Z0-9_-]/g, '')}-line`;
+  const wrapperClassName = hero || compact ? 'graph-panel' : 'graph-panel';
   const points = rows
     .map((row, index) => ({
       x: typeof row.iteration === 'number' ? row.iteration : index + 1,
@@ -119,11 +119,11 @@ export function ConvergenceGraph({ run, compact = false }: ConvergenceGraphProps
   if (points.length < 2) {
     return (
       <section className={wrapperClassName}>
-        <h2 id={titleId} className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 id={titleId} className="section-kicker">
           Convergence graph
         </h2>
-        <p className="mt-2 text-sm text-slate-300">{graphSummary}</p>
-        <p className="mt-3 text-sm text-slate-300">No iteration data for graph.</p>
+        <p className="mt-2 text-sm muted-copy">{graphSummary}</p>
+        <p className="mt-3 text-sm text-[var(--text)]">No iteration data for graph.</p>
       </section>
     );
   }
@@ -147,28 +147,56 @@ export function ConvergenceGraph({ run, compact = false }: ConvergenceGraphProps
   return (
     <section className={wrapperClassName}>
       <div className="flex items-center justify-between gap-3">
-        <h2 id={titleId} className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 id={titleId} className="section-kicker">
           Convergence graph
         </h2>
-        <p className="text-xs text-slate-500">{points.length} points</p>
+        <p className="numeric-value text-xs text-[var(--quiet)]">{points.length} points</p>
       </div>
-      <p className="mt-2 text-sm text-slate-300">{graphSummary}</p>
+      <p className="sr-only">{graphSummary}</p>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-3 h-56 w-full"
+        className={hero ? 'mt-3 h-[27rem] w-full max-h-[58vh]' : 'mt-3 h-56 w-full'}
         role="img"
         aria-labelledby={svgTitleId}
         aria-describedby={descId}
       >
         <title id={svgTitleId}>Convergence graph</title>
         <desc id={descId}>{graphSummary}</desc>
-        <rect x="0" y="0" width={width} height={height} rx="12" className="fill-slate-900/50" />
+        <defs>
+          <linearGradient id={lineGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stopColor="#1f6feb" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#16855f" stopOpacity="0.92" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width={width} height={height} rx="12" fill="#fcfcf8" />
+        {Array.from({ length: 8 }, (_, index) => (
+          <line
+            key={`grid-y-${index}`}
+            x1={padX}
+            y1={padY + (index * (height - padY * 2)) / 7}
+            x2={width - padX}
+            y2={padY + (index * (height - padY * 2)) / 7}
+            stroke="#e0e4dd"
+            strokeWidth="1"
+          />
+        ))}
+        {Array.from({ length: 9 }, (_, index) => (
+          <line
+            key={`grid-x-${index}`}
+            x1={padX + (index * (width - padX * 2)) / 8}
+            y1={padY}
+            x2={padX + (index * (width - padX * 2)) / 8}
+            y2={height - padY}
+            stroke="#e0e4dd"
+            strokeWidth="1"
+          />
+        ))}
         <line
           x1={padX}
           y1={height - padY}
           x2={width - padX}
           y2={height - padY}
-          className="stroke-slate-700"
+          stroke="#c9d0c6"
           strokeWidth="1"
         />
         <line
@@ -176,20 +204,21 @@ export function ConvergenceGraph({ run, compact = false }: ConvergenceGraphProps
           y1={padY}
           x2={padX}
           y2={height - padY}
-          className="stroke-slate-700"
+          stroke="#c9d0c6"
           strokeWidth="1"
         />
-        <path d={path} fill="none" className="stroke-sky-400" strokeWidth="2.5" />
+        <path d={path} fill="none" stroke={`url(#${lineGradientId})`} strokeWidth={hero ? '3' : '2.5'} />
         {points.map((point, index) => (
           <circle
             key={`${point.x}-${point.y}-${index}`}
             cx={toSvgX(point.x)}
             cy={toSvgY(point.y)}
-            r="3.5"
-            className="fill-sky-300"
+            r={index === points.length - 1 ? '5' : '3.5'}
+            fill={index === points.length - 1 ? '#16855f' : '#1f6feb'}
           />
         ))}
       </svg>
+      <p className="graph-caption">Quadratic convergence observed on the latest numerical trace.</p>
     </section>
   );
 }

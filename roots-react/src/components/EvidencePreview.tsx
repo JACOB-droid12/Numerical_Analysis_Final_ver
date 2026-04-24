@@ -25,13 +25,13 @@ export function EvidencePreview({
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className="panel-card">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          <h2 className="section-kicker">
             Evidence preview
           </h2>
-          <p className="mt-1 text-sm text-slate-300">Quick proof the result is grounded.</p>
+          <p className="mt-1 text-sm muted-copy">Quick proof the result is grounded.</p>
         </div>
         <Button
           variant="secondary"
@@ -50,7 +50,7 @@ export function EvidencePreview({
       </div>
 
       {freshness === 'stale' ? (
-        <p className="mt-4 rounded-md border border-amber-900/60 bg-amber-950/40 px-4 py-3 text-sm text-amber-100">
+        <p className="mt-4 rounded-[6px] border border-[rgba(244,173,50,0.38)] bg-[rgba(244,173,50,0.1)] px-4 py-3 text-sm text-[var(--amber)]">
           The preview below reflects the last successful run and may not match the current draft inputs.
         </p>
       ) : null}

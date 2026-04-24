@@ -19,29 +19,29 @@ function bracketDiagnostics(run: RootRunResult) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+      <h3 className="section-kicker">
         Bracket diagnostics
       </h3>
       <dl className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+          <dt className="section-kicker text-[0.68rem]">
             Interval status
           </dt>
-          <dd className="mt-1 text-sm text-slate-200">
+          <dd className="mt-1 text-sm text-[var(--text)]">
             {summary?.intervalStatus ?? 'No interval status reported.'}
           </dd>
         </div>
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+          <dt className="section-kicker text-[0.68rem]">
             Initial sign analysis
           </dt>
-          <dd className="mt-1 text-sm leading-6 text-slate-200">{signAnalysis}</dd>
+          <dd className="mt-1 text-sm leading-6 text-[var(--text)]">{signAnalysis}</dd>
         </div>
-        <div className="rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+          <dt className="section-kicker text-[0.68rem]">
             Residual
           </dt>
-          <dd className="mt-1 text-sm text-slate-200">
+          <dd className="numeric-value mt-1 text-sm text-[var(--text)]">
             {formatValue(summary?.residual)} {summary?.residualBasis ? `(${summary.residualBasis})` : ''}
           </dd>
         </div>
@@ -53,11 +53,11 @@ function bracketDiagnostics(run: RootRunResult) {
 export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps) {
   if (compact) {
     return (
-      <section className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+      <section className="rounded-[6px] border hairline bg-[#0c1216]/80 p-3">
+        <h2 className="section-kicker">
           Diagnostic preview
         </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-200">{diagnosticsPreviewText(run)}</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--text)]">{diagnosticsPreviewText(run)}</p>
       </section>
     );
   }
@@ -65,9 +65,9 @@ export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps
   const warnings = run.warnings ?? [];
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/80 p-4 shadow-sm shadow-slate-950/20">
+    <section className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] p-4">
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        <h2 className="section-kicker">
           Diagnostics
         </h2>
         {warnings.length ? (
@@ -75,22 +75,22 @@ export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps
             {warnings.map((warning, index) => (
               <li
                 key={`${warning.code}-${index}`}
-                className="rounded-md border border-amber-900/60 bg-amber-950/40 px-4 py-3 text-sm text-amber-100"
+                className="rounded-[6px] border border-[rgba(236,106,78,0.45)] bg-[rgba(236,106,78,0.1)] px-4 py-3 text-sm text-[var(--red)]"
               >
                 {warning.message}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-300">No warnings reported.</p>
+          <p className="text-sm text-[var(--text)]">No warnings reported.</p>
         )}
       </div>
 
-      <div className="mt-5 border-t border-slate-800 pt-5">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+      <div className="mt-5 border-t hairline pt-5">
+        <h3 className="section-kicker">
           Stop reason
         </h3>
-        <p className="mt-2 text-sm text-slate-200">
+        <p className="mt-2 text-sm text-[var(--text)]">
           {stopReasonLabel(run.summary?.stopReason, run.method)}
         </p>
       </div>

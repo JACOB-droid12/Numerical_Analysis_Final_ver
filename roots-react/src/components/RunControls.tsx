@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react';
+import { Calculator, Play, RotateCcw } from 'lucide-react';
 
 import { Button } from './ui/Button';
 import type { WorkbenchStatus } from '../types/roots';
@@ -8,16 +8,18 @@ interface RunControlsProps {
   runLabel: string;
   status: WorkbenchStatus;
   onRun: () => void;
+  onReset: () => void;
 }
 
-export function RunControls({ disabled, runLabel, status, onRun }: RunControlsProps) {
+export function RunControls({ disabled, runLabel, status, onRun, onReset }: RunControlsProps) {
   const isError = status.kind === 'error';
   const isLoading = status.kind === 'loading';
   const isDisabled = disabled || isLoading;
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="run-row">
       <Button
+        className="run-primary"
         disabled={isDisabled}
         onClick={() => {
           if (isDisabled) {
@@ -27,13 +29,18 @@ export function RunControls({ disabled, runLabel, status, onRun }: RunControlsPr
           onRun();
         }}
       >
+        <Calculator aria-hidden="true" className="size-5" />
         <Play aria-hidden="true" className="size-4" />
-        {runLabel}
+        {runLabel.replace('Run Newton-Raphson', 'Run method').replace('Run ', 'Run ')}
+      </Button>
+      <Button variant="secondary" className="min-h-12 px-5" onClick={onReset}>
+        <RotateCcw aria-hidden="true" className="size-4" />
+        Reset
       </Button>
       <p
         className={[
-          'text-sm',
-          isError ? 'text-rose-300' : 'text-slate-400',
+          'status-text',
+          isError ? 'text-[var(--red)]' : 'muted-copy',
         ].join(' ')}
         role={isError ? 'alert' : 'status'}
       >
