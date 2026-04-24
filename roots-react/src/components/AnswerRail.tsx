@@ -5,6 +5,7 @@ import { EvidencePanel } from './EvidencePanel';
 import { EvidencePreview } from './EvidencePreview';
 import { AnswerPanel } from './AnswerPanel';
 import type { DisplayedRunState, MethodConfig } from '../types/roots';
+import { useRunRevealMotion } from '../hooks/useRunRevealMotion';
 
 interface AnswerRailProps {
   config: MethodConfig;
@@ -23,6 +24,11 @@ export function AnswerRail({
 }: AnswerRailProps) {
   const run = displayRun.run;
 
+  const runKey = run
+    ? `${run.method}-${run.summary?.approximation ?? 'no-approximation'}-${run.rows?.length ?? 0}`
+    : null;
+  const revealRef = useRunRevealMotion<HTMLElement>(runKey);
+
   if (!run) {
     return (
       <section
@@ -35,7 +41,7 @@ export function AnswerRail({
   }
 
   return (
-    <section className="space-y-4" aria-label="Answer and evidence">
+    <section ref={revealRef} className="space-y-4" aria-label="Answer and evidence">
       <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 shadow-xl shadow-black/20 backdrop-blur">
         <AnswerPanel
           run={run}
