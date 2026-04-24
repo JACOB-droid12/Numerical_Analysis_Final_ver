@@ -1,0 +1,56 @@
+name: Roots React CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+    paths:
+      - ".github/workflows/roots-react-ci.yml"
+      - "root-engine.js"
+      - "roots-react/**"
+      - "scripts/engine-correctness-audit.js"
+      - "scripts/root-engine-audit.js"
+      - "scripts/roots-react-release-check.ps1"
+      - "docs/deployment/**"
+  push:
+    branches:
+      - master
+      - staging
+    paths:
+      - ".github/workflows/roots-react-ci.yml"
+      - "root-engine.js"
+      - "roots-react/**"
+      - "scripts/engine-correctness-audit.js"
+      - "scripts/root-engine-audit.js"
+      - "scripts/roots-react-release-check.ps1"
+      - "docs/deployment/**"
+  workflow_dispatch:
+
+concurrency:
+  group: roots-react-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-gate:
+    name: Release gate
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: roots-react/package-lock.json
+
+      - name: Install Roots React dependencies
+        run: npm ci --prefix roots-react
+
+      - name: Run Roots React release check
+        shell: pwsh
+        run: .\scripts\roots-react-release-check.ps1

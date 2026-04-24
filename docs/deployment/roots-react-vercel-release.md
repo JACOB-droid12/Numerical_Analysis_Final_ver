@@ -64,6 +64,18 @@ The script runs the engine audit, root-engine audit, `sync:legacy`, stale synced
 
 After the gate passes, confirm the legacy static calculator files remain untouched unless the release explicitly includes approved legacy changes, then record the candidate commit SHA for staging review.
 
+## GitHub CI Gate
+
+The repository includes `.github/workflows/roots-react-ci.yml` for pull requests and pushes targeting `staging` or `master`.
+
+The workflow runs on `windows-latest`, installs the isolated React pilot dependencies with `npm ci --prefix roots-react`, then runs the canonical release check:
+
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
+Treat a failed CI run as a release blocker. Do not promote a candidate from `staging` to `master` until the local promotion gate and the GitHub CI gate both pass for the exact commit being promoted.
+
 ## Git-Connected Vercel Setup
 
 Use the Vercel dashboard to connect the GitHub repository to the existing `roots-react` Vercel project.

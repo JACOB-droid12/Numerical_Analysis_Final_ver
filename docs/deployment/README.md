@@ -36,6 +36,7 @@ https://roots-react.vercel.app
 | Need PR body text | `docs/deployment/roots-react-pr-body.md` |
 | Need manual QA checklist | `docs/deployment/roots-react-staging-smoke-checklist.md` |
 | Need local release verification | `scripts/roots-react-release-check.ps1` |
+| Need CI release gate | `.github/workflows/roots-react-ci.yml` |
 | Need React app commands | `roots-react/package.json` |
 | Need Vercel project config | `roots-react/vercel.json` |
 
@@ -55,6 +56,18 @@ This runs:
 - stale synced legacy diff guard,
 - TypeScript typecheck,
 - Vite build.
+
+## Automated Gate
+
+GitHub Actions runs the same release gate in `.github/workflows/roots-react-ci.yml` for pull requests and pushes targeting `staging` or `master`.
+
+The workflow installs `roots-react` dependencies with `npm ci --prefix roots-react`, then runs:
+
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
+Treat a failed Roots React CI run as a release blocker.
 
 ## Release Handoff
 

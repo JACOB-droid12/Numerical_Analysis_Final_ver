@@ -37,6 +37,7 @@ For Vercel, release, staging, or production work, start with:
 | `docs/deployment/roots-react-agent-release-checklist.md` | Copyable PR, staging, and production handoff checklist |
 | `docs/deployment/roots-react-pr-body.md` | Reusable GitHub PR body for Roots React changes |
 | `scripts/roots-react-release-check.ps1` | Canonical local release gate |
+| `.github/workflows/roots-react-ci.yml` | GitHub Actions release gate for `staging` and `master` |
 | `roots-react/vercel.json` | Vercel build metadata for the React pilot |
 | `roots-react/package.json` | React app scripts |
 
@@ -47,6 +48,8 @@ Before merging, staging, or promoting Roots React changes, run:
 ```powershell
 .\scripts\roots-react-release-check.ps1
 ```
+
+For pull requests and pushes into `staging` or `master`, the GitHub Actions workflow `.github/workflows/roots-react-ci.yml` runs the same release gate. Treat failures there as release blockers.
 
 Branch flow for the React pilot:
 

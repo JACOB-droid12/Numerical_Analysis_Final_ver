@@ -45,6 +45,12 @@ Record result:
 - [ ] TypeScript typecheck passed.
 - [ ] Vite production build passed.
 
+## Required CI Gate
+
+- [ ] GitHub Actions workflow completed: `.github/workflows/roots-react-ci.yml`
+- [ ] Roots React CI passed for the commit SHA under review.
+- [ ] Any failed CI run is fixed before staging or production promotion.
+
 ## Staging Handoff
 
 - [ ] Candidate is merged or cherry-picked into `staging`.
