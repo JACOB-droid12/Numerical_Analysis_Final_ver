@@ -1,3 +1,6 @@
+import { Play } from 'lucide-react';
+
+import { Button } from './ui/Button';
 import type { WorkbenchStatus } from '../types/roots';
 
 interface RunControlsProps {
@@ -14,8 +17,7 @@ export function RunControls({ disabled, runLabel, status, onRun }: RunControlsPr
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <button
-        type="button"
+      <Button
         disabled={isDisabled}
         onClick={() => {
           if (isDisabled) {
@@ -24,10 +26,10 @@ export function RunControls({ disabled, runLabel, status, onRun }: RunControlsPr
 
           onRun();
         }}
-        className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
       >
+        <Play aria-hidden="true" className="size-4" />
         {runLabel}
-      </button>
+      </Button>
       <p
         className={[
           'text-sm',

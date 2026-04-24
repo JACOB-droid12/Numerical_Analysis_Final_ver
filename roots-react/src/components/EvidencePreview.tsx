@@ -1,5 +1,8 @@
+import { ChevronDown, ChevronUp } from 'lucide-react';
+
 import { ConvergenceGraph } from './ConvergenceGraph';
 import { DiagnosticsPanel } from './DiagnosticsPanel';
+import { Button } from './ui/Button';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
 interface EvidencePreviewProps {
@@ -30,15 +33,20 @@ export function EvidencePreview({
           </h2>
           <p className="mt-1 text-sm text-slate-300">Quick proof the result is grounded.</p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onToggle}
           aria-expanded={expanded}
           aria-controls={fullWorkRegionId}
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800"
         >
+          {expanded ? (
+            <ChevronUp aria-hidden="true" className="size-4" />
+          ) : (
+            <ChevronDown aria-hidden="true" className="size-4" />
+          )}
           {expanded ? 'Hide full work' : 'Show full work'}
-        </button>
+        </Button>
       </div>
 
       {freshness === 'stale' ? (

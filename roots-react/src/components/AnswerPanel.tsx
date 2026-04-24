@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, Copy, X } from 'lucide-react';
 
+import { Button } from './ui/Button';
 import { answerText, formatValue, methodLabel } from '../lib/resultFormatters';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
@@ -87,8 +89,9 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
           </p>
           <h2 className="text-lg font-semibold text-slate-100">{methodLabel(run.method)}</h2>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
           disabled={copyDisabled}
           onClick={async () => {
             if (copyDisabled) {
@@ -118,14 +121,20 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
                 ? 'Copy answer failed'
                 : 'Copy answer'
           }
-          className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-500"
         >
+          {copyStatus === 'success' ? (
+            <Check aria-hidden="true" className="size-4" />
+          ) : copyStatus === 'error' ? (
+            <X aria-hidden="true" className="size-4" />
+          ) : (
+            <Copy aria-hidden="true" className="size-4" />
+          )}
           {copyStatus === 'success'
             ? 'Copied'
             : copyStatus === 'error'
               ? 'Copy failed'
               : 'Copy answer'}
-        </button>
+        </Button>
       </div>
 
       <div className="mt-4 flex flex-col gap-2 rounded-md border border-slate-800 bg-slate-900/50 px-4 py-3">
