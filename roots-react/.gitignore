@@ -3,3 +3,5 @@ dist/
 *.tsbuildinfo
 vite-task11.out.log
 vite-task11.err.log
+
+.vercel
