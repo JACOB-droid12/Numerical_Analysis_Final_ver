@@ -4,6 +4,26 @@
 
 This document defines the deployment workflow for promoting the Roots React staging release through Vercel preview and production environments. It is intended to keep the React pilot isolated from the legacy static calculator while giving reviewers a repeatable release path.
 
+## Deployment Model
+
+The existing Vercel CLI deployment proved that the React pilot builds and runs on Vercel:
+
+```text
+https://roots-react.vercel.app
+```
+
+That CLI deploy is not the preferred long-term workflow. The preferred workflow is Git-connected Vercel deployment:
+
+```text
+feature branch -> staging -> master
+```
+
+Expected Vercel behavior:
+
+- pushes to `staging` create protected preview deployments,
+- merges to `master` create production deployments,
+- Vercel builds only `roots-react/`.
+
 ## Branch Roles
 
 - Feature branches such as `codex/roots-react-pilot`: active implementation branches only. They are not the private staging release branch.
@@ -43,6 +63,21 @@ Before merging or cherry-picking a feature branch into `staging`, run the canoni
 The script runs the engine audit, root-engine audit, `sync:legacy`, stale synced legacy diff guard, typecheck, and build. Treat a passing run as the local gate for moving implementation work from a feature branch into `staging`.
 
 After the gate passes, confirm the legacy static calculator files remain untouched unless the release explicitly includes approved legacy changes, then record the candidate commit SHA for staging review.
+
+## Git-Connected Vercel Setup
+
+Use the Vercel dashboard to connect the GitHub repository to the existing `roots-react` Vercel project.
+
+Required setup:
+
+1. Open the `roots-react` project in Vercel.
+2. Connect the GitHub repository `JACOB-droid12/Numerical_Analysis_Final_ver`.
+3. Confirm the project root directory is `roots-react`.
+4. Confirm the production branch is `master`.
+5. Confirm preview deployments are enabled for non-production branches.
+6. Enable Deployment Protection for preview deployments when available.
+
+Do not create a second Vercel project for the repository root.
 
 ## Staging Deployment Steps
 
