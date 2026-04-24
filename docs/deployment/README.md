@@ -32,6 +32,8 @@ https://roots-react.vercel.app
 |------|------------|
 | Need Vercel settings | `docs/deployment/roots-react-vercel-release.md` |
 | Need staging or production release steps | `docs/deployment/roots-react-vercel-release.md` |
+| Need agent release checklist | `docs/deployment/roots-react-agent-release-checklist.md` |
+| Need PR body text | `docs/deployment/roots-react-pr-body.md` |
 | Need manual QA checklist | `docs/deployment/roots-react-staging-smoke-checklist.md` |
 | Need local release verification | `scripts/roots-react-release-check.ps1` |
 | Need React app commands | `roots-react/package.json` |
@@ -53,6 +55,17 @@ This runs:
 - stale synced legacy diff guard,
 - TypeScript typecheck,
 - Vite build.
+
+## Release Handoff
+
+Use `docs/deployment/roots-react-agent-release-checklist.md` for every PR, staging handoff, and production handoff.
+
+Use `docs/deployment/roots-react-pr-body.md` when creating a GitHub PR manually or through an agent.
+
+The checklist and PR body are intentionally separate:
+
+- the checklist tracks whether the release is safe,
+- the PR body communicates the change to reviewers.
 
 ## Branch Flow
 
@@ -88,4 +101,3 @@ Do not use this deployment path for:
 - repository docs or local audit tooling,
 - custom domain setup,
 - auth, database, payments, or user accounts.
-
