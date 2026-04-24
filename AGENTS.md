@@ -23,6 +23,37 @@ Current Roots architecture:
 
 For ordinary Roots UI/copy/style work, do not edit `index.html`, `app.js`, or `styles.css`. Use the route table in `docs/roots-ai-fast-lane.md`.
 
+## Roots React + Vercel Fast Lane
+
+The isolated React pilot lives in `roots-react/`. It is the only Vercel deployment target for the migrated Roots Workbench.
+
+For Vercel, release, staging, or production work, start with:
+
+| File | Purpose |
+|------|---------|
+| `docs/deployment/README.md` | Deployment entry point and route table for agents |
+| `docs/deployment/roots-react-vercel-release.md` | Vercel settings, branch flow, staging, promotion, rollback |
+| `docs/deployment/roots-react-staging-smoke-checklist.md` | Manual staging and production smoke checklist |
+| `scripts/roots-react-release-check.ps1` | Canonical local release gate |
+| `roots-react/vercel.json` | Vercel build metadata for the React pilot |
+| `roots-react/package.json` | React app scripts |
+
+Do not deploy the repository root to Vercel for the React pilot. Use `roots-react` as the Vercel project root directory.
+
+Before merging, staging, or promoting Roots React changes, run:
+
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
+Branch flow for the React pilot:
+
+```text
+feature branch -> staging -> master
+```
+
+The current production URL is `https://roots-react.vercel.app`.
+
 ## Engine Architecture
 
 Each engine is a standalone IIFE that attaches to `window`:
