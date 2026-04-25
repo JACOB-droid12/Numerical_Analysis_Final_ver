@@ -138,10 +138,6 @@ export function useRootsWorkbench() {
       hasCompareEntry: true,
     };
   }, [activeRequest, lastRun]);
-  const activeRun = useMemo(
-    () => (displayRun.freshness === 'current' ? displayRun.run : null),
-    [displayRun.freshness, displayRun.run],
-  );
   const displayConfig = useMemo(() => {
     const displayMethod = displayRun.run?.method ?? activeMethod;
     return METHOD_CONFIGS.find((config) => config.method === displayMethod) ?? METHOD_CONFIGS[0];
@@ -235,30 +231,16 @@ export function useRootsWorkbench() {
     setEvidenceExpanded(false);
   }, [activeMethod]);
 
-  const runs = useMemo<Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>>(() => {
-    if (!lastRun || displayRun.freshness !== 'current') {
-      return {};
-    }
-
-    return {
-      [lastRun.result.method]: lastRun.result,
-    } as Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>;
-  }, [displayRun.freshness, lastRun]);
-
   return {
     activeConfig,
     activeForm,
     activeMethod,
-    activeRun,
     angleMode,
     displayConfig,
     displayRun,
     evidenceExpanded,
-    forms,
     methodConfigs,
-    runs,
     applyPreset,
-    setEvidenceExpanded,
     setMethod,
     resetActiveMethod,
     status,
