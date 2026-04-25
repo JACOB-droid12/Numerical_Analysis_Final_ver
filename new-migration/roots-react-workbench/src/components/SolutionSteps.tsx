@@ -95,18 +95,18 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           aria-live="polite"
           aria-label={
             copyStatus === 'success'
-              ? 'Solution copied'
+              ? 'Solution generated'
               : copyStatus === 'error'
-                ? 'Copy solution failed'
-                : 'Copy solution'
+                ? 'Generate solution failed'
+                : 'Generate solution'
           }
-          className="sr-only"
+          className="copy-icon-button h-8 w-auto px-3 text-xs"
         >
           {copyStatus === 'success'
-            ? 'Copied'
+            ? 'Generated'
             : copyStatus === 'error'
-              ? 'Copy failed'
-              : 'Copy solution'}
+              ? 'Failed'
+              : 'Generate solution'}
         </button>
       </div>
 

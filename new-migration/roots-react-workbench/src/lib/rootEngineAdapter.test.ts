@@ -40,6 +40,19 @@ describe('root engine adapter result classification', () => {
     );
   });
 
+  it('keeps partial failure runs renderable when iteration rows exist', () => {
+    const partial = result({
+      summary: {
+        approximation: 1,
+        stopReason: 'derivative-zero',
+      },
+      rows: [{ iteration: 1, xn: 1, note: 'derivative stopped' }],
+    });
+
+    expect(hasValidApproximation(partial)).toBe(false);
+    expect(isInvalidRun(partial)).toBe(false);
+  });
+
   it('uses stop detail before generic failure messages', () => {
     expect(resultFailureMessage(result({
       summary: {

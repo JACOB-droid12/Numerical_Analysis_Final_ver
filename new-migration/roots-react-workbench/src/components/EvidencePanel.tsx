@@ -1,6 +1,7 @@
 import { ConvergenceGraph } from './ConvergenceGraph';
 import { IterationTable } from './IterationTable';
 import { SolutionSteps } from './SolutionSteps';
+import { WorkflowPanel } from './WorkflowPanel';
 import type { MethodConfig, RootRunResult } from '../types/roots';
 
 interface EvidencePanelProps {
@@ -29,6 +30,7 @@ export function EvidencePanel({ config, contentId, expanded, run }: EvidencePane
       <div id={contentId} role="region" aria-label="Full work details" className="evidence-grid">
         <ConvergenceGraph run={run} />
         <SolutionSteps run={run} />
+        <WorkflowPanel run={run} />
         <IterationTable config={config} run={run} />
       </div>
     </section>

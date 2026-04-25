@@ -119,6 +119,15 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
                 </option>
               ))}
             </select>
+          ) : field.kind === 'textarea' ? (
+            <textarea
+              id={fieldDomId}
+              name={field.id}
+              value={value}
+              placeholder={field.placeholder}
+              onChange={(event) => onChange(config.method, field.id, event.target.value)}
+              className={`${commonClassName} min-h-24 resize-y`}
+            />
           ) : (
             <input
               ref={field.id === config.expressionFieldId ? expressionRef : undefined}
@@ -169,7 +178,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
           {detailFields.map(renderField)}
         </div>
         <div className="precision-stack">
-          <p className="section-kicker">Precision</p>
+          <p className="section-kicker">Precision mode</p>
           {digitsField ? (
             <div className="segmented-row">
               <span>Digits</span>
@@ -194,7 +203,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
           ) : null}
           {modeField ? (
             <div className="segmented-row">
-              <span>Rounding</span>
+              <span>Rule</span>
               <div className="segment">
                 <button
                   type="button"

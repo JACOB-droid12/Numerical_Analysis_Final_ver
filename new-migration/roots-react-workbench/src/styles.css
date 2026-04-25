@@ -66,7 +66,8 @@ textarea {
 
 button,
 input,
-select {
+select,
+textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1062,7 +1063,7 @@ a:focus-visible {
 
 .evidence-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.95fr) minmax(260px, 0.8fr) minmax(420px, 1.35fr);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(260px, 0.8fr) minmax(360px, 1.1fr) minmax(420px, 1.3fr);
 }
 
 .evidence-grid > section {
@@ -1104,10 +1105,43 @@ a:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.solution-panel {
+.solution-panel,
+.workflow-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: var(--space-xl);
+}
+
+.workflow-stack {
+  display: grid;
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.workflow-block {
+  display: grid;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--line);
+}
+
+.workflow-block:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.workflow-block h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 720;
+}
+
+.workflow-block p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .notebook-paper {

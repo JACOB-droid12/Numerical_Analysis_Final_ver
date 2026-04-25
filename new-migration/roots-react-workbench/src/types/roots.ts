@@ -12,7 +12,7 @@ export type ToleranceType = 'absolute' | 'relative';
 export type DecisionBasis = 'exact' | 'machine';
 export type SignDisplay = 'both' | 'exact' | 'machine';
 export type MethodGroup = 'bracket' | 'open' | 'fixed-point';
-export type FieldKind = 'text' | 'number' | 'select';
+export type FieldKind = 'text' | 'number' | 'select' | 'textarea';
 
 export interface MachineConfig {
   k: number;
@@ -41,6 +41,7 @@ export interface EngineStopping {
 export interface BisectionOptions {
   expression: string;
   interval: { a: string; b: string };
+  scan?: { min: string; max: string; steps: string } | null;
   machine: MachineConfig;
   stopping: StoppingInput;
   decisionBasis: DecisionBasis;
@@ -52,6 +53,8 @@ export interface NewtonOptions {
   expression: string;
   dfExpression: string;
   x0: string;
+  interval?: { a: string; b: string };
+  initialStrategy?: string;
   machine: MachineConfig;
   stopping: StoppingInput;
   angleMode: AngleMode;
@@ -79,6 +82,10 @@ export interface FalsePositionOptions {
 export interface FixedPointOptions {
   gExpression: string;
   x0: string;
+  gExpressions?: string;
+  xSeeds?: string;
+  seedScan?: { min: string; max: string; steps: string };
+  targetExpression?: string;
   machine: MachineConfig;
   stopping: StoppingInput;
   angleMode: AngleMode;
@@ -107,6 +114,76 @@ export interface RootWarning {
   message: string;
 }
 
+export interface BracketScanCandidate {
+  kind: string;
+  a: unknown;
+  b: unknown;
+  fa?: unknown;
+  fb?: unknown;
+  note?: string;
+}
+
+export interface BracketScanSolution {
+  a: unknown;
+  b: unknown;
+  approximation: unknown;
+  stopReason: string;
+  iterations: number;
+  residual: unknown;
+}
+
+export interface FixedPointBatchEntry {
+  rank: number;
+  gExpression: string;
+  canonical: string;
+  x0: unknown;
+  approximation: unknown;
+  iterations: number;
+  stopReason: string;
+  status: string;
+  error?: unknown;
+  residual?: unknown;
+  targetResidual?: unknown;
+  targetResidualAbs?: number | null;
+  observedRate?: number | null;
+  warnings?: RootWarning[];
+}
+
+export interface RootRunHelpers {
+  requiredIterations?: {
+    method: string;
+    tolerance: string;
+    requiredIterations: number;
+    width?: number;
+    note?: string;
+  };
+  bracketScan?: {
+    range: { min: unknown; max: unknown; steps: number };
+    candidates: BracketScanCandidate[];
+    solutions: BracketScanSolution[];
+    warnings: string[];
+    note: string;
+  };
+  derivative?: {
+    expression: string;
+    canonical: string;
+    source: 'user' | 'symbolic' | 'numeric';
+    note: string;
+  };
+  newtonInitial?: {
+    strategy: string;
+    x0: unknown;
+    interval?: { a: unknown; b: unknown };
+    candidates?: Array<{ label: string; x: unknown; fx: unknown; absFx: number; note: string }>;
+    note: string;
+  };
+  fixedPointBatch?: {
+    targetExpression?: string;
+    entries: FixedPointBatchEntry[];
+    note: string;
+  };
+}
+
 export interface RootRunResult {
   method: RootMethod;
   expression?: string;
@@ -124,6 +201,7 @@ export interface RootRunResult {
   signDisplay?: SignDisplay | null;
   rows?: IterationRow[];
   warnings?: RootWarning[];
+  helpers?: RootRunHelpers;
   [key: string]: unknown;
 }
 

@@ -52,6 +52,9 @@ const machineFields = (prefix: string) => [
 export const isEpsilon = (prefix: string) => (formState: MethodFormState) =>
   formState[`${prefix}-stop-kind`] === 'epsilon';
 
+const isEnabled = (fieldId: string) => (formState: MethodFormState) =>
+  formState[fieldId] === 'yes';
+
 export const METHOD_CONFIGS: MethodConfig[] = [
   {
     method: 'bisection',
@@ -68,6 +71,19 @@ export const METHOD_CONFIGS: MethodConfig[] = [
       { id: 'root-bis-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
       { id: 'root-bis-a', label: 'a', kind: 'text', defaultValue: '1' },
       { id: 'root-bis-b', label: 'b', kind: 'text', defaultValue: '2' },
+      {
+        id: 'root-bis-scan-enabled',
+        label: 'Auto bracket scan',
+        kind: 'select',
+        defaultValue: 'yes',
+        options: [
+          { value: 'yes', label: 'Scan range' },
+          { value: 'no', label: 'Manual bracket only' },
+        ],
+      },
+      { id: 'root-bis-scan-min', label: 'Scan min', kind: 'text', defaultValue: '-5', when: isEnabled('root-bis-scan-enabled') },
+      { id: 'root-bis-scan-max', label: 'Scan max', kind: 'text', defaultValue: '5', when: isEnabled('root-bis-scan-enabled') },
+      { id: 'root-bis-scan-steps', label: 'Scan steps', kind: 'number', defaultValue: '40', when: isEnabled('root-bis-scan-enabled') },
       ...machineFields('root-bis'),
       {
         id: 'root-bis-tolerance-type',
@@ -111,15 +127,29 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     shortLabel: 'Newton',
     group: 'open',
     summary: 'Use f(x), f′(x), and one starting point.',
-    details: 'Fast near a simple root when the derivative is reliable.',
+    details: 'Fast near a simple root; derivative can be generated automatically.',
     expressionLabel: 'f(x)',
     expressionFieldId: 'root-newton-expression',
     runLabel: 'Run Newton-Raphson',
     tableHeaders: ['i', 'xn', 'f(xn)', "f'(xn)", 'x next', 'Error', 'Note'],
     fields: [
       { id: 'root-newton-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
-      { id: 'root-newton-df', label: "f'(x)", kind: 'text', defaultValue: '2x', placeholder: '3x^2 - 1' },
+      { id: 'root-newton-df', label: "f'(x)", kind: 'text', defaultValue: 'auto', placeholder: 'auto or 3x^2 - 1' },
       { id: 'root-newton-x0', label: 'x0', kind: 'text', defaultValue: '1' },
+      { id: 'root-newton-a', label: 'Interval a', kind: 'text', defaultValue: '', placeholder: 'optional' },
+      { id: 'root-newton-b', label: 'Interval b', kind: 'text', defaultValue: '', placeholder: 'optional' },
+      {
+        id: 'root-newton-initial-strategy',
+        label: 'x0 source',
+        kind: 'select',
+        defaultValue: 'manual',
+        options: [
+          { value: 'manual', label: 'Use x0' },
+          { value: 'midpoint', label: 'Use interval midpoint' },
+          { value: 'best-endpoint', label: 'Endpoint with smaller |f(x)|' },
+          { value: 'best-of-three', label: 'Best of a, midpoint, b' },
+        ],
+      },
       ...machineFields('root-newton'),
     ],
   },
@@ -196,6 +226,12 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     fields: [
       { id: 'root-fpi-expression', label: 'g(x)', kind: 'text', defaultValue: 'cos(x)', placeholder: 'cos(x)' },
       { id: 'root-fpi-x0', label: 'x0', kind: 'text', defaultValue: '1' },
+      { id: 'root-fpi-target-expression', label: 'Target f(x)', kind: 'text', defaultValue: '', placeholder: 'x - cos(x), x^3 - 21, ...' },
+      { id: 'root-fpi-seeds', label: 'Extra seeds', kind: 'text', defaultValue: '', placeholder: '0, 0.5, 1, 2' },
+      { id: 'root-fpi-batch-expressions', label: 'Batch g(x) list', kind: 'textarea', defaultValue: '', placeholder: 'One g(x) per line or separate with semicolons', advanced: true },
+      { id: 'root-fpi-scan-min', label: 'Seed scan min', kind: 'text', defaultValue: '', placeholder: 'optional', advanced: true },
+      { id: 'root-fpi-scan-max', label: 'Seed scan max', kind: 'text', defaultValue: '', placeholder: 'optional', advanced: true },
+      { id: 'root-fpi-scan-steps', label: 'Seed scan steps', kind: 'number', defaultValue: '8', advanced: true },
       ...machineFields('root-fpi'),
     ],
   },
@@ -223,7 +259,7 @@ export function createDefaultFormState(): Record<RootMethod, MethodFormState> {
 
 export const EXPRESSION_SYNTAX_NOTES = [
   'Use x as the variable, ^ for powers, parentheses for grouping, and decimal constants such as 0.5.',
-  'Supported functions include sin, cos, tan, exp, log, sqrt, and abs. Trig inputs follow the Rad/Deg toggle.',
+  'Supported functions include sin, cos, tan, exp, ln/log, sqrt, and cbrt. Odd rational powers of negative bases use the real branch.',
   'Implicit multiplication is accepted in common forms such as 2x; use * when an expression could be ambiguous.',
 ];
 
@@ -233,6 +269,7 @@ export const METHOD_HELP_TOPICS: Record<RootMethod, MethodHelpTopic> = {
     inputExpectations: [
       'Enter f(x) plus endpoints a and b.',
       'The interval must bracket a root: f(a) and f(b) should have opposite signs.',
+      'Use the scan range to list candidate brackets before choosing [a, b].',
     ],
     stoppingNotes: [
       'Iteration mode runs exactly n planned interval cuts unless the root is hit first.',
@@ -242,8 +279,8 @@ export const METHOD_HELP_TOPICS: Record<RootMethod, MethodHelpTopic> = {
   newton: {
     method: 'newton',
     inputExpectations: [
-      'Enter f(x), its derivative f\'(x), and one starting value x0.',
-      'Choose x0 near the expected root and avoid points where f\'(x) is zero.',
+      'Enter f(x); leave f\'(x) as auto unless a derivative is required by the prompt.',
+      'Choose x0 near the expected root, or provide [a, b] and use midpoint or endpoint comparison.',
     ],
     stoppingNotes: [
       'Iteration mode applies n Newton updates.',
@@ -275,8 +312,8 @@ export const METHOD_HELP_TOPICS: Record<RootMethod, MethodHelpTopic> = {
   fixedPoint: {
     method: 'fixedPoint',
     inputExpectations: [
-      'Enter g(x), not f(x), and one starting value x0.',
-      'The iteration uses x next = g(x); choose a form that settles near the fixed point.',
+      'Enter g(x), not f(x), plus one starting value x0 or a seed list.',
+      'For comparison problems, add multiple g(x) formulas and the target f(x) to rank convergence and detect wrong fixed points.',
     ],
     stoppingNotes: [
       'Iteration mode applies n fixed-point substitutions.',
@@ -306,7 +343,7 @@ export const METHOD_PRESETS: MethodPreset[] = [
     description: 'Use f(x) = x^2 - 2 with derivative 2x.',
     values: {
       'root-newton-expression': 'x^2 - 2',
-      'root-newton-df': '2x',
+      'root-newton-df': 'auto',
       'root-newton-x0': '1',
       'root-newton-stop-kind': 'iterations',
       'root-newton-stop-value': '5',
@@ -348,6 +385,85 @@ export const METHOD_PRESETS: MethodPreset[] = [
       'root-fpi-x0': '1',
       'root-fpi-stop-kind': 'iterations',
       'root-fpi-stop-value': '8',
+      'root-fpi-target-expression': 'x - cos(x)',
+    },
+  },
+  {
+    id: 'fixed-point-cosine-10-decimal',
+    method: 'fixedPoint',
+    label: 'Fixed Point: x = cos(x), 10 decimals',
+    description: 'Successive approximations differ by less than 1e-10.',
+    values: {
+      'root-fpi-expression': 'cos(x)',
+      'root-fpi-x0': '1',
+      'root-fpi-k': '12',
+      'root-fpi-mode': 'round',
+      'root-fpi-stop-kind': 'epsilon',
+      'root-fpi-stop-value': '1e-10',
+      'root-fpi-target-expression': 'x - cos(x)',
+    },
+  },
+  {
+    id: 'bisection-auto-bracket-cubic',
+    method: 'bisection',
+    label: 'Bisection: scan all cubic roots',
+    description: 'Scan [-3, 3] for x^3 - x and solve all sign-change brackets.',
+    values: {
+      'root-bis-expression': 'x^3 - x',
+      'root-bis-a': '-2',
+      'root-bis-b': '-0.5',
+      'root-bis-scan-enabled': 'yes',
+      'root-bis-scan-min': '-3',
+      'root-bis-scan-max': '3',
+      'root-bis-scan-steps': '60',
+      'root-bis-stop-kind': 'epsilon',
+      'root-bis-stop-value': '1e-4',
+      'root-bis-tolerance-type': 'absolute',
+    },
+  },
+  {
+    id: 'newton-from-interval',
+    method: 'newton',
+    label: 'Newton: interval midpoint',
+    description: 'Generate f′(x) and use midpoint of [1, 2] as x0.',
+    values: {
+      'root-newton-expression': 'x^3 - x - 1',
+      'root-newton-df': 'auto',
+      'root-newton-x0': '',
+      'root-newton-a': '1',
+      'root-newton-b': '2',
+      'root-newton-initial-strategy': 'midpoint',
+      'root-newton-stop-kind': 'epsilon',
+      'root-newton-stop-value': '0.0001',
+    },
+  },
+  {
+    id: 'fixed-point-cube-root-21-batch',
+    method: 'fixedPoint',
+    label: 'Fixed Point: 21^(1/3) batch',
+    description: 'Compare candidate g(x) forms and flag wrong fixed points.',
+    values: {
+      'root-fpi-expression': '(21 / x) ^ (1 / 2)',
+      'root-fpi-x0': '2',
+      'root-fpi-target-expression': 'x^3 - 21',
+      'root-fpi-batch-expressions': '(21 / x) ^ (1 / 2)\n(21 + 2x^3) / (3x^2)\nx - (x^3 - 21) / (3x^2)\nx / 2',
+      'root-fpi-seeds': '1, 2, 3',
+      'root-fpi-stop-kind': 'epsilon',
+      'root-fpi-stop-value': '0.0001',
+    },
+  },
+  {
+    id: 'bisection-required-iterations',
+    method: 'bisection',
+    label: 'Required N: accurate within 10^-2',
+    description: 'Compute N for x^3 - x - 1 on [1, 2] with tolerance 0.01.',
+    values: {
+      'root-bis-expression': 'x^3 - x - 1',
+      'root-bis-a': '1',
+      'root-bis-b': '2',
+      'root-bis-stop-kind': 'epsilon',
+      'root-bis-stop-value': '1e-2',
+      'root-bis-tolerance-type': 'absolute',
     },
   },
 ];

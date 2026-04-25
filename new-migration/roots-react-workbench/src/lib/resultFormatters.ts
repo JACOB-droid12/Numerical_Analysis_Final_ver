@@ -192,6 +192,7 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
     'step-small-residual-large': 'Step is small but residual remains large',
     'retained-endpoint-stagnation': 'Same endpoint retained too long',
     'cycle-detected': 'Iteration entered a cycle',
+    'sample-root': 'Sample point is a root',
     'invalid-input': 'Invalid input',
   };
 
@@ -317,11 +318,12 @@ export function confidenceStatus(
 
   const firstWarning = run.warnings?.find((warning) => warning.message?.trim())?.message.trim();
   if (firstWarning) {
+    const wrongTarget = run.warnings?.some((warning) => warning.code === 'wrong-fixed-point-target');
     return {
-      label: 'Review',
-      tone: 'warning',
-      bars: 2,
-      ariaLabel: 'Review confidence, 2 of 5 bars',
+      label: wrongTarget ? 'Low' : 'Review',
+      tone: wrongTarget ? 'danger' : 'warning',
+      bars: wrongTarget ? 1 : 2,
+      ariaLabel: wrongTarget ? 'Low confidence, 1 of 5 bars' : 'Review confidence, 2 of 5 bars',
       note: firstWarning,
     };
   }
@@ -461,13 +463,56 @@ export function answerText(run: RootRunResult | null): string {
 export function solutionText(run: RootRunResult | null): string {
   if (!run) return '';
   const steps = solutionSteps(run);
+  const config = METHOD_BY_NAME.get(run.method);
+  const table =
+    config && run.rows?.length
+      ? [
+          config.tableHeaders.join(' | '),
+          ...run.rows.map((row) => tableValuesForRow(run.method, row, run).join(' | ')),
+        ]
+      : [];
+  const helperLines: string[] = [];
+  if (run.helpers?.requiredIterations) {
+    helperLines.push(
+      `Required iterations: N = ${run.helpers.requiredIterations.requiredIterations} for tolerance ${run.helpers.requiredIterations.tolerance}.`,
+    );
+  }
+  if (run.helpers?.derivative) {
+    helperLines.push(`Newton derivative (${run.helpers.derivative.source}): ${run.helpers.derivative.canonical}`);
+  }
+  if (run.helpers?.newtonInitial) {
+    helperLines.push(`Newton initial value: ${formatValue(run.helpers.newtonInitial.x0, 18)} (${run.helpers.newtonInitial.strategy}).`);
+  }
+  if (run.helpers?.fixedPointBatch?.entries.length) {
+    helperLines.push('Fixed-point ranking:');
+    run.helpers.fixedPointBatch.entries.slice(0, 6).forEach((entry) => {
+      helperLines.push(
+        `${entry.rank}. ${entry.canonical || entry.gExpression}, x0=${formatValue(entry.x0)}, status=${entry.status}, iterations=${entry.iterations}, target residual=${formatValue(entry.targetResidual ?? entry.residual)}`,
+      );
+    });
+  }
+  if (run.helpers?.bracketScan?.solutions.length) {
+    helperLines.push('All-root bracket scan:');
+    run.helpers.bracketScan.solutions.forEach((solution, index) => {
+      helperLines.push(
+        `${index + 1}. [${formatValue(solution.a)}, ${formatValue(solution.b)}] -> ${formatValue(solution.approximation)} (${stopReasonLabel(solution.stopReason, 'bisection')})`,
+      );
+    });
+  }
   return [
     `Method: ${methodLabel(run.method)}`,
     `Expression: ${run.canonical || run.expression || 'N/A'}`,
     `Approximate root: ${formatValue(run.summary?.approximation, 18)}`,
+    `Stopping condition: ${stoppingText(run)}`,
+    `Stopping result: ${stopReasonLabel(run.summary?.stopReason, run.method)}`,
+    `Final residual: ${formatValue(run.summary?.residual, 18)}`,
     '',
     'Steps:',
     ...steps.map((step, index) => `${index + 1}. ${step}`),
+    ...(helperLines.length ? ['', 'Workflow checks:', ...helperLines] : []),
+    ...(table.length ? ['', 'Iteration table:', ...table] : []),
+    '',
+    `Final answer: x ≈ ${formatValue(run.summary?.approximation, 18)}.`,
   ].join('\n');
 }
 

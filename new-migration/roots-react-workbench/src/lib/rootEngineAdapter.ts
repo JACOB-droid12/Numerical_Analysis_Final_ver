@@ -37,6 +37,14 @@ function runBisection(fields: MethodFormState, angleMode: AngleMode): RootRunRes
   return requireRootEngine().runBisection({
     expression: fields['root-bis-expression'],
     interval: { a: fields['root-bis-a'], b: fields['root-bis-b'] },
+    scan:
+      fields['root-bis-scan-enabled'] === 'yes'
+        ? {
+            min: fields['root-bis-scan-min'],
+            max: fields['root-bis-scan-max'],
+            steps: fields['root-bis-scan-steps'],
+          }
+        : null,
     machine: machine(fields, 'root-bis'),
     stopping: stopping(fields, 'root-bis'),
     decisionBasis: (fields['root-bis-decision-basis'] || 'machine') as DecisionBasis,
@@ -50,6 +58,8 @@ function runNewton(fields: MethodFormState, angleMode: AngleMode): RootRunResult
     expression: fields['root-newton-expression'],
     dfExpression: fields['root-newton-df'],
     x0: fields['root-newton-x0'],
+    interval: { a: fields['root-newton-a'], b: fields['root-newton-b'] },
+    initialStrategy: fields['root-newton-initial-strategy'],
     machine: machine(fields, 'root-newton'),
     stopping: stopping(fields, 'root-newton'),
     angleMode,
@@ -83,6 +93,14 @@ function runFixedPoint(fields: MethodFormState, angleMode: AngleMode): RootRunRe
   return requireRootEngine().runFixedPoint({
     gExpression: fields['root-fpi-expression'],
     x0: fields['root-fpi-x0'],
+    gExpressions: fields['root-fpi-batch-expressions'],
+    xSeeds: fields['root-fpi-seeds'],
+    seedScan: {
+      min: fields['root-fpi-scan-min'],
+      max: fields['root-fpi-scan-max'],
+      steps: fields['root-fpi-scan-steps'],
+    },
+    targetExpression: fields['root-fpi-target-expression'],
     machine: machine(fields, 'root-fpi'),
     stopping: stopping(fields, 'root-fpi'),
     angleMode,
@@ -163,6 +181,16 @@ export function hasValidApproximation(result: RootRunResult): boolean {
 }
 
 export function isInvalidRun(result: RootRunResult): boolean {
+  if ((result.rows?.length ?? 0) > 0) {
+    return false;
+  }
+  const helpers = result.helpers;
+  if (
+    (helpers?.bracketScan?.candidates.length ?? 0) > 0 ||
+    (helpers?.fixedPointBatch?.entries.length ?? 0) > 0
+  ) {
+    return false;
+  }
   return !hasValidApproximation(result);
 }
 

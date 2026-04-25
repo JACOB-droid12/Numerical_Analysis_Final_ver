@@ -239,9 +239,25 @@
     const baseReal = requireRealNumber(base, "Base");
     const exponentReal = requireRealNumber(exponent, "Exponent");
     if (baseReal < 0 && !Number.isInteger(exponentReal)) {
-      throw new Error("Fractional powers of negative bases are not supported.");
+      if (isRationalValue(exponent) && exponent.den % 2n === 1n) {
+        const numerator = exponent.num;
+        if (numerator > BigInt(Number.MAX_SAFE_INTEGER)) {
+          throw new Error("Exponent is too large to evaluate safely.");
+        }
+        const signedPower = Math.pow(Math.abs(baseReal), Number(numerator) / Number(exponent.den));
+        const sign = numerator % 2n === 1n ? -1 : 1;
+        const real = exponent.sign < 0
+          ? sign / signedPower
+          : sign * signedPower;
+        return makeCalc(real, 0);
+      }
+      throw new Error("Fractional powers of negative bases require an odd rational denominator for a real result.");
     }
     return makeCalc(Math.pow(baseReal, exponentReal), 0);
+  }
+
+  function cbrtValue(value) {
+    return makeCalc(Math.cbrt(requireRealNumber(value, "Cube root input")), 0);
   }
 
   function sqrtValue(value) {
@@ -562,6 +578,7 @@
     tanValue,
     expValue,
     lnValue,
+    cbrtValue,
     sqrtValue,
     fromPolar,
     magnitude,
