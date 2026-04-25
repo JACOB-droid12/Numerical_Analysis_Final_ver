@@ -15,7 +15,8 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByRole('button', { name: 'Close presets' }).click();
 
   await page.getByRole('button', { name: 'Run method' }).click();
-  await expect(page.getByText('Root (Approximate)')).toBeVisible();
+  await expect(page.getByLabel('Calculator display')).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
 
   await page.getByRole('button', { name: /Bisection/ }).click();

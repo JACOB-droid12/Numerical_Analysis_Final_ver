@@ -100,6 +100,7 @@ export default function App() {
           <section className="console-grid">
             <section id="equation-studio" className="equation-studio" aria-label="Equation studio">
               <MethodForm
+                angleMode={angleMode}
                 config={activeConfig}
                 formState={activeForm}
                 onChange={updateField}

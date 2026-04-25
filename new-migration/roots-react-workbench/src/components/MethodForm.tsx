@@ -2,14 +2,17 @@ import { useCallback, useMemo, useRef } from 'react';
 import { CheckCircle2, Maximize2 } from 'lucide-react';
 
 import type {
+  AngleMode,
   MethodConfig,
   MethodFieldConfig,
   MethodFormState,
   RootMethod,
 } from '../types/roots';
+import { NotebookDisplay } from './NotebookDisplay';
 import { SymbolInsertBar } from './SymbolInsertBar';
 
 interface MethodFormProps {
+  angleMode: AngleMode;
   config: MethodConfig;
   formState: MethodFormState;
   onChange: (method: RootMethod, fieldId: string, value: string) => void;
@@ -19,7 +22,7 @@ function isVisible(field: MethodFieldConfig, formState: MethodFormState) {
   return field.when ? field.when(formState) : true;
 }
 
-export function MethodForm({ config, formState, onChange }: MethodFormProps) {
+export function MethodForm({ angleMode, config, formState, onChange }: MethodFormProps) {
   const expressionRef = useRef<HTMLInputElement | null>(null);
 
   const visibleFields = useMemo(
@@ -157,6 +160,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
           </div>
           {renderField(primaryField)}
           <SymbolInsertBar onInsert={insertSymbol} onBackspace={backspaceExpression} />
+          <NotebookDisplay angleMode={angleMode} config={config} formState={formState} />
         </div>
       ) : null}
 

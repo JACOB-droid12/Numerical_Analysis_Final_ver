@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, X } from 'lucide-react';
 
-import { answerText, formatValue, methodLabel } from '../lib/resultFormatters';
+import {
+  answerText,
+  formatValue,
+  methodLabel,
+  stopReasonLabel,
+  stoppingText,
+} from '../lib/resultFormatters';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
 interface AnswerPanelProps {
@@ -100,13 +106,25 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
   const summary = run.summary;
   const approximation = formatRootValue(summary?.approximation);
   const copyDisabled = !copyPayload;
+  const stopResult = stopReasonLabel(summary?.stopReason, run.method);
+  const stopping = stoppingText(run);
+  const metricValue = formatValue(summary?.error ?? summary?.bound ?? summary?.residual);
+  const metricLabel =
+    summary?.error != null
+      ? 'Final error'
+      : summary?.bound != null
+        ? 'Final bound'
+        : summary?.residual != null
+          ? 'Residual'
+          : 'Final metric';
+  const machine = run.machine ? `${run.machine.k}-digit ${run.machine.mode}` : 'Current precision';
 
   return (
     <section className="answer-panel">
       <header>
         <div>
-          <p className="section-kicker">Root (Approximate)</p>
-          <p className="answer-root numeric-value">{approximation}</p>
+          <p className="section-kicker">Calculator output</p>
+          <p className="answer-method">{methodLabel(run.method)}</p>
         </div>
         <button
           type="button"
@@ -150,6 +168,23 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
           )}
         </button>
       </header>
+
+      <div className="answer-hero-grid">
+        <article className="answer-hero answer-hero-major">
+          <p className="result-label">Approximate root</p>
+          <p className="answer-root numeric-value">{approximation}</p>
+        </article>
+        <article className="answer-hero">
+          <p className="result-label">Stopping result</p>
+          <p className="answer-value">{stopResult}</p>
+          <span>{stopping}</span>
+        </article>
+        <article className="answer-hero">
+          <p className="result-label">{metricLabel}</p>
+          <p className="answer-value numeric-value">{metricValue}</p>
+          <span>{machine}</span>
+        </article>
+      </div>
 
       <div className="meta-row">
           <span

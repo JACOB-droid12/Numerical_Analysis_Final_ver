@@ -7,24 +7,30 @@ on:
       - staging
     paths:
       - ".github/workflows/roots-react-ci.yml"
-      - "AGENTS.md"
-      - "README.md"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
+      - "root-engine.js"
       - "new-migration/roots-react-workbench/**"
       - "scripts/engine-correctness-audit.js"
       - "scripts/root-engine-audit.js"
       - "scripts/roots-react-release-check.ps1"
+      - "docs/deployment/**"
   push:
     branches:
       - master
       - staging
     paths:
       - ".github/workflows/roots-react-ci.yml"
-      - "AGENTS.md"
-      - "README.md"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
+      - "root-engine.js"
       - "new-migration/roots-react-workbench/**"
       - "scripts/engine-correctness-audit.js"
       - "scripts/root-engine-audit.js"
       - "scripts/roots-react-release-check.ps1"
+      - "docs/deployment/**"
   workflow_dispatch:
 
 concurrency:

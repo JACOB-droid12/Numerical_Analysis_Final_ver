@@ -1,0 +1,57 @@
+name: Roots React CI
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
+      - "poly-engine.js"
+      - "root-engine.js"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "tsconfig.node.json"
+      - "vite.config.ts"
+      - "vercel.json"
+      - ".github/workflows/roots-react-ci.yml"
+  push:
+    branches:
+      - staging
+      - master
+    paths:
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
+      - "poly-engine.js"
+      - "root-engine.js"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "tsconfig.node.json"
+      - "vite.config.ts"
+      - "vercel.json"
+      - ".github/workflows/roots-react-ci.yml"
+
+jobs:
+  release-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run release gate
+        shell: pwsh
+        run: .\scripts\roots-react-release-check.ps1
