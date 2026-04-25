@@ -51,6 +51,9 @@ jobs:
       - name: Install Roots React dependencies
         run: npm ci --prefix new-migration/roots-react-workbench
 
+      - name: Install Playwright browser
+        run: npm run install:e2e --prefix new-migration/roots-react-workbench
+
       - name: Run Roots React release check
         shell: pwsh
         run: .\scripts\roots-react-release-check.ps1

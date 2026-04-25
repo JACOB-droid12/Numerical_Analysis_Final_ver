@@ -48,6 +48,10 @@ For Vercel, release, staging, or production work, start with:
 
 Do not deploy the repository root to Vercel for the React workbench. Use `new-migration/roots-react-workbench` as the Vercel project root directory.
 
+Current production URL: `https://roots-react-workbench.vercel.app/`
+
+Record the active standalone branch in release handoffs when it differs from the current branch.
+
 Before merging, staging, or promoting Roots React changes, run this from the repository root:
 
 ```powershell

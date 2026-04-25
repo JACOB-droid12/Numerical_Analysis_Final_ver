@@ -31,6 +31,7 @@ finally {
 Push-Location $RootsReactPath
 try {
     Invoke-RequiredCommand "npm" @("run", "sync:legacy")
+    Invoke-RequiredCommand "npm" @("run", "check:legacy")
 
     Push-Location $RepoRoot
     try {
@@ -46,6 +47,9 @@ try {
         Pop-Location
     }
 
+    Invoke-RequiredCommand "npm" @("run", "install:e2e")
+    Invoke-RequiredCommand "npm" @("run", "test:unit")
+    Invoke-RequiredCommand "npm" @("run", "test:e2e")
     Invoke-RequiredCommand "npm" @("run", "typecheck")
     Invoke-RequiredCommand "npm" @("run", "build")
 }

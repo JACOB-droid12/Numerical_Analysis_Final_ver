@@ -25,8 +25,10 @@ marvillarq20-3593s-projects/roots-react
 Current production URL:
 
 ```text
-https://roots-react.vercel.app
+https://roots-react-workbench.vercel.app/
 ```
+
+Record the active standalone branch in release handoffs and PR bodies when it differs from the current branch.
 
 ## Agent Route Table
 
@@ -55,7 +57,10 @@ This runs:
 - engine correctness audit,
 - root engine audit,
 - legacy engine sync,
+- deterministic legacy engine hash check,
 - stale synced legacy diff guard,
+- Vitest unit tests,
+- Playwright smoke tests,
 - TypeScript typecheck,
 - Vite build.
 

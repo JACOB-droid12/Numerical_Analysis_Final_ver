@@ -71,7 +71,9 @@ Every Roots React handoff should include:
 - Vercel URL when deployed,
 - whether the legacy static backup stayed untouched.
 
-The current production URL is `https://roots-react.vercel.app`.
+The current production URL is `https://roots-react-workbench.vercel.app/`.
+
+Record the active standalone branch context in release handoffs when it differs from the current branch.
 
 ## Engine Architecture
 

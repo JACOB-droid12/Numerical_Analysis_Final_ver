@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import { rowsToCsv } from '../lib/csv';
 import { tableValuesForRow } from '../lib/resultFormatters';
 import type { MethodConfig, RootRunResult } from '../types/roots';
 
@@ -23,16 +24,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
         return Array.from({ length: config.tableHeaders.length }, (_, cellIndex) => values[cellIndex] ?? '');
       }),
     ];
-    const csv = csvRows
-      .map((row) =>
-        row
-          .map((value) => {
-            const text = String(value);
-            return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-          })
-          .join(','),
-      )
-      .join('\r\n');
+    const csv = rowsToCsv(csvRows);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

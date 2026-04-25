@@ -9,7 +9,7 @@ This document defines the deployment workflow for promoting the Roots React stag
 The existing Vercel CLI deployment proved that the React pilot builds and runs on Vercel:
 
 ```text
-https://roots-react.vercel.app
+https://roots-react-workbench.vercel.app/
 ```
 
 That CLI deploy is not the preferred long-term workflow. The preferred workflow is Git-connected Vercel deployment:
@@ -26,7 +26,7 @@ Expected Vercel behavior:
 
 ## Branch Roles
 
-- Feature branches such as `codex/roots-react-pilot`: active implementation branches only. They are not the private staging release branch.
+- Feature branches with the `codex/` prefix: active implementation branches only. They are not the private staging release branch.
 - `staging`: private release-candidate branch. Feature branches merge or cherry-pick into `staging`, and `staging` is expected to produce the private staging deployment.
 - `master`: production branch for this repository unless the repository default is changed later.
 - Promotion path: feature branch -> staging -> master.
@@ -58,7 +58,7 @@ Before merging or cherry-picking a feature branch into `staging`, run the canoni
 .\scripts\roots-react-release-check.ps1
 ```
 
-The script runs the engine audit, root-engine audit, `sync:legacy`, stale synced legacy diff guard, typecheck, and build. Treat a passing run as the local gate for moving implementation work from a feature branch into `staging`.
+The script runs the engine audit, root-engine audit, `sync:legacy`, deterministic legacy engine hash check, stale synced legacy diff guard, Vitest unit tests, Playwright smoke tests, typecheck, and build. Treat a passing run as the local gate for moving implementation work from a feature branch into `staging`.
 
 After the gate passes, confirm the legacy static calculator files remain untouched unless the release explicitly includes approved legacy changes, then record the candidate commit SHA for staging review.
 

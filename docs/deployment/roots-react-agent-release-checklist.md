@@ -12,6 +12,7 @@ Use this checklist for Roots React PRs, staging handoffs, and production handoff
 ## Branch
 
 - [ ] Current branch:
+- [ ] Current standalone branch context, if different from the current branch:
 - [ ] Target branch:
 - [ ] Commit SHA under review:
 - [ ] Branch role is clear:
@@ -41,7 +42,10 @@ Record result:
 - [ ] Engine correctness audit passed.
 - [ ] Root engine audit passed.
 - [ ] `sync:legacy` passed.
+- [ ] Deterministic legacy engine hash check passed.
 - [ ] Stale synced legacy diff guard passed.
+- [ ] Vitest unit tests passed.
+- [ ] Playwright smoke tests passed.
 - [ ] TypeScript typecheck passed.
 - [ ] Vite production build passed.
 
@@ -65,7 +69,7 @@ Record result:
 - [ ] Staging checklist passed for the exact commit being promoted.
 - [ ] Candidate is merged from `staging` into `master`.
 - [ ] Production commit SHA:
-- [ ] Vercel production URL:
+- [ ] Vercel production URL: `https://roots-react-workbench.vercel.app/`
 - [ ] Production smoke check completed.
 - [ ] Rollback target SHA or previous deployment URL recorded.
 

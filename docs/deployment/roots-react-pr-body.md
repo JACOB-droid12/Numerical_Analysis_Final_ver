@@ -37,7 +37,8 @@ Result:
 
 ## Vercel
 
-- Current production URL: `https://roots-react.vercel.app`
+- Current production URL: `https://roots-react-workbench.vercel.app/`
+- Standalone branch context:
 - Vercel project root directory: `new-migration/roots-react-workbench`
 - Preview or staging URL:
 - Production URL:
