@@ -110,8 +110,47 @@ export function runRootMethod(
   }
 }
 
+const FAILURE_STOP_REASONS = new Set([
+  'invalid-input',
+  'invalid-starting-interval',
+  'invalid-bracket',
+  'discontinuity-detected',
+  'relative-tolerance-invalid',
+  'singularity-encountered',
+  'non-finite-evaluation',
+  'derivative-zero',
+  'diverged',
+  'diverged-step',
+  'stagnation',
+  'retained-endpoint-stagnation',
+  'step-small-residual-large',
+  'cycle-detected',
+]);
+
+const FAILURE_MESSAGES: Record<string, string> = {
+  'invalid-input': 'The root calculation could not finish because one or more inputs are invalid.',
+  'invalid-starting-interval': 'Choose an interval where the endpoint signs differ.',
+  'invalid-bracket': 'Choose an interval where the endpoint signs differ.',
+  'discontinuity-detected': 'The method stopped at a discontinuity or singularity.',
+  'relative-tolerance-invalid': 'The relative tolerance check could not be completed for this interval.',
+  'singularity-encountered': 'Function evaluation failed during the iteration.',
+  'non-finite-evaluation': 'Function evaluation returned a non-finite value.',
+  'derivative-zero': 'The derivative is zero or too close to zero, so the method cannot continue.',
+  diverged: 'The iteration diverged before a reliable approximation was found.',
+  'diverged-step': 'The step grew too quickly to trust convergence.',
+  stagnation: 'The method stalled because the denominator is near zero.',
+  'retained-endpoint-stagnation': 'False Position retained the same endpoint too long to trust convergence.',
+  'step-small-residual-large': 'The step is small, but the residual remains too large to confirm convergence.',
+  'cycle-detected': 'The iteration entered a cycle instead of settling to one value.',
+};
+
+function hasFailureStopReason(result: RootRunResult): boolean {
+  const reason = result.summary?.stopReason;
+  return typeof reason === 'string' && FAILURE_STOP_REASONS.has(reason);
+}
+
 export function hasValidApproximation(result: RootRunResult): boolean {
-  if (result.summary?.stopReason === 'invalid-input') {
+  if (hasFailureStopReason(result)) {
     return false;
   }
 
@@ -131,6 +170,11 @@ export function resultFailureMessage(result: RootRunResult): string {
   const detail = result.summary?.stopDetail?.trim();
   if (detail) {
     return detail;
+  }
+
+  const reason = result.summary?.stopReason;
+  if (typeof reason === 'string' && FAILURE_MESSAGES[reason]) {
+    return FAILURE_MESSAGES[reason];
   }
 
   const warning = result.warnings?.[0]?.message?.trim();
