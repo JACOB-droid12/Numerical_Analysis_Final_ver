@@ -1,0 +1,9 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+vite-task11.out.log
+vite-task11.err.log
+
+.vercel

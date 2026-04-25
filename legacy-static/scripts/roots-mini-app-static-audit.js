@@ -1,0 +1,557 @@
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+
+const ROOT = path.resolve(__dirname, "..");
+const ROOTS_HTML = path.join(ROOT, "roots", "index.html");
+const MAIN_HTML = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+const APP_JS = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+const LEGACY_ROOT_UI = path.join(ROOT, "root-ui.js");
+
+function check(name, expected, actual, passed) {
+  console.log(`[${passed ? "PASS" : "FAIL"}] ${name}`);
+  console.log(`  Expected: ${expected}`);
+  console.log(`  Actual:   ${actual}`);
+  console.log("");
+  if (!passed) process.exitCode = 1;
+}
+
+function extractSectionById(source, id) {
+  const startPattern = new RegExp(`<section\\b[^>]*id="${id}"[^>]*>`, "i");
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  let depth = 0;
+  const tagPattern = /<\/?section\b[^>]*>/gi;
+  tagPattern.lastIndex = startMatch.index;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function countMatches(source, pattern) {
+  return (source.match(pattern) || []).length;
+}
+
+function includesAll(source, values) {
+  return values.every((value) => source.includes(value));
+}
+
+function escapeRegExp(source) {
+  return source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripTags(source) {
+  return source.replace(/<[^>]*>/g, " ");
+}
+
+function normalizedText(source) {
+  return stripTags(source).replace(/\s+/g, " ").trim();
+}
+
+function getCssBlocks(source, selector) {
+  const selectorPattern = new RegExp(`${escapeRegExp(selector)}\\s*\\{`, "g");
+  const blocks = [];
+  for (const match of source.matchAll(selectorPattern)) {
+    const openIndex = source.indexOf("{", match.index);
+    if (openIndex === -1) continue;
+
+    let depth = 0;
+    for (let i = openIndex; i < source.length; i += 1) {
+      const char = source[i];
+      if (char === "{") depth += 1;
+      if (char === "}") depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(match.index, i + 1));
+        break;
+      }
+    }
+  }
+
+  return blocks;
+}
+
+function cssBlockIncludesAll(block, declarations) {
+  return declarations.every((declaration) => block.includes(declaration));
+}
+
+function getElementHtmlById(source, tagName, id) {
+  const startPattern = new RegExp(`<${tagName}\\b[^>]*id="${id}"[^>]*>`, "i");
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function getElementHtmlByClass(source, tagName, className) {
+  const startPattern = new RegExp(
+    `<${tagName}\\b(?=[^>]*\\bclass="[^"]*\\b${escapeRegExp(className)}\\b[^"]*")[^>]*>`,
+    "i"
+  );
+  const startMatch = startPattern.exec(source);
+  if (!startMatch) return "";
+
+  const tagPattern = new RegExp(`</?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startMatch.index;
+  let depth = 0;
+  for (const match of source.matchAll(tagPattern)) {
+    const isClosing = /^<\//.test(match[0]);
+    depth += isClosing ? -1 : 1;
+    if (depth === 0) {
+      return source.slice(startMatch.index, match.index + match[0].length);
+    }
+  }
+
+  return "";
+}
+
+function hasAcademicStudioSetupGuide(source) {
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const setupText = normalizedText(setupHtml);
+  return Boolean(setupHtml) &&
+    [
+      "Problem setup",
+      "Enter the function and method values",
+      "Use the active method panel below. Press the equals button to run the solver."
+    ].every((phrase) => setupText.includes(phrase));
+}
+
+function hasEmptyStateContract(source) {
+  return /<section\b(?=[^>]*\bid="root-empty")(?=[^>]*\bclass="[^"]*\bempty-state\b[^"]*\broot-empty-state\b[^"]*")[^>]*>/i.test(source) &&
+    [
+      "Ready when you are",
+      "Pick a method, enter a function, and run the method.",
+      "Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table."
+    ].every((phrase) => normalizedText(source).includes(phrase));
+}
+
+function hasGuidedSolverShell(source) {
+  const heroHtml = getElementHtmlByClass(source, "div", "roots-guided-hero");
+  const guideHtml = getElementHtmlById(source, "section", "root-method-guide");
+  const heroText = normalizedText(heroHtml);
+  const guideText = normalizedText(guideHtml);
+  return Boolean(heroHtml) &&
+    Boolean(guideHtml) &&
+    /id="root-method-title"/.test(guideHtml) &&
+    /id="root-method-summary"/.test(guideHtml) &&
+    /id="root-method-details"/.test(guideHtml) &&
+    [
+      "Module IV · Roots",
+      "Guided Solver Studio",
+      "Fast quiz answers with enough explanation to show your work.",
+      "Quick workflow",
+      "Pick method",
+      "Enter values",
+      "Run",
+      "Copy answer"
+    ].every((phrase) => heroText.includes(phrase)) &&
+    guideText.includes("Active solver");
+}
+
+function hasQuizAnswerPanel(source) {
+  const resultStageHtml = extractSectionById(source, "root-result-stage");
+  const quizAnswerHtml = extractSectionById(resultStageHtml, "root-quiz-answer");
+  const quizAnswerText = normalizedText(quizAnswerHtml);
+  return Boolean(resultStageHtml) &&
+    Boolean(quizAnswerHtml) &&
+    /id="root-active-method"/.test(quizAnswerHtml) &&
+    /id="root-final-metric"/.test(quizAnswerHtml) &&
+    /id="root-interpretation"/.test(quizAnswerHtml) &&
+    /id="root-next-action"/.test(quizAnswerHtml) &&
+    /id="root-copy-solution"/.test(resultStageHtml) &&
+    quizAnswerText.includes("Quiz-ready answer") &&
+    quizAnswerText.includes("Approximate root") &&
+    quizAnswerText.includes("Stopping result") &&
+    quizAnswerText.includes("What this means") &&
+    quizAnswerText.includes("Try next");
+}
+
+function hasNetShellLayout(source) {
+  const shellHtml = getElementHtmlByClass(source, "div", "roots-net-layout");
+  const railHtml = getElementHtmlByClass(source, "nav", "root-shell-rail");
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const methodsHtml = getElementHtmlById(source, "section", "root-method-section");
+  const setupHtml = getElementHtmlById(source, "section", "root-setup-card");
+  const answerHtml = getElementHtmlById(source, "section", "root-quiz-answer");
+  const evidenceHtml = getElementHtmlById(source, "section", "root-evidence-stack");
+  const railText = normalizedText(railHtml);
+  const headerText = normalizedText(headerHtml);
+  const methodsText = normalizedText(methodsHtml);
+
+  return Boolean(shellHtml) &&
+    Boolean(railHtml) &&
+    Boolean(headerHtml) &&
+    Boolean(methodsHtml) &&
+    Boolean(setupHtml) &&
+    Boolean(answerHtml) &&
+    Boolean(evidenceHtml) &&
+    railText.includes("NET+") &&
+    railText.includes("Methods") &&
+    railText.includes("Problem Setup") &&
+    railText.includes("Quiz Answer") &&
+    railText.includes("Evidence") &&
+    headerText.includes("Back to calculator") &&
+    headerText.includes("Angle") &&
+    headerText.includes("Use radians") &&
+    methodsText.includes("Methods") &&
+    methodsText.includes("Choose the root-finding method that fits the prompt");
+}
+
+function hasNetShellUtilities(source) {
+  const headerHtml = getElementHtmlByClass(source, "header", "root-shell-header");
+  const toolbarHtml = getElementHtmlByClass(source, "div", "roots-toolbar") ||
+    getElementHtmlByClass(source, "nav", "roots-toolbar") ||
+    getElementHtmlByClass(source, "header", "roots-toolbar");
+
+  return Boolean(headerHtml) &&
+    /id="status-angle"/.test(source) &&
+    /id="angle-toggle"/.test(source) &&
+    /href="\.\.\/index\.html"/.test(source) &&
+    !toolbarHtml;
+}
+
+function hasNetShellCss(source) {
+  return [
+    ".roots-net-layout",
+    ".root-shell-rail",
+    ".root-shell-brand",
+    ".root-shell-links",
+    ".root-shell-link",
+    ".root-shell-header",
+    ".root-shell-utilities",
+    ".root-method-section"
+  ].every((selector) => source.includes(selector));
+}
+
+const exists = fs.existsSync(ROOTS_HTML);
+const html = exists ? fs.readFileSync(ROOTS_HTML, "utf8") : "";
+const scriptSources = [...html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
+const mainScriptSources = [...MAIN_HTML.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g)].map((match) => match[1]);
+const rootTabPanel = extractSectionById(MAIN_HTML, "tab-root");
+const rootEmptyHtml = extractSectionById(html, "root-empty");
+const expectedScriptOrder = [
+  "../math-engine.js?v=roots-v1",
+  "../calc-engine.js?v=roots-v1",
+  "../expression-engine.js?v=roots-v1",
+  "../root-engine.js?v=roots-v1",
+  "../math-display.js?v=roots-v1",
+  "./roots-state.js?v=roots-v1",
+  "./roots-engine-adapter.js?v=roots-v1",
+  "./roots-render.js?v=roots-v1",
+  "./roots-app.js?v=roots-v1"
+];
+const tabs = [
+  { id: "root-tab-bisection", controls: "root-inputs-bisection" },
+  { id: "root-tab-newton", controls: "root-inputs-newton" },
+  { id: "root-tab-secant", controls: "root-inputs-secant" },
+  { id: "root-tab-falseposition", controls: "root-inputs-falseposition" },
+  { id: "root-tab-fixedpoint", controls: "root-inputs-fixedpoint" }
+];
+
+check(
+  "Standalone entry exists",
+  "roots/index.html should exist",
+  exists ? "present" : "missing",
+  exists
+);
+
+check(
+  "Standalone entry loads shared roots dependencies",
+  "../math-engine.js, ../calc-engine.js, ../expression-engine.js, ../root-engine.js, ../math-display.js",
+  html.match(/\.\.\/[a-z-]+\.js/g)?.join(", ") || "no shared scripts",
+  /\.\.\/math-engine\.js/.test(html) &&
+    /\.\.\/calc-engine\.js/.test(html) &&
+    /\.\.\/expression-engine\.js/.test(html) &&
+    /\.\.\/root-engine\.js/.test(html) &&
+    /\.\.\/math-display\.js/.test(html)
+);
+
+check(
+  "Standalone entry orders shared and local scripts",
+  expectedScriptOrder.join(", "),
+  scriptSources.join(", ") || "no scripts found",
+  expectedScriptOrder.every((src, index) => scriptSources[index] === src) &&
+    scriptSources.length === expectedScriptOrder.length
+);
+
+check(
+  "Standalone entry wires tab semantics to panels",
+  tabs.map(({ id, controls }) => `${id} -> ${controls}`).join(", "),
+  tabs
+    .map(({ id, controls }) => {
+      const tabPattern = new RegExp(`id="${id}"[^>]*aria-controls="${controls}"|aria-controls="${controls}"[^>]*id="${id}"`);
+      const panelPattern = new RegExp(`<section[^>]*id="${controls}"[^>]*role="tabpanel"[^>]*aria-labelledby="${id}"|<section[^>]*aria-labelledby="${id}"[^>]*role="tabpanel"[^>]*id="${controls}"`);
+      return tabPattern.test(html) && panelPattern.test(html) ? `${id} -> ${controls}` : null;
+    })
+    .filter(Boolean)
+    .join(", ") || "missing tab-panel links",
+  tabs.every(({ id, controls }) => {
+    const tabPattern = new RegExp(`id="${id}"[^>]*aria-controls="${controls}"|aria-controls="${controls}"[^>]*id="${id}"`);
+    const panelPattern = new RegExp(`<section[^>]*id="${controls}"[^>]*role="tabpanel"[^>]*aria-labelledby="${id}"|<section[^>]*aria-labelledby="${id}"[^>]*role="tabpanel"[^>]*id="${controls}"`);
+    return tabPattern.test(html) && panelPattern.test(html);
+  })
+);
+
+check(
+  "Standalone entry moves shell controls into the NET shell",
+  "root-shell-header owns Back to calculator, status-angle, and angle-toggle; legacy roots-toolbar removed",
+  hasNetShellUtilities(html) ? "shell utilities present" : "shell utilities missing",
+  hasNetShellUtilities(html)
+);
+
+check(
+  "Standalone entry includes a Roots first-run guide",
+  "root-setup-card with the problem setup copy",
+  hasAcademicStudioSetupGuide(html)
+    ? "first-run guide present"
+    : "first-run guide missing",
+  hasAcademicStudioSetupGuide(html)
+);
+
+check(
+  "Method tabs expose method categories",
+  "two bracket tabs, two open tabs, one fixed-point tab",
+  [
+    `bracket:${countMatches(html, /data-method-kind="bracket"/g)} / labels:${countMatches(html, /<span class="method-kind">Bracket<\/span><span>Bisection<\/span>|<span class="method-kind">Bracket<\/span><span>False Position<\/span>/g)}`,
+    `open:${countMatches(html, /data-method-kind="open"/g)} / labels:${countMatches(html, /<span class="method-kind">Open<\/span><span>Newton-Raphson<\/span>|<span class="method-kind">Open<\/span><span>Secant<\/span>/g)}`,
+    `fixed-point:${countMatches(html, /data-method-kind="fixed-point"/g)} / labels:${countMatches(html, /<span class="method-kind">Fixed-point<\/span><span>Fixed Point<\/span>/g)}`
+  ].join(", "),
+  countMatches(html, /data-method-kind="bracket"/g) === 2 &&
+    countMatches(html, /data-method-kind="open"/g) === 2 &&
+    countMatches(html, /data-method-kind="fixed-point"/g) === 1 &&
+    [
+      { id: "root-tab-bisection", kind: "Bracket", name: "Bisection" },
+      { id: "root-tab-newton", kind: "Open", name: "Newton-Raphson" },
+      { id: "root-tab-secant", kind: "Open", name: "Secant" },
+      { id: "root-tab-falseposition", kind: "Bracket", name: "False Position" },
+      { id: "root-tab-fixedpoint", kind: "Fixed-point", name: "Fixed Point" }
+    ].every(({ id, kind, name }) => {
+      const buttonHtml = getElementHtmlById(html, "button", id);
+      const text = normalizedText(buttonHtml);
+      return buttonHtml.includes(`data-method-kind="${kind === "Fixed-point" ? "fixed-point" : kind.toLowerCase()}"`) && text.includes(kind) && text.includes(name);
+    })
+);
+
+check(
+  "Empty state gives a useful first action",
+  "root-empty includes a short action prompt",
+  hasEmptyStateContract(rootEmptyHtml)
+    ? "empty prompt present"
+    : "empty prompt missing",
+  hasEmptyStateContract(rootEmptyHtml)
+);
+
+check(
+  "Guided Solver shell is present",
+  "hero, active method guide, and fast quiz copy",
+  hasGuidedSolverShell(html)
+    ? "guided solver shell present"
+    : "guided solver shell missing",
+  hasGuidedSolverShell(html)
+);
+
+check(
+  "NET shell layout is present",
+  "shell rail, shell header, methods section, setup card, quiz answer, and evidence stack",
+  hasNetShellLayout(html) ? "present" : "missing",
+  hasNetShellLayout(html)
+);
+
+check(
+  "Quiz answer panel exposes result interpretation landmarks",
+  "active method, final metric, interpretation, next action, and copy solution",
+  hasQuizAnswerPanel(html)
+    ? "quiz answer landmarks present"
+    : "quiz answer landmarks missing",
+  hasQuizAnswerPanel(html)
+);
+
+check(
+  "Standalone diagnostics keep live-region semantics",
+  'id="root-diagnostics" with role="status" and aria-live="polite"',
+  html.match(/<[^>]*id="root-diagnostics"[^>]*>/)?.[0] || "missing root-diagnostics",
+  /id="root-diagnostics"[^>]*role="status"[^>]*aria-live="polite"|id="root-diagnostics"[^>]*aria-live="polite"[^>]*role="status"/.test(html)
+);
+
+check(
+  "Standalone iteration table has a scroll wrapper",
+  "root-iteration-table-wrap contains root-iteration-table",
+  /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
+    ? "wrapped table present"
+    : "wrapped table missing",
+  /class="root-iteration-table-wrap"[\s\S]*class="root-iteration-table"/.test(html)
+);
+
+const rootsCss = fs.readFileSync(path.join(ROOT, "roots", "roots.css"), "utf8");
+
+const primaryRootHeroBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child");
+const primaryRootHeroBlock = primaryRootHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "background: var(--surface-strong)",
+    "box-shadow: 0 10px 24px rgba(20, 24, 31, 0.08)"
+  ])
+);
+const rootHeroValueBlocks = getCssBlocks(rootsCss, ".module-root .root-summary-grid .answer-hero:first-child .answer-value");
+const rootHeroValueBlock = rootHeroValueBlocks.find((block) =>
+  block.includes("font-size: clamp(1.8rem, 4vw, 2.6rem)")
+);
+const iterationTableWrapBlocks = getCssBlocks(rootsCss, ".root-iteration-table-wrap");
+const iterationTableScrollBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "overflow-x: auto",
+    "max-width: 100%"
+  ])
+);
+const iterationTableFrameBlock = iterationTableWrapBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "border: 1px solid var(--line)",
+    "border-radius: var(--radius)"
+  ])
+);
+const iterationTableHeaderBlocks = getCssBlocks(rootsCss, ".root-iteration-table th");
+const iterationTableHeaderBlock = iterationTableHeaderBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "position: sticky",
+    "top: 0",
+    "z-index: 1"
+  ])
+);
+const narrowScreenMediaBlocks = getCssBlocks(rootsCss, "@media (max-width: 720px)");
+const narrowScreenMediaBlock = narrowScreenMediaBlocks.length > 0 ? narrowScreenMediaBlocks[0] : "";
+const narrowScreenMediaTableBlock =
+  narrowScreenMediaBlock.includes(".root-iteration-table") &&
+  narrowScreenMediaBlock.includes("min-width: 640px");
+const guidedHeroBlocks = getCssBlocks(rootsCss, ".roots-guided-hero");
+const guidedHeroBlock = guidedHeroBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const methodGuideBlocks = getCssBlocks(rootsCss, ".root-method-guide");
+const methodGuideBlock = methodGuideBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+const quizAnswerBlocks = getCssBlocks(rootsCss, ".root-quiz-answer");
+const quizAnswerBlock = quizAnswerBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line-strong)"
+  ])
+);
+const resultInsightBlocks = getCssBlocks(rootsCss, ".root-result-insight");
+const resultInsightBlock = resultInsightBlocks.find((block) =>
+  cssBlockIncludesAll(block, [
+    "display: grid",
+    "border: 1px solid var(--line)"
+  ])
+);
+
+check(
+  "Roots CSS keeps the approximate root visually primary",
+  "root-summary-grid first answer hero receives primary styling",
+  primaryRootHeroBlock && rootHeroValueBlock
+    ? "primary summary styling present"
+    : "primary summary styling missing",
+  Boolean(primaryRootHeroBlock && rootHeroValueBlock)
+);
+
+check(
+  "Roots CSS includes Guided Solver hierarchy",
+  "guided hero, method guide, quiz answer panel, and insight cards",
+  guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock
+    ? "guided solver styling present"
+    : "guided solver styling missing",
+  Boolean(guidedHeroBlock && methodGuideBlock && quizAnswerBlock && resultInsightBlock)
+);
+
+check(
+  "NET shell CSS hooks are present",
+  ".roots-net-layout, .root-shell-rail, .root-shell-brand, .root-shell-links, .root-shell-link, .root-shell-header, .root-shell-utilities, .root-method-section",
+  hasNetShellCss(rootsCss) ? "present" : "missing",
+  hasNetShellCss(rootsCss)
+);
+
+check(
+  "Roots CSS includes narrow-screen table support",
+  "table wrapper, sticky header, and 640px table min-width inside the max-width media query",
+  iterationTableScrollBlock &&
+    iterationTableFrameBlock &&
+    iterationTableHeaderBlock &&
+    narrowScreenMediaBlock &&
+    narrowScreenMediaTableBlock
+    ? "responsive table support present"
+    : "responsive table support missing",
+  Boolean(
+    iterationTableScrollBlock &&
+      iterationTableFrameBlock &&
+      iterationTableHeaderBlock &&
+      narrowScreenMediaBlock &&
+      narrowScreenMediaTableBlock
+  )
+);
+
+check(
+  "Main calculator root tab bridge links to standalone roots app",
+  'href="roots/index.html"',
+  rootTabPanel.match(/href="[^"]+"/)?.[0] || "no link in #tab-root",
+  /href="roots\/index\.html"/.test(rootTabPanel)
+);
+
+check(
+  "Main calculator no longer loads root-engine.js",
+  "root-engine.js script tag should be absent",
+  mainScriptSources.find((src) => /root-engine\.js/.test(src)) || "absent",
+  !mainScriptSources.some((src) => /root-engine\.js/.test(src))
+);
+
+check(
+  "Main calculator no longer loads root-ui.js",
+  "root-ui.js script tag should be absent",
+  /root-ui\.js/.test(MAIN_HTML) ? "present" : "absent",
+  !/root-ui\.js/.test(MAIN_HTML)
+);
+
+check(
+  "App bootstrap no longer references RootUI",
+  "app.js should not reference RootUI or RU.recompute()",
+  /RootUI|RU\.recompute|RU\.init/.test(APP_JS) ? "legacy references present" : "legacy references removed",
+  !/RootUI|RU\.recompute|RU\.init/.test(APP_JS)
+);
+
+check(
+  "App shell no longer tracks root-only previews or result IDs",
+  "ROOT_RESULT_IDS and root preview IDs removed from app.js",
+  /ROOT_RESULT_IDS|root-bis-expression-preview|root-newton-expression-preview|root-fpi-expression-preview/.test(APP_JS)
+    ? "root shell bookkeeping present"
+    : "root shell bookkeeping removed",
+  !/ROOT_RESULT_IDS|root-bis-expression-preview|root-newton-expression-preview|root-fpi-expression-preview/.test(APP_JS)
+);
+
+check(
+  "Legacy root-ui.js file removed",
+  "root-ui.js deleted after cutover",
+  fs.existsSync(LEGACY_ROOT_UI) ? "present" : "deleted",
+  !fs.existsSync(LEGACY_ROOT_UI)
+);

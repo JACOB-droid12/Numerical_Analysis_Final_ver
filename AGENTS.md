@@ -1,55 +1,58 @@
-# Machine Arithmetic and Error Analysis Lab
+# Numerical Analysis Workspace
 
-A single-page vanilla JavaScript numerical analysis calculator. No build system, no framework, no npm -- just HTML/CSS/JS served statically.
+The workspace is intentionally split into two app folders:
 
-## Roots Fast Lane
+| Folder | Role |
+|------|------|
+| `new-migration/roots-react-workbench/` | Active migrated React/Vite Roots Workbench and Vercel source of truth |
+| `legacy-static/` | Protected archive of the old static calculator, standalone Roots backup, previous pilot files, and historical docs/assets |
 
-Roots UI work should start with `docs/roots-context.md` and `docs/roots-ai-fast-lane.md`.
+For current React, Vercel, staging, production, or migrated Roots UI work, start in:
 
-Current Roots architecture:
+```text
+new-migration/roots-react-workbench/
+```
 
-| File | Responsibility |
-|------|---------------|
-| `root-engine.js` | Root-finding numerical core: bisection, Newton, secant, false position, fixed point |
-| `roots/index.html` | Standalone Roots shell and markup |
-| `roots/roots-app.js` | Roots DOM events, angle toggle, symbols, compute orchestration |
-| `roots/roots-state.js` | Active method, cached runs, angle mode, default state |
-| `roots/roots-render.js` | Result cards, diagnostics, graph, solution steps, tables |
-| `roots/roots-engine-adapter.js` | Maps UI fields to `RootEngine` calls |
-| `roots/roots.css` | Roots-only styling |
-| `index.html` | Main calculator shell; the Roots tab is only a bridge to `roots/index.html` |
+Do not edit `legacy-static/` unless the user explicitly asks for legacy work or the migrated app needs a specific legacy behavior or asset ported. When porting, inspect legacy files as reference, then copy/adapt the needed piece into `new-migration/roots-react-workbench/`; do not make the migrated app depend on parent-folder legacy paths.
 
-`root-ui.js` has been removed. The main calculator no longer loads `root-engine.js` or `root-ui.js`.
+## Current Migration Fast Lane
 
-For ordinary Roots UI/copy/style work, do not edit `index.html`, `app.js`, or `styles.css`. Use the route table in `docs/roots-ai-fast-lane.md`.
-
-## Roots React + Vercel Fast Lane
-
-The isolated React pilot lives in `roots-react/`. It is the only Vercel deployment target for the migrated Roots Workbench.
-
-For Vercel, release, staging, or production work, start with:
+Inside `new-migration/roots-react-workbench/`:
 
 | File | Purpose |
 |------|---------|
-| `docs/deployment/README.md` | Deployment entry point and route table for agents |
-| `docs/deployment/roots-react-vercel-release.md` | Vercel settings, branch flow, staging, promotion, rollback |
-| `docs/deployment/roots-react-staging-smoke-checklist.md` | Manual staging and production smoke checklist |
-| `docs/deployment/roots-react-agent-release-checklist.md` | Copyable PR, staging, and production handoff checklist |
-| `docs/deployment/roots-react-pr-body.md` | Reusable GitHub PR body for Roots React changes |
+| `README.md` | Standalone migration map and commands |
+| `docs/WORKSPACE.md` | Source boundary and agent handoff notes |
+| `src/` | React Workbench UI |
+| `src/components/NotebookDisplay.tsx` | Textbook/notebook input display; preserve this UI direction unless explicitly redesigning it |
+| `public/legacy/` | Browser-loaded synced engine copies |
+| `math-engine.js`, `calc-engine.js`, `expression-engine.js`, `root-engine.js`, `poly-engine.js` | Local engine sources used by runtime sync and audits |
+| `scripts/sync-legacy-engines.mjs` | Syncs local engine sources into `public/legacy/` |
+| `.github/workflows/roots-react-ci.yml` | Standalone CI workflow for extracted workspace use |
+| `vercel.json` | Vercel build metadata |
+
+Root-level release and CI files from the stabilized workspace are active:
+
+| File | Purpose |
+|------|---------|
 | `scripts/roots-react-release-check.ps1` | Canonical local release gate |
+| `scripts/engine-correctness-audit.js` | Machine arithmetic and expression audit |
+| `scripts/root-engine-audit.js` | Root engine audit |
 | `.github/workflows/roots-react-ci.yml` | GitHub Actions release gate for `staging` and `master` |
-| `roots-react/vercel.json` | Vercel build metadata for the React pilot |
-| `roots-react/package.json` | React app scripts |
 
-Do not deploy the repository root to Vercel for the React pilot. Use `roots-react` as the Vercel project root directory.
+Do not deploy the repository root to Vercel for the React workbench. Use `new-migration/roots-react-workbench` as the Vercel project root directory.
 
-Before merging, staging, or promoting Roots React changes, run:
+Before merging, staging, or promoting Roots React changes, run this from the repository root:
 
 ```powershell
 .\scripts\roots-react-release-check.ps1
 ```
 
-For pull requests and pushes into `staging` or `master`, the GitHub Actions workflow `.github/workflows/roots-react-ci.yml` runs the same release gate. Treat failures there as release blockers.
+From inside `new-migration/roots-react-workbench/`, use:
+
+```powershell
+npm run release:check
+```
 
 Branch flow for the React pilot:
 
@@ -65,54 +68,12 @@ Every Roots React handoff should include:
 - Vercel URL when deployed,
 - whether the legacy static backup stayed untouched.
 
-The current production URL is `https://roots-react.vercel.app`.
+The current production URL is `https://roots-react-workbench.vercel.app/`.
 
-## Engine Architecture
+Record the active standalone branch context in release handoffs when it differs from the current branch.
 
-Each engine is a standalone IIFE that attaches to `window`:
+## Legacy Archive Rules
 
-| File | Responsibility |
-|------|---------------|
-| `ieee754.js` | Machine representation, chopping, rounding, normalization |
-| `math-engine.js` | Scalar arithmetic with exact vs machine comparison |
-| `calc-engine.js` | Multi-operand calculations with error propagation |
-| `expression-engine.js` | Free-form expression parsing and stepwise evaluation |
-| `poly-engine.js` | Polynomial evaluation (Horner vs Direct methods) |
-| `root-engine.js` | Root-finding: bisection, Newton, secant, false position, fixed point |
-| `app.js` | Wires all engines to DOM events |
+`legacy-static/` is read-mostly. It contains the old static app, standalone static Roots backup, historical deployment docs, old audit scripts, screenshots/logs, and the previous `roots-react/` pilot. Treat docs under `legacy-static/docs/superpowers/plans/` and `legacy-static/docs/superpowers/specs/` as historical unless the user explicitly asks for that history.
 
-Load order matters -- `app.js` must come last and requires all engines present on `window`.
-
-## Test Battery
-
-All tests run with `node scripts/<name>.js`:
-
-- `node scripts/engine-correctness-audit.js` -- 47 canonical tests (fast, run first)
-- `node scripts/battery-validation.js` -- full category battery
-- `node scripts/ieee754-audit.js` -- IEEE 754 edge cases
-- `node scripts/root-engine-audit.js` -- root-finding accuracy
-- `node scripts/roots-mini-app-static-audit.js` -- Roots entry-point, bridge, and static UI audit
-- `node scripts/roots-mini-app-ui-audit.js` -- standalone Roots wiring audit
-- `node scripts/roots-fast-lane-audit.js` -- Roots fast-lane guidance audit
-
-Always run `node scripts/engine-correctness-audit.js` after any engine file change.
-
-## Known Numerical Edge Cases
-
-- Catastrophic cancellation when `x ≈ y` in subtraction
-- Polynomial near-root sensitivity: Horner and Direct methods diverge -- intentional behavior
-- Rounding carry: `9.9996` -> `10.000` requires exponent renormalization
-- Negative zero (`-0`) must display separately from `0`
-- Bisection pathologies documented in `bisection_nightmares.js`
-
-## Companion Site
-
-`calculator-companion-site/` is a static site. Content source: `calculator-site-content/content/*.json`
-
-## Common Commands
-
-```bash
-node scripts/engine-correctness-audit.js   # quick sanity check
-node scripts/battery-validation.js         # full test suite
-python -m http.server 7432                 # preview app
-```
+The hidden dot-directories plus `skills/` and `skills-lock.json` at the repository root are local agent/tool state. Ignore them for app architecture decisions.

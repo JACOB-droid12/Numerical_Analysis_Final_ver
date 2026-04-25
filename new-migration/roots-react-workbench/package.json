@@ -1,0 +1,39 @@
+{
+  "name": "roots-react-workbench",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "sync:legacy": "node scripts/sync-legacy-engines.mjs",
+    "check:legacy": "node scripts/check-legacy-engine-sync.mjs",
+    "install:e2e": "playwright install chromium",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "test": "npm run check:legacy && npm run test:unit && npm run install:e2e && npm run test:e2e",
+    "release:check": "pwsh -NoProfile -ExecutionPolicy Bypass -File ..\\..\\scripts\\roots-react-release-check.ps1"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "gsap": "^3.15.0",
+    "lucide-react": "^1.9.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@tailwindcss/vite": "^4.2.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.9",
+    "vitest": "^4.1.5"
+  }
+}

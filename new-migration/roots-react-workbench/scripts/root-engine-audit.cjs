@@ -4,9 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const ROOT = process.argv[2]
-  ? path.resolve(process.argv[2])
-  : (__dirname ? path.resolve(__dirname, "..") : process.cwd());
+const ROOT = __dirname ? path.resolve(__dirname, "..") : process.cwd();
 const ENGINE_FILES = [
   "math-engine.js",
   "calc-engine.js",
@@ -146,8 +144,8 @@ function run() {
       "Lecture bisection bound returns width / 2^n for ten iterations",
       "Stopping formulas",
       "0.0009765625",
-      C.formatReal(epsilon, 8),
-      C.formatReal(epsilon, 8) === "0.0009765625",
+      C.formatReal(epsilon, 10),
+      Math.abs(epsilon - 0.0009765625) < 1e-15,
       "For [1,2], the guaranteed absolute bound after 10 iterations is 1 / 2^10."
     );
   }
