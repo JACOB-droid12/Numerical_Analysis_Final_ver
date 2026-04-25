@@ -1,6 +1,10 @@
 # Roots React Pilot
 
-This folder is the isolated Vite + React + TypeScript + Tailwind pilot for the Roots Workbench.
+This folder is the old transitional Vite + React + TypeScript + Tailwind pilot for the Roots Workbench. The active deployment target and source of truth now live in:
+
+```text
+new-migration/roots-react-workbench/
+```
 
 ## Local Commands
 
@@ -14,11 +18,7 @@ npm run dev
 
 ## Deployment
 
-Vercel must build this folder as the project root:
-
-```text
-roots-react/
-```
+Do not use this folder as the Vercel project root. Use `new-migration/roots-react-workbench/` for active Roots React deployment work.
 
 For deployment settings, staging flow, and release checks, start at:
 
@@ -32,7 +32,7 @@ From the repository root, the canonical release gate is:
 .\scripts\roots-react-release-check.ps1
 ```
 
-Do not deploy the repository root for this React pilot.
+Do not deploy the repository root for the React workbench.
 
 ## UI Dependency Layer
 

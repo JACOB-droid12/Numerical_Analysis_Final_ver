@@ -4,7 +4,9 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const ROOT = __dirname ? path.resolve(__dirname, "..") : process.cwd();
+const ROOT = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : (__dirname ? path.resolve(__dirname, "..") : process.cwd());
 const ENGINE_FILES = [
   "math-engine.js",
   "calc-engine.js",

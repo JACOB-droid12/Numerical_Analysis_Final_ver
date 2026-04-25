@@ -1,6 +1,6 @@
 # Roots React Workbench
 
-This folder is the migrated Vite + React + TypeScript + Tailwind app for the Roots Workbench.
+This folder is the active migrated Vite + React + TypeScript + Tailwind app for the Roots Workbench.
 
 ## Local Commands
 
@@ -22,13 +22,9 @@ new-migration/roots-react-workbench/
 
 Keep React app code, app-local scripts, Vite config, package metadata, and copied legacy engine sources inside this folder.
 
-## Transitional Note
-
-The old `roots-react/` folder remains as the current production pilot until the migration is promoted. Do not treat changes under `roots-react/` as part of this migrated app unless a task explicitly asks to sync from it.
-
 ## Deployment
 
-When this migration becomes the deployment target, Vercel must build this folder as the project root:
+Vercel must build this folder as the project root:
 
 ```text
 new-migration/roots-react-workbench/
