@@ -22,7 +22,7 @@ Expected Vercel behavior:
 
 - pushes to `staging` create protected preview deployments,
 - merges to `master` create production deployments,
-- Vercel builds only `roots-react/`.
+- Vercel builds only `new-migration/roots-react-workbench/`.
 
 ## Branch Roles
 
@@ -36,17 +36,15 @@ Do not promote to production until the local promotion gate and staging smoke ch
 ## Vercel Project Settings
 
 ```text
-Project root directory: roots-react
+Project root directory: new-migration/roots-react-workbench
 Framework preset: Vite
-Install command: npm install
+Install command: npm ci
 Build command: npm run build
 Output directory: dist
 Production branch: master
 ```
 
-Keep `Install command: npm install` for the initial Vercel setup because the release plan requires that exact setting. `npm ci` can be considered later after Vercel setup is stable.
-
-Because Vercel builds from roots-react as the project root, files above roots-react are not available during the Vercel build. Always run npm run sync:legacy before committing a release candidate so the copied legacy engine files inside roots-react are current.
+Because Vercel builds from `new-migration/roots-react-workbench` as the project root, files above that directory are not available during the Vercel build. Always run `npm run sync:legacy` before committing a release candidate so the copied legacy engine files inside `new-migration/roots-react-workbench/public/legacy` are current.
 
 ## Private Staging Access
 
@@ -68,7 +66,7 @@ After the gate passes, confirm the legacy static calculator files remain untouch
 
 The repository includes `.github/workflows/roots-react-ci.yml` for pull requests and pushes targeting `staging` or `master`.
 
-The workflow runs on `windows-latest`, installs the isolated React pilot dependencies with `npm ci --prefix roots-react`, then runs the canonical release check:
+The workflow runs on `windows-latest`, installs the isolated React pilot dependencies with `npm ci --prefix new-migration/roots-react-workbench`, then runs the canonical release check:
 
 ```powershell
 .\scripts\roots-react-release-check.ps1
@@ -84,7 +82,7 @@ Required setup:
 
 1. Open the `roots-react` project in Vercel.
 2. Connect the GitHub repository `JACOB-droid12/Numerical_Analysis_Final_ver`.
-3. Confirm the project root directory is `roots-react`.
+3. Confirm the project root directory is `new-migration/roots-react-workbench`.
 4. Confirm the production branch is `master`.
 5. Confirm preview deployments are enabled for non-production branches.
 6. Enable Deployment Protection for preview deployments when available.

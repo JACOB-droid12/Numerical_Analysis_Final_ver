@@ -10,8 +10,8 @@ Use this body for Roots React pilot PRs. Complete each blank field before submit
 
 ## Scope
 
-- React pilot path: `roots-react/`
-- Deployment target: `roots-react/`
+- React workbench path: `new-migration/roots-react-workbench/`
+- Deployment target: `new-migration/roots-react-workbench/`
 - Production branch: `master`
 - Staging branch: `staging`
 
@@ -38,7 +38,7 @@ Result:
 ## Vercel
 
 - Current production URL: `https://roots-react.vercel.app`
-- Vercel project root directory: `roots-react`
+- Vercel project root directory: `new-migration/roots-react-workbench`
 - Preview or staging URL:
 - Production URL:
 

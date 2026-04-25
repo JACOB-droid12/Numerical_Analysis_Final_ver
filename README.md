@@ -27,6 +27,33 @@ This repository contains a static browser-based numerical analysis calculator. N
 - `lesson-roundoff.pdf` - supporting course material
 - `scripts/build-deliverable.ps1` - packages the static app into a shareable folder
 
+## Roots React + Vercel Fast Lane
+
+The migrated Roots React Workbench lives in `new-migration/roots-react-workbench/`. The older `roots-react/` folder is transitional reference only and must not be used as the Vercel deployment root.
+
+For Vercel, release, staging, or production work, start with:
+
+| File | Purpose |
+|------|---------|
+| `new-migration/roots-react-workbench/README.md` | Migrated workbench app notes and local commands |
+| `docs/deployment/README.md` | Deployment entry point and route table for agents |
+| `docs/deployment/roots-react-vercel-release.md` | Vercel settings, branch flow, staging, promotion, rollback |
+| `docs/deployment/roots-react-staging-smoke-checklist.md` | Manual staging and production smoke checklist |
+| `docs/deployment/roots-react-agent-release-checklist.md` | Copyable PR, staging, and production handoff checklist |
+| `docs/deployment/roots-react-pr-body.md` | Reusable GitHub PR body for Roots React changes |
+| `scripts/roots-react-release-check.ps1` | Canonical local release gate |
+| `.github/workflows/roots-react-ci.yml` | GitHub Actions release gate for `staging` and `master` |
+| `new-migration/roots-react-workbench/vercel.json` | Vercel build metadata for the migrated workbench |
+| `new-migration/roots-react-workbench/package.json` | Migrated workbench scripts |
+
+Do not deploy the repository root to Vercel for the React workbench. Use `new-migration/roots-react-workbench` as the Vercel project root directory.
+
+Before merging, staging, or promoting Roots React changes, run this from the repository root:
+
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
 ## Verify
 
 Run the audit scripts from the project folder:

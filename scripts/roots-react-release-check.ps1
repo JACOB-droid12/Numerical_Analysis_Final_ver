@@ -16,12 +16,13 @@ function Invoke-RequiredCommand {
 }
 
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$RootsReactPath = Join-Path $RepoRoot "roots-react"
+$RootsReactPath = Join-Path $RepoRoot "new-migration\roots-react-workbench"
+$SyncedLegacyPath = "new-migration/roots-react-workbench/public/legacy"
 
 Push-Location $RepoRoot
 try {
-    Invoke-RequiredCommand "node" @("scripts/engine-correctness-audit.js")
-    Invoke-RequiredCommand "node" @("scripts/root-engine-audit.js")
+    Invoke-RequiredCommand "node" @("scripts/engine-correctness-audit.js", $RootsReactPath)
+    Invoke-RequiredCommand "node" @("scripts/root-engine-audit.js", $RootsReactPath)
 }
 finally {
     Pop-Location
@@ -33,12 +34,12 @@ try {
 
     Push-Location $RepoRoot
     try {
-        & git diff --quiet -- roots-react/public/legacy
+        & git diff --quiet -- $SyncedLegacyPath
         if ($LASTEXITCODE -eq 1) {
-            Write-Error "roots-react/public/legacy has tracked changes after sync. Commit the synced legacy engine files before running the release check."
+            Write-Error "$SyncedLegacyPath has tracked changes after sync. Commit the synced legacy engine files before running the release check."
         }
         elseif ($LASTEXITCODE -ne 0) {
-            throw "git diff --quiet -- roots-react/public/legacy failed with exit code $LASTEXITCODE"
+            throw "git diff --quiet -- $SyncedLegacyPath failed with exit code $LASTEXITCODE"
         }
     }
     finally {

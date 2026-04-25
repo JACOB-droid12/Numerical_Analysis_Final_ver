@@ -25,7 +25,7 @@ For ordinary Roots UI/copy/style work, do not edit `index.html`, `app.js`, or `s
 
 ## Roots React + Vercel Fast Lane
 
-The isolated React pilot lives in `roots-react/`. It is the only Vercel deployment target for the migrated Roots Workbench.
+The active migrated React workbench lives in `new-migration/roots-react-workbench/`. The older `roots-react/` folder is transitional reference only and must not be used as the Vercel deployment root.
 
 For Vercel, release, staging, or production work, start with:
 
@@ -38,10 +38,16 @@ For Vercel, release, staging, or production work, start with:
 | `docs/deployment/roots-react-pr-body.md` | Reusable GitHub PR body for Roots React changes |
 | `scripts/roots-react-release-check.ps1` | Canonical local release gate |
 | `.github/workflows/roots-react-ci.yml` | GitHub Actions release gate for `staging` and `master` |
-| `roots-react/vercel.json` | Vercel build metadata for the React pilot |
-| `roots-react/package.json` | React app scripts |
+| `new-migration/roots-react-workbench/README.md` | Migrated workbench app notes and local commands |
+| `new-migration/roots-react-workbench/vercel.json` | Vercel build metadata for the migrated workbench |
+| `new-migration/roots-react-workbench/package.json` | Migrated workbench scripts |
+| `new-migration/roots-react-workbench/math-engine.js` | Local migrated scalar arithmetic engine source |
+| `new-migration/roots-react-workbench/calc-engine.js` | Local migrated multi-operand calculation engine source |
+| `new-migration/roots-react-workbench/expression-engine.js` | Local migrated expression engine source |
+| `new-migration/roots-react-workbench/root-engine.js` | Local migrated root-finding engine source |
+| `new-migration/roots-react-workbench/poly-engine.js` | Local migrated polynomial engine source |
 
-Do not deploy the repository root to Vercel for the React pilot. Use `roots-react` as the Vercel project root directory.
+Do not deploy the repository root to Vercel for the React workbench. Use `new-migration/roots-react-workbench` as the Vercel project root directory.
 
 Before merging, staging, or promoting Roots React changes, run:
 

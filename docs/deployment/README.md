@@ -7,10 +7,12 @@ Start here for Vercel or Roots React release work.
 Deploy only the isolated React pilot:
 
 ```text
-roots-react/
+new-migration/roots-react-workbench/
 ```
 
 Do not deploy the repository root as the Vercel project. The repo root also contains the legacy static calculator, docs, audits, worktrees, and local tooling that are not part of the React app output.
+
+The old `roots-react/` folder is transitional reference only and must not be used as the Vercel root.
 
 ## Live Project
 
@@ -37,8 +39,8 @@ https://roots-react.vercel.app
 | Need manual QA checklist | `docs/deployment/roots-react-staging-smoke-checklist.md` |
 | Need local release verification | `scripts/roots-react-release-check.ps1` |
 | Need CI release gate | `.github/workflows/roots-react-ci.yml` |
-| Need React app commands | `roots-react/package.json` |
-| Need Vercel project config | `roots-react/vercel.json` |
+| Need React app commands | `new-migration/roots-react-workbench/package.json` |
+| Need Vercel project config | `new-migration/roots-react-workbench/vercel.json` |
 
 ## Required Local Gate
 
@@ -61,7 +63,7 @@ This runs:
 
 GitHub Actions runs the same release gate in `.github/workflows/roots-react-ci.yml` for pull requests and pushes targeting `staging` or `master`.
 
-The workflow installs `roots-react` dependencies with `npm ci --prefix roots-react`, then runs:
+The workflow installs workbench dependencies with `npm ci --prefix new-migration/roots-react-workbench`, then runs:
 
 ```powershell
 .\scripts\roots-react-release-check.ps1
@@ -97,9 +99,9 @@ feature branch -> staging -> master
 Use these settings for the `roots-react` Vercel project:
 
 ```text
-Project root directory: roots-react
+Project root directory: new-migration/roots-react-workbench
 Framework preset: Vite
-Install command: npm install
+Install command: npm ci
 Build command: npm run build
 Output directory: dist
 Production branch: master

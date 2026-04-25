@@ -5,7 +5,7 @@ Use this checklist for Roots React PRs, staging handoffs, and production handoff
 ## Scope
 
 - [ ] Work is limited to the Roots React pilot or release docs.
-- [ ] The Vercel deployment target is `roots-react/`.
+- [ ] The Vercel deployment target is `new-migration/roots-react-workbench/`.
 - [ ] The repository root is not being deployed as the React pilot.
 - [ ] No legacy static calculator changes are included unless explicitly approved.
 
@@ -80,7 +80,7 @@ Record result:
 
 - [ ] Existing Vercel project checked: `marvillarq20-3593s-projects/roots-react`
 - [ ] GitHub repository connected: `JACOB-droid12/Numerical_Analysis_Final_ver`
-- [ ] Root Directory confirmed: `roots-react`
+- [ ] Root Directory confirmed: `new-migration/roots-react-workbench`
 - [ ] Production Branch confirmed: `master`
 - [ ] Preview deployments confirmed for `staging`
 - [ ] Deployment Protection confirmed for preview deployments, or staging URL treated as unlisted.

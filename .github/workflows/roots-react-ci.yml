@@ -8,7 +8,7 @@ on:
     paths:
       - ".github/workflows/roots-react-ci.yml"
       - "root-engine.js"
-      - "roots-react/**"
+      - "new-migration/roots-react-workbench/**"
       - "scripts/engine-correctness-audit.js"
       - "scripts/root-engine-audit.js"
       - "scripts/roots-react-release-check.ps1"
@@ -20,7 +20,7 @@ on:
     paths:
       - ".github/workflows/roots-react-ci.yml"
       - "root-engine.js"
-      - "roots-react/**"
+      - "new-migration/roots-react-workbench/**"
       - "scripts/engine-correctness-audit.js"
       - "scripts/root-engine-audit.js"
       - "scripts/roots-react-release-check.ps1"
@@ -46,10 +46,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: roots-react/package-lock.json
+          cache-dependency-path: new-migration/roots-react-workbench/package-lock.json
 
       - name: Install Roots React dependencies
-        run: npm ci --prefix roots-react
+        run: npm ci --prefix new-migration/roots-react-workbench
 
       - name: Run Roots React release check
         shell: pwsh
