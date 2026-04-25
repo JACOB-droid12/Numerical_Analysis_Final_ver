@@ -227,6 +227,7 @@ export function useRootsWorkbench() {
     const presetItem = PRESET_BY_ID.get(presetId);
     if (!presetItem) {
       setSelectedPresetId('');
+      setComparisonResult(null);
       setWorkbenchStatus(READY_STATUS);
       return;
     }

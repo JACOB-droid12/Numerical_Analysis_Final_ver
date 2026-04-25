@@ -13,6 +13,42 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function coerceFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'bigint') {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+  if (typeof value === 'string') {
+    const numeric = Number(value.trim());
+    return Number.isFinite(numeric) ? numeric : null;
+  }
+  if (!isObjectLike(value)) return null;
+
+  if (
+    Object.prototype.hasOwnProperty.call(value, 'sign') &&
+    Object.prototype.hasOwnProperty.call(value, 'num') &&
+    Object.prototype.hasOwnProperty.call(value, 'den')
+  ) {
+    const sign = coerceFiniteNumber(value.sign);
+    const num = coerceFiniteNumber(value.num);
+    const den = coerceFiniteNumber(value.den);
+    if (sign == null || num == null || den == null || den === 0) return null;
+    if (sign !== -1 && sign !== 0 && sign !== 1) return null;
+    const rational = sign === 0 || num === 0 ? 0 : (sign * num) / den;
+    return Number.isFinite(rational) ? rational : null;
+  }
+
+  for (const key of ['approx', 'machine', 'value'] as const) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      const numeric = coerceFiniteNumber(value[key]);
+      if (numeric != null) return numeric;
+    }
+  }
+
+  return null;
+}
+
 function formatRationalLike(value: Record<string, unknown>, digits: number): string | null {
   if (!Object.prototype.hasOwnProperty.call(value, 'sign')) return null;
   const sign = Number(value.sign);
@@ -447,8 +483,8 @@ export function tableValuesForRow(
     ];
   }
   if (method === 'newton') {
-    const fxn = typeof row.fxn === 'number' ? row.fxn : null;
-    const dfxn = typeof row.dfxn === 'number' ? row.dfxn : null;
+    const fxn = coerceFiniteNumber(row.fxn);
+    const dfxn = coerceFiniteNumber(row.dfxn);
     const correction = fxn != null && dfxn != null && dfxn !== 0 ? fxn / dfxn : null;
     return [
       String(row.iteration),

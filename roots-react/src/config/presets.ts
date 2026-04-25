@@ -212,12 +212,90 @@ export const ROOT_PRESETS: RootPreset[] = [
 
 export const PRESET_BY_ID = new Map(ROOT_PRESETS.map((presetItem) => [presetItem.id, presetItem]));
 
+function evaluateArithmeticScalar(input: string): number | null {
+  const source = input.trim();
+  if (!source || /[^0-9+\-*/().\seE]/.test(source)) return null;
+
+  let index = 0;
+
+  const skipWhitespace = () => {
+    while (/\s/.test(source[index] ?? '')) index += 1;
+  };
+
+  const parseNumber = (): number | null => {
+    skipWhitespace();
+    const match = source.slice(index).match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
+    if (!match) return null;
+    index += match[0].length;
+    const value = Number(match[0]);
+    return Number.isFinite(value) ? value : null;
+  };
+
+  const parseFactor = (): number | null => {
+    skipWhitespace();
+    const char = source[index];
+    if (char === '+' || char === '-') {
+      index += 1;
+      const value = parseFactor();
+      if (value == null) return null;
+      return char === '-' ? -value : value;
+    }
+    if (char === '(') {
+      index += 1;
+      const value = parseExpression();
+      skipWhitespace();
+      if (source[index] !== ')') return null;
+      index += 1;
+      return value;
+    }
+    return parseNumber();
+  };
+
+  const parseTerm = (): number | null => {
+    let value = parseFactor();
+    if (value == null) return null;
+
+    while (true) {
+      skipWhitespace();
+      const operator = source[index];
+      if (operator !== '*' && operator !== '/') return value;
+      index += 1;
+      const right = parseFactor();
+      if (right == null) return null;
+      value = operator === '*' ? value * right : value / right;
+      if (!Number.isFinite(value)) return null;
+    }
+  };
+
+  function parseExpression(): number | null {
+    let value = parseTerm();
+    if (value == null) return null;
+
+    while (true) {
+      skipWhitespace();
+      const operator = source[index];
+      if (operator !== '+' && operator !== '-') return value;
+      index += 1;
+      const right = parseTerm();
+      if (right == null) return null;
+      value = operator === '+' ? value + right : value - right;
+      if (!Number.isFinite(value)) return null;
+    }
+  }
+
+  const value = parseExpression();
+  skipWhitespace();
+  return value != null && index === source.length ? value : null;
+}
+
 export function guardedZeroValue(value: string | undefined): boolean {
   if (value == null) return false;
   const normalized = value.trim().replace(/\s+/g, '');
   if (!normalized) return false;
   const numeric = Number(normalized);
-  return Number.isFinite(numeric) && (Object.is(numeric, -0) || numeric === 0);
+  if (Number.isFinite(numeric)) return Object.is(numeric, -0) || numeric === 0;
+  const arithmeticValue = evaluateArithmeticScalar(value);
+  return arithmeticValue != null && (Object.is(arithmeticValue, -0) || arithmeticValue === 0);
 }
 
 export function populationZeroWarning(
