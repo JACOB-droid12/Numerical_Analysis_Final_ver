@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { CircleHelp, Command } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
@@ -6,18 +6,23 @@ import { AnswerPanel } from './components/AnswerPanel';
 import { ConfidenceSummary } from './components/ConfidenceSummary';
 import { EmptyState } from './components/EmptyState';
 import { EvidencePanel } from './components/EvidencePanel';
+import { HelpPopover } from './components/HelpPopover';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
+import { QuickCommandMenu } from './components/QuickCommandMenu';
 import { RunControls } from './components/RunControls';
+import { METHOD_PRESETS } from './config/methods';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 
 export default function App() {
   const fullWorkRegionId = useId();
+  const [openUtility, setOpenUtility] = useState<'help' | 'presets' | null>(null);
   const {
     activeConfig,
     activeForm,
     activeMethod,
     angleMode,
+    applyPreset,
     displayConfig,
     displayRun,
     evidenceExpanded,
@@ -60,8 +65,35 @@ export default function App() {
             </div>
             <nav aria-label="Utility controls">
               <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-              <button type="button"><CircleHelp aria-hidden="true" /> Help</button>
-              <button type="button" className="quick-command"><Command aria-hidden="true" /> Quick Command</button>
+              <div className="utility-control">
+                <button
+                  type="button"
+                  aria-expanded={openUtility === 'help'}
+                  onClick={() => setOpenUtility((current) => (current === 'help' ? null : 'help'))}
+                >
+                  <CircleHelp aria-hidden="true" /> Help
+                </button>
+                {openUtility === 'help' ? (
+                  <HelpPopover config={activeConfig} onClose={() => setOpenUtility(null)} />
+                ) : null}
+              </div>
+              <div className="utility-control">
+                <button
+                  type="button"
+                  className="quick-command"
+                  aria-expanded={openUtility === 'presets'}
+                  onClick={() => setOpenUtility((current) => (current === 'presets' ? null : 'presets'))}
+                >
+                  <Command aria-hidden="true" /> Quick Command
+                </button>
+                {openUtility === 'presets' ? (
+                  <QuickCommandMenu
+                    presets={METHOD_PRESETS}
+                    onApply={applyPreset}
+                    onClose={() => setOpenUtility(null)}
+                  />
+                ) : null}
+              </div>
             </nav>
           </header>
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { METHOD_CONFIGS, createDefaultFormState } from '../config/methods';
+import { METHOD_CONFIGS, createDefaultFormState, type MethodPreset } from '../config/methods';
 import { loadLegacyEngines } from '../lib/legacyEngineLoader';
 import {
   errorMessage,
@@ -31,6 +31,10 @@ const ANGLE_MODE_CHANGED_STATUS: WorkbenchStatus = {
   kind: 'idle',
   message: 'Angle mode changed. Re-run to update trig values.',
 };
+const PRESET_APPLIED_STATUS = (preset: MethodPreset): WorkbenchStatus => ({
+  kind: 'idle',
+  message: `${preset.label} loaded. Run the method to calculate the answer.`,
+});
 
 type EngineStatusKind = 'loading' | 'ready' | 'error';
 
@@ -206,6 +210,21 @@ export function useRootsWorkbench() {
     setEvidenceExpanded(false);
   }, []);
 
+  const applyPreset = useCallback((preset: MethodPreset) => {
+    const defaults = createDefaultFormState()[preset.method];
+    setActiveMethod(preset.method);
+    setForms((current) => ({
+      ...current,
+      [preset.method]: {
+        ...defaults,
+        ...preset.values,
+      },
+    }));
+    setLastRun(null);
+    setWorkbenchStatus(PRESET_APPLIED_STATUS(preset));
+    setEvidenceExpanded(false);
+  }, []);
+
   const resetActiveMethod = useCallback(() => {
     setForms((current) => ({
       ...current,
@@ -238,6 +257,7 @@ export function useRootsWorkbench() {
     forms,
     methodConfigs,
     runs,
+    applyPreset,
     setEvidenceExpanded,
     setMethod,
     resetActiveMethod,
