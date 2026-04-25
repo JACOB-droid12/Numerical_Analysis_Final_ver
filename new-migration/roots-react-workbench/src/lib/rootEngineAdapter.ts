@@ -110,6 +110,37 @@ export function runRootMethod(
   }
 }
 
+export function hasValidApproximation(result: RootRunResult): boolean {
+  if (result.summary?.stopReason === 'invalid-input') {
+    return false;
+  }
+
+  const approximation = result.summary?.approximation;
+  if (approximation == null) {
+    return false;
+  }
+
+  return typeof approximation !== 'number' || Number.isFinite(approximation);
+}
+
+export function isInvalidRun(result: RootRunResult): boolean {
+  return !hasValidApproximation(result);
+}
+
+export function resultFailureMessage(result: RootRunResult): string {
+  const detail = result.summary?.stopDetail?.trim();
+  if (detail) {
+    return detail;
+  }
+
+  const warning = result.warnings?.[0]?.message?.trim();
+  if (warning) {
+    return warning;
+  }
+
+  return 'The root calculation could not finish. Check the required inputs and run again.';
+}
+
 export function errorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message

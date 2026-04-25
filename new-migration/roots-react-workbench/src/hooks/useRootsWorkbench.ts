@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { METHOD_CONFIGS, createDefaultFormState } from '../config/methods';
 import { loadLegacyEngines } from '../lib/legacyEngineLoader';
-import { errorMessage, runRootMethod } from '../lib/rootEngineAdapter';
+import {
+  errorMessage,
+  isInvalidRun,
+  resultFailureMessage,
+  runRootMethod,
+} from '../lib/rootEngineAdapter';
 import type {
   AngleMode,
   DisplayedRunState,
@@ -171,10 +176,19 @@ export function useRootsWorkbench() {
     try {
       const request = createRequestSnapshot(activeMethod, forms, angleMode);
       const result = runRootMethod(activeMethod, forms[activeMethod], angleMode);
+
+      if (isInvalidRun(result)) {
+        setLastRun(null);
+        setWorkbenchStatus({ kind: 'error', message: resultFailureMessage(result) });
+        setEvidenceExpanded(false);
+        return;
+      }
+
       setLastRun({ result, request });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
       setEvidenceExpanded(true);
     } catch (error) {
+      setLastRun(null);
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
     }
