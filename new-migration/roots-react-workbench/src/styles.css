@@ -600,6 +600,7 @@ a:focus-visible {
 }
 
 .stepper button,
+.stepper-value,
 .segment button {
   border: 0;
   border-left: 1px solid var(--line);
@@ -610,6 +611,11 @@ a:focus-visible {
 .stepper button:first-child,
 .segment button:first-child {
   border-left: 0;
+}
+
+.stepper-value {
+  display: grid;
+  place-items: center;
 }
 
 .segment .active,

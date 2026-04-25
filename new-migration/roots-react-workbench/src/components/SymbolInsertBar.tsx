@@ -1,5 +1,6 @@
 interface SymbolInsertBarProps {
   onInsert: (symbol: string) => void;
+  onBackspace: () => void;
 }
 
 const SYMBOLS = ['π', 'e', 'sin', 'cos', 'tan', 'ln', '√', '^', '(', ')', '⌫'] as const;
@@ -31,14 +32,14 @@ const INSERT_VALUE: Record<(typeof SYMBOLS)[number], string> = {
   '⌫': '',
 };
 
-export function SymbolInsertBar({ onInsert }: SymbolInsertBarProps) {
+export function SymbolInsertBar({ onInsert, onBackspace }: SymbolInsertBarProps) {
   return (
     <div className="symbol-bar">
       {SYMBOLS.map((symbol) => (
         <button
           key={symbol}
           type="button"
-          onClick={() => onInsert(INSERT_VALUE[symbol])}
+          onClick={() => (symbol === '⌫' ? onBackspace() : onInsert(INSERT_VALUE[symbol]))}
           title={SYMBOL_LABELS[symbol]}
           aria-label={SYMBOL_LABELS[symbol]}
           className="symbol-chip"

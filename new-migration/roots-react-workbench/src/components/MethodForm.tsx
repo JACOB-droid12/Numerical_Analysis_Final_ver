@@ -73,11 +73,31 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
     [config.expressionFieldId, config.method, formState, onChange],
   );
 
+  const backspaceExpression = useCallback(() => {
+    const input = expressionRef.current;
+    const currentValue = input?.value ?? formState[config.expressionFieldId] ?? '';
+    const selectionStart = input?.selectionStart ?? currentValue.length;
+    const selectionEnd = input?.selectionEnd ?? currentValue.length;
+    const deleteStart = selectionStart === selectionEnd ? Math.max(0, selectionStart - 1) : selectionStart;
+    const nextValue = currentValue.slice(0, deleteStart) + currentValue.slice(selectionEnd);
+
+    onChange(config.method, config.expressionFieldId, nextValue);
+
+    if (!input) return;
+
+    requestAnimationFrame(() => {
+      input.focus();
+      input.setSelectionRange(deleteStart, deleteStart);
+    });
+  }, [config.expressionFieldId, config.method, formState, onChange]);
+
   const renderField = useCallback(
     (field: MethodFieldConfig) => {
       const value = formState[field.id] ?? field.defaultValue ?? '';
       const fieldDomId = `roots-${config.method}-${field.id}`;
       const commonClassName = `field-control numeric-value${field.id === config.expressionFieldId ? ' expression-input' : ''}`;
+      const expressionAriaLabel =
+        field.id === config.expressionFieldId ? `${config.shortLabel} ${config.expressionLabel}` : undefined;
 
       return (
         <label key={field.id} className={field.id === config.expressionFieldId ? 'expression-field' : 'field-row'}>
@@ -103,6 +123,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
               name={field.id}
               type={field.kind === 'number' ? 'number' : 'text'}
               inputMode={field.kind === 'number' ? 'decimal' : undefined}
+              aria-label={expressionAriaLabel}
               value={value}
               placeholder={field.placeholder}
               onChange={(event) => onChange(config.method, field.id, event.target.value)}
@@ -118,7 +139,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
         </label>
       );
     },
-    [config.method, config.expressionFieldId, formState, onChange],
+    [config.method, config.expressionFieldId, config.expressionLabel, config.shortLabel, formState, onChange],
   );
 
   const digitsField = precisionFields.find((field) => field.id.endsWith('-k'));
@@ -135,7 +156,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
             <span className="section-kicker">{config.shortLabel} method</span>
           </div>
           {renderField(primaryField)}
-          <SymbolInsertBar onInsert={insertSymbol} />
+          <SymbolInsertBar onInsert={insertSymbol} onBackspace={backspaceExpression} />
         </div>
       ) : null}
 
@@ -155,7 +176,9 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
                 >
                   −
                 </button>
-                <button type="button" className="active">{formState[digitsField.id] ?? digitsField.defaultValue}</button>
+                <span className="stepper-value active" aria-live="polite" aria-label="Current digit precision">
+                  {formState[digitsField.id] ?? digitsField.defaultValue}
+                </span>
                 <button
                   type="button"
                   onClick={() => onChange(config.method, digitsField.id, String(Number(formState[digitsField.id] ?? digitsField.defaultValue ?? 6) + 1))}
