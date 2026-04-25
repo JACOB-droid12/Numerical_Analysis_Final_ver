@@ -1,4 +1,4 @@
-import { compactConfidenceItems, staleStatusText } from '../lib/resultFormatters';
+import { compactConfidenceItems, confidenceStatus } from '../lib/resultFormatters';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
 interface ConfidenceSummaryProps {
@@ -7,37 +7,23 @@ interface ConfidenceSummaryProps {
   staleReason: string | null;
 }
 
-function statusClasses(freshness: RunFreshness): string {
-  return freshness === 'stale'
-    ? 'text-[var(--clay)]'
-    : 'text-[var(--green)]';
-}
-
-function statusLabel(freshness: RunFreshness): string {
-  return freshness === 'stale' ? 'Stale' : 'Current';
-}
-
 export function ConfidenceSummary({ run, freshness, staleReason }: ConfidenceSummaryProps) {
   if (!run) {
     return null;
   }
 
   const items = compactConfidenceItems(run);
-  const note = staleStatusText(staleReason);
-  const warnings = run.warnings ?? [];
+  const status = confidenceStatus(run, freshness, staleReason);
+  const confidenceBars = Array.from({ length: 5 }, (_, index) => index < status.bars);
 
   return (
-    <section className="confidence-panel">
+    <section className={`confidence-panel confidence-panel--${status.tone}`}>
       <header>
         <div>
           <h2 className="section-kicker">Confidence & Diagnostics</h2>
         </div>
-        <span
-          className={`numeric-value text-sm font-semibold ${statusClasses(
-            freshness,
-          )}`}
-        >
-          {statusLabel(freshness)}
+        <span className={`confidence-status confidence-status--${status.tone}`}>
+          {status.label}
         </span>
       </header>
 
@@ -50,17 +36,22 @@ export function ConfidenceSummary({ run, freshness, staleReason }: ConfidenceSum
         ))}
         <div>
           <dt>Confidence</dt>
-          <dd className="confidence-bars" aria-label="High confidence">
-            <span /><span /><span /><span /><span />
+          <dd className={`confidence-bars confidence-bars--${status.tone}`} aria-label={status.ariaLabel}>
+            {confidenceBars.map((filled, index) => (
+              <span
+                key={index}
+                className={filled ? 'confidence-bar-filled' : 'confidence-bar-empty'}
+              />
+            ))}
           </dd>
         </div>
       </dl>
 
       <div className="diagnostic-note">
-        <span aria-hidden="true" className="text-2xl text-[var(--orange)]">△</span>
+        <span aria-hidden="true" className="diagnostic-note-icon">△</span>
         <p>
           <strong className="section-kicker">Note</strong><br />
-          {warnings[0]?.message ?? `${note} Current residual and stopping criteria are within the selected precision.`}
+          {status.note}
         </p>
       </div>
     </section>

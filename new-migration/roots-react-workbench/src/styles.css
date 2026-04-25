@@ -721,6 +721,43 @@ a:focus-visible {
   gap: var(--space-md);
 }
 
+.confidence-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.confidence-status--success {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.confidence-status--review {
+  color: var(--action-blue);
+  background: rgba(31, 111, 235, 0.08);
+}
+
+.confidence-status--warning {
+  color: var(--orange);
+  background: var(--orange-soft);
+}
+
+.confidence-status--danger {
+  color: var(--red);
+  background: rgba(194, 57, 52, 0.08);
+}
+
+.confidence-status--stale {
+  color: var(--clay);
+  background: rgba(168, 101, 0, 0.1);
+}
+
 .confidence-grid div,
 .empty-metrics div {
   display: grid;
@@ -753,7 +790,36 @@ a:focus-visible {
   width: 18px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(22, 133, 95, 0.72);
+  border: 1px solid transparent;
+}
+
+.confidence-bar-filled {
+  background: var(--confidence-bar-color, rgba(22, 133, 95, 0.72));
+}
+
+.confidence-bar-empty {
+  border-color: var(--line-strong) !important;
+  background: var(--surface-muted);
+}
+
+.confidence-bars--success {
+  --confidence-bar-color: rgba(22, 133, 95, 0.78);
+}
+
+.confidence-bars--review {
+  --confidence-bar-color: rgba(31, 111, 235, 0.74);
+}
+
+.confidence-bars--warning {
+  --confidence-bar-color: rgba(198, 106, 24, 0.74);
+}
+
+.confidence-bars--danger {
+  --confidence-bar-color: rgba(194, 57, 52, 0.74);
+}
+
+.confidence-bars--stale {
+  --confidence-bar-color: rgba(168, 101, 0, 0.72);
 }
 
 .diagnostic-note {
@@ -767,6 +833,39 @@ a:focus-visible {
   background: var(--surface);
   font-size: 0.86rem;
   line-height: 1.45;
+}
+
+.confidence-panel--stale .diagnostic-note {
+  border-color: rgba(168, 101, 0, 0.28);
+  background: rgba(168, 101, 0, 0.08);
+}
+
+.confidence-panel--danger .diagnostic-note {
+  border-color: rgba(194, 57, 52, 0.24);
+  background: rgba(194, 57, 52, 0.07);
+}
+
+.confidence-panel--warning .diagnostic-note,
+.confidence-panel--review .diagnostic-note {
+  border-color: rgba(198, 106, 24, 0.2);
+}
+
+.diagnostic-note-icon {
+  color: var(--orange);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.confidence-panel--success .diagnostic-note-icon {
+  color: var(--green);
+}
+
+.confidence-panel--danger .diagnostic-note-icon {
+  color: var(--red);
+}
+
+.confidence-panel--stale .diagnostic-note-icon {
+  color: var(--clay);
 }
 
 .empty-console {
@@ -828,6 +927,23 @@ a:focus-visible {
   margin: var(--space-md) 0 0;
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.formula-caption {
+  margin: var(--space-md) 0 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.formula-display {
+  margin: var(--space-sm) 0 0;
+  color: var(--ink);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: clamp(0.9rem, 1.1vw, 1.06rem);
+  font-weight: 620;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .solution-list {

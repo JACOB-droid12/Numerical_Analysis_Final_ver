@@ -1,5 +1,5 @@
 import { METHOD_BY_NAME } from '../config/methods';
-import type { IterationRow, RootMethod, RootRunResult } from '../types/roots';
+import type { IterationRow, RootMethod, RootRunResult, RunFreshness } from '../types/roots';
 
 const EMPTY = 'Not calculated yet';
 const FALLBACK = '-';
@@ -212,6 +212,163 @@ export function diagnosticsPreviewText(run: RootRunResult): string {
 export interface ConfidenceItem {
   label: string;
   value: string;
+}
+
+export type ConfidenceTone = 'success' | 'review' | 'warning' | 'danger' | 'stale';
+
+export interface ConfidenceStatus {
+  label: string;
+  tone: ConfidenceTone;
+  bars: number;
+  ariaLabel: string;
+  note: string;
+}
+
+export interface MethodFormulaDisplay {
+  caption: string;
+  formula: string;
+}
+
+const HIGH_CONFIDENCE_REASONS = new Set([
+  'tolerance-reached',
+  'tolerance-already-met',
+  'endpoint-root',
+  'exact-zero',
+  'machine-zero',
+]);
+
+const MEDIUM_CONFIDENCE_REASONS = new Set([
+  'iteration-limit',
+  'iteration-cap',
+  'retained-endpoint-stagnation',
+  'step-small-residual-large',
+]);
+
+const LOW_CONFIDENCE_REASONS = new Set([
+  'invalid-starting-interval',
+  'invalid-bracket',
+  'discontinuity-detected',
+  'singularity-encountered',
+  'non-finite-evaluation',
+  'derivative-zero',
+  'stagnation',
+  'diverged',
+  'diverged-step',
+  'cycle-detected',
+  'invalid-input',
+]);
+
+export function graphCaption(method: RootMethod): string {
+  const captions: Record<RootMethod, string> = {
+    bisection: 'Bisection should contract the active bracket linearly by halving the interval each step.',
+    falsePosition: 'False position uses secant-line interpolation inside the bracket, so progress can be uneven when one endpoint is retained.',
+    newton: 'Newton-Raphson can converge quadratically near a simple root when the derivative stays well behaved.',
+    secant: 'The secant method usually converges superlinearly near a simple root without requiring an explicit derivative.',
+    fixedPoint: 'Fixed-point iteration converges when repeated g(x) evaluations pull the guesses toward a stable fixed point.',
+  };
+
+  return captions[method];
+}
+
+export function methodFormulaDisplay(method: RootMethod): MethodFormulaDisplay {
+  const formulas: Record<RootMethod, MethodFormulaDisplay> = {
+    bisection: {
+      caption: 'Bisection midpoint formula:',
+      formula: 'c_n = (a_n + b_n) / 2',
+    },
+    falsePosition: {
+      caption: 'False position interpolation formula:',
+      formula: 'c_n = (a_n f(b_n) - b_n f(a_n)) / (f(b_n) - f(a_n))',
+    },
+    newton: {
+      caption: 'Newton-Raphson iteration formula:',
+      formula: "x_{n+1} = x_n - f(x_n) / f'(x_n)",
+    },
+    secant: {
+      caption: 'Secant iteration formula:',
+      formula: 'x_{n+1} = x_n - f(x_n)(x_n - x_{n-1}) / (f(x_n) - f(x_{n-1}))',
+    },
+    fixedPoint: {
+      caption: 'Fixed-point iteration formula:',
+      formula: 'x_{n+1} = g(x_n)',
+    },
+  };
+
+  return formulas[method];
+}
+
+export function confidenceStatus(
+  run: RootRunResult,
+  freshness: RunFreshness,
+  staleReason: string | null,
+): ConfidenceStatus {
+  if (freshness === 'stale') {
+    const note = staleReason
+      ? `Stale result: ${staleReason}`
+      : 'Stale result: inputs or settings changed after this run.';
+    return {
+      label: 'Stale',
+      tone: 'stale',
+      bars: 0,
+      ariaLabel: 'Stale confidence',
+      note,
+    };
+  }
+
+  const firstWarning = run.warnings?.find((warning) => warning.message?.trim())?.message.trim();
+  if (firstWarning) {
+    return {
+      label: 'Review',
+      tone: 'warning',
+      bars: 2,
+      ariaLabel: 'Review confidence, 2 of 5 bars',
+      note: firstWarning,
+    };
+  }
+
+  const reason = run.summary?.stopReason ?? null;
+  const stop = stopReasonLabel(reason, run.method);
+
+  if (reason && HIGH_CONFIDENCE_REASONS.has(reason)) {
+    return {
+      label: 'High',
+      tone: 'success',
+      bars: 5,
+      ariaLabel: 'High confidence, 5 of 5 bars',
+      note: `Current result: ${stop}. The stopping evidence matches the selected precision settings.`,
+    };
+  }
+
+  if (reason && MEDIUM_CONFIDENCE_REASONS.has(reason)) {
+    return {
+      label: reason === 'iteration-cap' ? 'Review' : 'Medium',
+      tone: 'review',
+      bars: 3,
+      ariaLabel: 'Medium confidence, 3 of 5 bars',
+      note:
+        reason === 'iteration-cap'
+          ? `${stop}. Treat this as a review result, not a high-confidence convergence result.`
+          : `Current result: ${stop}. Inspect the table before tightening precision or increasing iterations.`,
+    };
+  }
+
+  if (reason && LOW_CONFIDENCE_REASONS.has(reason)) {
+    return {
+      label: 'Low',
+      tone: 'danger',
+      bars: 1,
+      ariaLabel: 'Low confidence, 1 of 5 bars',
+      note: `${stop}. Change the inputs, method, or precision settings before relying on this result.`,
+    };
+  }
+
+  return {
+    label: 'Current',
+    tone: 'review',
+    bars: 3,
+    ariaLabel: 'Current confidence, 3 of 5 bars',
+    note: `Current result: ${stop}. Review the final metric and diagnostics for this method.`,
+  };
 }
 
 export function compactConfidenceItems(run: RootRunResult): ConfidenceItem[] {

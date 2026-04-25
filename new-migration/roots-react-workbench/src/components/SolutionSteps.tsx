@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { solutionSteps as buildSolutionSteps, solutionText } from '../lib/resultFormatters';
+import { methodFormulaDisplay, solutionSteps as buildSolutionSteps, solutionText } from '../lib/resultFormatters';
 import type { RootRunResult } from '../types/roots';
 
 interface SolutionStepsProps {
@@ -39,6 +39,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
   const timerRef = useRef<number | null>(null);
   const steps = useMemo(() => buildSolutionSteps(run), [run]);
+  const formulaDisplay = useMemo(() => methodFormulaDisplay(run.method), [run.method]);
   const copyPayload = useMemo(() => solutionText(run), [run]);
   const copyDisabled = !copyPayload;
 
@@ -65,8 +66,8 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           <h2 className="section-kicker">
             Solution steps (Derivation)
           </h2>
-          <p className="mt-3 text-sm text-[var(--ink)]">Newton-Raphson iteration formula:</p>
-          <p className="mt-2 font-serif text-lg italic">x<sub>n+1</sub> = x<sub>n</sub> − f(x<sub>n</sub>) / f′(x<sub>n</sub>)</p>
+          <p className="formula-caption">{formulaDisplay.caption}</p>
+          <p className="formula-display">{formulaDisplay.formula}</p>
         </div>
         <button
           type="button"

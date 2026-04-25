@@ -1,5 +1,6 @@
 import { useId } from 'react';
 
+import { graphCaption } from '../lib/resultFormatters';
 import type { RootMethod, RootRunResult, IterationRow } from '../types/roots';
 
 interface ConvergenceGraphProps {
@@ -101,6 +102,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
   const descId = useId();
   const lineGradientId = `${svgTitleId.replace(/[^a-zA-Z0-9_-]/g, '')}-line`;
   const wrapperClassName = hero || compact ? 'graph-panel' : 'graph-panel';
+  const caption = graphCaption(run.method);
   const points = rows
     .map((row, index) => ({
       x: typeof row.iteration === 'number' ? row.iteration : index + 1,
@@ -218,7 +220,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           />
         ))}
       </svg>
-      <p className="graph-caption">Quadratic convergence observed on the latest numerical trace.</p>
+      <p className="graph-caption">{caption}</p>
     </section>
   );
 }
