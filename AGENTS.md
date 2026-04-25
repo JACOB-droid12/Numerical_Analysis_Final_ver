@@ -83,6 +83,28 @@ Each engine is a standalone IIFE that attaches to `window`:
 
 Load order matters -- `app.js` must come last and requires all engines present on `window`.
 
+## Browser QA Tooling
+
+Use `chrome-devtools` as the default browser inspection tool:
+
+- screenshots and visual checks
+- accessibility snapshots of the current page
+- console error/warning triage
+- network request inspection
+- viewport resizing for responsive inspection
+- debugging an already-open Chrome tab
+
+Use Playwright MCP when the task needs repeatable browser automation:
+
+- opening or navigating to a URL
+- typing into inputs or forms
+- scripted click/type/submit flows
+- multi-step calculator workflows
+- multi-tab browser flows
+- regression-style UI checks that must be repeatable
+
+For this project, run the Node audit scripts for deterministic correctness checks first. Use `chrome-devtools` for visual/browser debugging, and reserve Playwright MCP for interaction-heavy automation that `chrome-devtools` cannot drive cleanly.
+
 ## Test Battery
 
 All tests run with `node scripts/<name>.js`:

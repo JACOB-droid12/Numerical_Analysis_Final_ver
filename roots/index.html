@@ -4,300 +4,384 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Roots Workbench</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3b1e'/%3E%3Cpath d='M16 33h32M30 19l-8 26M42 19l-8 26' stroke='%23f7f4ec' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="../styles.css?v=roots-base">
-  <link rel="stylesheet" href="./roots.css?v=roots-v1">
+  <link rel="stylesheet" href="./roots.css?v=roots-net-studio">
 </head>
 <body class="roots-standalone">
   <main class="roots-app-shell">
     <div class="roots-net-layout">
-      <nav id="root-shell-rail" class="root-shell-rail" aria-label="NET section navigation">
-        <div class="root-shell-brand">
-          <span class="root-shell-brand-mark">NET+</span>
-          <span class="root-shell-brand-copy">Numerical Exploration Toolkit</span>
+      <header class="root-shell-header" aria-label="Roots utilities">
+        <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
+        <div class="root-shell-utilities">
+          <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
+          <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
         </div>
-        <div class="root-shell-module">
-          <p class="result-label">Module IV · Roots</p>
-          <p class="root-shell-module-title">Guided Solver Studio</p>
-          <p>Fast quiz answers, clear evidence, no workspace clutter.</p>
-        </div>
-        <div class="root-shell-links" role="group" aria-label="Roots sections">
-          <button id="root-shell-methods-link" class="root-shell-link active" type="button" data-target="root-method-section" aria-current="true">Methods</button>
-          <button id="root-shell-setup-link" class="root-shell-link" type="button" data-target="root-setup-card" aria-current="false">Problem Setup</button>
-          <button id="root-shell-answer-link" class="root-shell-link" type="button" data-target="root-quiz-answer" aria-current="false">Quiz Answer</button>
-          <button id="root-shell-evidence-link" class="root-shell-link" type="button" data-target="root-evidence-stack" aria-current="false">Evidence</button>
-        </div>
-      </nav>
-      <div class="root-shell-stage">
-        <header class="root-shell-header">
-          <div class="root-shell-header-copy">
-            <p class="eyebrow">NET+ workspace</p>
-            <p class="root-shell-title">Roots</p>
-          </div>
-          <div class="root-shell-utilities" aria-label="Roots utilities">
-            <a class="ghost roots-back-link" href="../index.html">Back to calculator</a>
-            <div class="status-chip"><span class="status-name">Angle</span><strong id="status-angle">DEG</strong></div>
-            <button id="angle-toggle" type="button" class="ghost roots-angle-btn">Use radians</button>
-          </div>
-        </header>
+      </header>
 
-        <section class="module-shell module-root roots-module-shell">
-      <div class="module-header roots-guided-hero roots-studio-hero">
-        <div class="root-academic-paper root-studio-title-card">
-          <p class="eyebrow">Module IV · Roots</p>
-          <h1>Guided Solver Studio</h1>
-          <p class="module-subtitle">Fast quiz answers with enough explanation to show your work.</p>
-        </div>
-        <div class="root-hero-card root-studio-workflow" role="note" aria-label="Guided solver priorities">
-          <span class="root-hero-kicker">Quick workflow</span>
-          <strong>Pick method. Enter values. Run. Copy answer.</strong>
-          <p>Method guidance stays visible, while tables and diagnostics stay available below the answer.</p>
-        </div>
-      </div>
-
-      <div id="root-studio-workspace" class="roots-studio-workspace">
-        <div class="root-studio-main">
-          <section id="root-method-section" class="root-method-section root-academic-paper" aria-label="Methods" tabindex="-1">
-            <div class="root-section-heading">
-              <p class="result-label">Methods</p>
-              <h2>Choose the root-finding method that fits the prompt</h2>
-              <p>Switch methods here. The active solver note updates immediately and the setup block below stays aligned with the current choice.</p>
-            </div>
-            <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
-            <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
-            <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
-            <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
-            <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
-            <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
-          </nav>
-
-          <section id="root-method-guide" class="root-method-guide" aria-label="Active method guidance">
-            <div>
-              <p class="result-label">Active solver</p>
-              <h2 id="root-method-title">Bisection</h2>
-              <p id="root-method-summary" class="root-method-summary">Use an interval where f(a) and f(b) have opposite signs.</p>
-            </div>
-            <p id="root-method-details" class="root-method-details">Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking.</p>
-          </section>
-          </section>
-          <section id="root-setup-card" class="root-setup-card root-academic-paper" aria-label="Problem setup" tabindex="-1">
-            <div class="root-section-heading">
-              <p class="result-label">1 · Problem setup</p>
-              <h2>Enter the function and method values</h2>
-              <p>Use the active method panel below. Press the equals button to run the solver.</p>
-            </div>
-
-      <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
-        <div class="omnipotent-search-bar calculator-band">
-          <div class="field-shell field-shell-expression search-shell">
-            <input id="root-bis-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
-            <button type="button" class="symbol-trigger" data-symbol-target="root-bis-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
-            <button id="root-bis-compute" type="button" class="btn-calculate-omni" aria-label="Run bisection" title="Run bisection">=</button>
+      <section class="module-shell module-root roots-module-shell" aria-label="NET+ Roots solver studio">
+        <div class="module-header roots-guided-hero roots-studio-hero">
+          <div class="root-academic-paper root-studio-title-card">
+            <p class="eyebrow">Module IV · Roots</p>
+            <h1>Guided Solver Studio</h1>
+            <p class="module-subtitle">Fast quiz answers with enough explanation to show your work.</p>
           </div>
-          <p class="input-hint">Enter f(x) as a one-variable expression in x. Try <code>x^2 - 2</code>, <code>sin(x) - x/2</code>, or <code>e^(-x) - x</code>. Trig functions use the current <strong>Angle</strong> setting.</p>
-          <div class="root-config-grid">
-            <label>Left endpoint a<input id="root-bis-a" type="text" value="1"></label>
-            <label>Right endpoint b<input id="root-bis-b" type="text" value="2"></label>
-            <label>Significant digits (k)<input id="root-bis-k" type="number" min="1" max="25" step="1" value="6"></label>
-            <label>Machine rule<select id="root-bis-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
-            <label>Stopping mode<select id="root-bis-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
-            <label>Stopping value (n or epsilon)<input id="root-bis-stop-value" type="text" value="4"></label>
-            <label id="root-bis-tolerance-type-wrap" hidden>
-              Tolerance type
-              <select id="root-bis-tolerance-type">
-                <option value="relative" selected>Relative tolerance</option>
-                <option value="absolute">Absolute tolerance</option>
-              </select>
-            </label>
+          <div class="root-hero-card root-studio-workflow" role="note" aria-label="Quick workflow">
+            <span class="root-hero-kicker">Quick workflow</span>
+            <strong>Pick method. Enter values. Run. Copy answer.</strong>
+            <p>Answer first. Evidence only when needed.</p>
           </div>
-          <p id="root-bis-tolerance-note" class="root-textbook-note focus-note" hidden>
-            Relative tolerance is the default for Bisection because it matches the lecture-style stopping rule.
-          </p>
-          <p class="root-textbook-note focus-note">Finite-precision default: the selected k-digit chopping or rounding rule drives the displayed iteration path.</p>
-          <details id="root-bis-advanced" class="root-advanced-options disclosure disclosure-secondary">
-            <summary>Finite-precision sign options (advanced)</summary>
-            <p class="root-sign-guide focus-note">Only change these if your instructor asks bisection decisions to follow chopped or rounded signs.</p>
-            <div class="root-advanced-grid">
-              <label>Signs shown in the table<select id="root-bis-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
-              <label>Signs used to choose the next interval<select id="root-bis-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
-            </div>
-          </details>
+        </div>
+
+        <nav id="root-shell-rail" class="root-shell-rail" aria-label="NET section navigation">
+          <div class="root-shell-brand" aria-label="NET+ brand">
+            <span class="root-shell-brand-mark">NET+</span>
+            <span class="root-shell-brand-copy">Numerical Toolkit</span>
+          </div>
+          <div class="root-shell-links" role="group" aria-label="Roots sections">
+            <button id="root-shell-methods-link" class="root-shell-link active" type="button" data-target="root-method-section" aria-current="true">Methods</button>
+            <button id="root-shell-setup-link" class="root-shell-link" type="button" data-target="root-setup-card" aria-current="false">Problem Setup</button>
+            <button id="root-shell-answer-link" class="root-shell-link" type="button" data-target="root-quiz-answer" aria-current="false">Quiz Answer</button>
+            <button id="root-shell-evidence-link" class="root-shell-link" type="button" data-target="root-evidence-stack" aria-current="false">Evidence</button>
+          </div>
+        </nav>
+
+        <div id="root-studio-workspace" class="roots-studio-workspace">
+          <div class="root-studio-primary">
+            <section id="root-method-section" class="root-method-section root-academic-paper" aria-label="Methods" tabindex="-1">
+              <div class="root-section-heading">
+                <p class="result-label">Methods</p>
+                <h2>Choose the root-finding method that fits the prompt</h2>
+              </div>
+              <nav class="root-method-tabs" role="tablist" aria-label="Root-finding method">
+                <button id="root-tab-bisection" class="root-method-tab active" data-method="bisection" data-method-kind="bracket" role="tab" aria-selected="true" aria-controls="root-inputs-bisection"><span class="method-kind">Bracket</span><span>Bisection</span></button>
+                <button id="root-tab-newton" class="root-method-tab" data-method="newton" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-newton"><span class="method-kind">Open</span><span>Newton-Raphson</span></button>
+                <button id="root-tab-secant" class="root-method-tab" data-method="secant" data-method-kind="open" role="tab" aria-selected="false" aria-controls="root-inputs-secant"><span class="method-kind">Open</span><span>Secant</span></button>
+                <button id="root-tab-falseposition" class="root-method-tab" data-method="falsePosition" data-method-kind="bracket" role="tab" aria-selected="false" aria-controls="root-inputs-falseposition"><span class="method-kind">Bracket</span><span>False Position</span></button>
+                <button id="root-tab-fixedpoint" class="root-method-tab" data-method="fixedPoint" data-method-kind="fixed-point" role="tab" aria-selected="false" aria-controls="root-inputs-fixedpoint"><span class="method-kind">Fixed-point</span><span>Fixed Point</span></button>
+              </nav>
+              <section id="root-method-guide" class="root-method-guide" aria-label="Active method guidance">
+                <p class="result-label">Active solver</p>
+                <h2 id="root-method-title">Bisection</h2>
+                <p id="root-method-summary" class="root-method-summary">Use an interval where f(a) and f(b) have opposite signs.</p>
+                <p id="root-method-details" class="root-method-details">Best for quiz problems that provide a bracket or ask for guaranteed interval shrinking.</p>
+              </section>
+            </section>
+
+            <section id="root-setup-card" class="root-setup-card root-academic-paper" aria-label="Problem setup" tabindex="-1">
+              <div class="root-section-heading root-setup-heading">
+                <p class="result-label">1 · Problem setup</p>
+                <h2>Enter the function and method values</h2>
+                <p>Use the active method panel below. Press the equals button to run the solver.</p>
+              </div>
+
+              <section id="root-inputs-bisection" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-bisection" aria-label="Bisection controls">
+                <div class="omnipotent-search-bar calculator-band">
+                  <div class="field-shell field-shell-expression search-shell">
+                    <label class="expression-prefix" for="root-bis-expression">f(x) =</label>
+                    <input id="root-bis-expression" type="text" maxlength="300" value="x^2 - 2" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+                    <button type="button" class="symbol-trigger root-legacy-symbol-trigger" data-symbol-target="root-bis-expression" aria-label="Insert math symbols" title="Insert math symbols" hidden tabindex="-1">f(x)</button>
+                    <button id="root-bis-compute" type="button" class="btn-calculate-omni" aria-label="Run bisection" title="Run bisection">=</button>
+                  </div>
+                  <div class="root-symbol-helper" aria-label="Expression symbols">
+                    <div class="root-symbol-row" aria-label="Common symbols">
+                      <span class="root-symbol-label">Symbols</span>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="x">x</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="pi">pi</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="sqrt(">sqrt(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="sin(">sin(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="cos(">cos(</button>
+                      <button type="button" class="root-symbol-toggle" data-symbol-more-target="root-bis-more-symbols" aria-expanded="false" aria-controls="root-bis-more-symbols">More symbols</button>
+                    </div>
+                    <div id="root-bis-more-symbols" class="root-symbol-row root-symbol-row-more" hidden>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="tan(">tan(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="log(">log(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="e">e</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-bis-expression" data-symbol-insert="e^(">e^(</button>
+                    </div>
+                  </div>
+                  <p class="input-hint">One variable: x. Trig uses <strong>Angle</strong>.</p>
+                  <div class="root-config-grid">
+                    <label>a<input id="root-bis-a" type="text" value="1" aria-label="Left endpoint a"></label>
+                    <label>b<input id="root-bis-b" type="text" value="2" aria-label="Right endpoint b"></label>
+                    <label class="root-default-field">k digits<input id="root-bis-k" type="number" min="1" max="25" step="1" value="6" aria-label="Significant digits k"></label>
+                    <label class="root-default-field">Rule<select id="root-bis-mode" aria-label="Machine rule"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+                    <label class="root-default-field">Stop by<select id="root-bis-stop-kind" aria-label="Stopping mode"><option value="iterations" selected>Iterations (n)</option><option value="epsilon">Tolerance (epsilon)</option></select></label>
+                    <label id="root-bis-stop-value-label" class="root-default-field"><span id="root-bis-stop-value-label-text">Iterations (n)</span><input id="root-bis-stop-value" type="text" value="4" aria-label="Iterations n"></label>
+                    <label id="root-bis-tolerance-type-wrap" class="root-default-field" hidden>Tolerance<select id="root-bis-tolerance-type" aria-label="Tolerance type"><option value="relative" selected>Relative tolerance</option><option value="absolute">Absolute tolerance</option></select></label>
+                  </div>
+                  <p id="root-bis-tolerance-note" class="root-textbook-note focus-note" hidden>Relative tolerance matches the usual Bisection rule.</p>
+                  <p class="root-textbook-note focus-note">Each row uses the selected k-digit rule.</p>
+                  <details id="root-bis-advanced" class="root-advanced-options disclosure disclosure-secondary">
+                    <summary>Bracket sign options</summary>
+                    <p class="root-sign-guide focus-note">Change these only if your class asks interval decisions to follow chopped or rounded signs.</p>
+                    <div class="root-advanced-grid">
+                      <label>Signs shown in the table<select id="root-bis-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
+                      <label>Signs used to choose the next interval<select id="root-bis-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section id="root-inputs-newton" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-newton" aria-label="Newton-Raphson controls" hidden>
+                <div class="omnipotent-search-bar calculator-band">
+                  <div class="field-shell field-shell-expression search-shell">
+                    <label class="expression-prefix" for="root-newton-expression">f(x) =</label>
+                    <input id="root-newton-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+                    <button type="button" class="symbol-trigger root-legacy-symbol-trigger" data-symbol-target="root-newton-expression" aria-label="Insert math symbols" title="Insert math symbols" hidden tabindex="-1">f(x)</button>
+                    <button id="root-newton-compute" type="button" class="btn-calculate-omni" aria-label="Run Newton-Raphson" title="Run Newton-Raphson">=</button>
+                  </div>
+                  <div class="root-symbol-helper" aria-label="Expression symbols">
+                    <div class="root-symbol-row" aria-label="Common symbols">
+                      <span class="root-symbol-label">Symbols</span>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="x">x</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="pi">pi</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="sqrt(">sqrt(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="sin(">sin(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="cos(">cos(</button>
+                      <button type="button" class="root-symbol-toggle" data-symbol-more-target="root-newton-more-symbols" aria-expanded="false" aria-controls="root-newton-more-symbols">More symbols</button>
+                    </div>
+                    <div id="root-newton-more-symbols" class="root-symbol-row root-symbol-row-more" hidden>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="tan(">tan(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="log(">log(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="e">e</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-newton-expression" data-symbol-insert="e^(">e^(</button>
+                    </div>
+                  </div>
+                  <p class="input-hint">Enter f(x) and f'(x). Trig uses <strong>Angle</strong>.</p>
+                  <div class="root-config-grid">
+                    <label>f'(x)<input id="root-newton-df" type="text" maxlength="300" placeholder="3x^2 - 1" aria-label="Derivative f'(x)"></label>
+                    <label>x0<input id="root-newton-x0" type="text" value="1" aria-label="Starting point x0"></label>
+                    <label class="root-default-field">k digits<input id="root-newton-k" type="number" min="1" max="25" step="1" value="6" aria-label="Significant digits k"></label>
+                    <label class="root-default-field">Rule<select id="root-newton-mode" aria-label="Machine rule"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+                    <label class="root-default-field">Stop by<select id="root-newton-stop-kind" aria-label="Stopping mode"><option value="iterations" selected>Iterations (n)</option><option value="epsilon">Tolerance (epsilon)</option></select></label>
+                    <label id="root-newton-stop-value-label" class="root-default-field"><span id="root-newton-stop-value-label-text">Iterations (n)</span><input id="root-newton-stop-value" type="text" value="4" aria-label="Iterations n"></label>
+                  </div>
+                </div>
+              </section>
+
+              <section id="root-inputs-secant" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-secant" aria-label="Secant method controls" hidden>
+                <div class="omnipotent-search-bar calculator-band">
+                  <div class="field-shell field-shell-expression search-shell">
+                    <label class="expression-prefix" for="root-secant-expression">f(x) =</label>
+                    <input id="root-secant-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+                    <button type="button" class="symbol-trigger root-legacy-symbol-trigger" data-symbol-target="root-secant-expression" aria-label="Insert math symbols" title="Insert math symbols" hidden tabindex="-1">f(x)</button>
+                    <button id="root-secant-compute" type="button" class="btn-calculate-omni" aria-label="Run Secant method" title="Run Secant method">=</button>
+                  </div>
+                  <div class="root-symbol-helper" aria-label="Expression symbols">
+                    <div class="root-symbol-row" aria-label="Common symbols">
+                      <span class="root-symbol-label">Symbols</span>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="x">x</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="pi">pi</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="sqrt(">sqrt(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="sin(">sin(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="cos(">cos(</button>
+                      <button type="button" class="root-symbol-toggle" data-symbol-more-target="root-secant-more-symbols" aria-expanded="false" aria-controls="root-secant-more-symbols">More symbols</button>
+                    </div>
+                    <div id="root-secant-more-symbols" class="root-symbol-row root-symbol-row-more" hidden>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="tan(">tan(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="log(">log(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="e">e</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-secant-expression" data-symbol-insert="e^(">e^(</button>
+                    </div>
+                  </div>
+                  <p class="input-hint">Enter f(x) and two starting points. No derivative needed.</p>
+                  <div class="root-config-grid">
+                    <label>x0<input id="root-secant-x0" type="text" value="1" aria-label="First point x0"></label>
+                    <label>x1<input id="root-secant-x1" type="text" value="2" aria-label="Second point x1"></label>
+                    <label class="root-default-field">k digits<input id="root-secant-k" type="number" min="1" max="25" step="1" value="6" aria-label="Significant digits k"></label>
+                    <label class="root-default-field">Rule<select id="root-secant-mode" aria-label="Machine rule"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+                    <label class="root-default-field">Stop by<select id="root-secant-stop-kind" aria-label="Stopping mode"><option value="iterations" selected>Iterations (n)</option><option value="epsilon">Tolerance (epsilon)</option></select></label>
+                    <label id="root-secant-stop-value-label" class="root-default-field"><span id="root-secant-stop-value-label-text">Iterations (n)</span><input id="root-secant-stop-value" type="text" value="4" aria-label="Iterations n"></label>
+                  </div>
+                </div>
+              </section>
+
+              <section id="root-inputs-falseposition" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-falseposition" aria-label="False position controls" hidden>
+                <div class="omnipotent-search-bar calculator-band">
+                  <div class="field-shell field-shell-expression search-shell">
+                    <label class="expression-prefix" for="root-fp-expression">f(x) =</label>
+                    <input id="root-fp-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
+                    <button type="button" class="symbol-trigger root-legacy-symbol-trigger" data-symbol-target="root-fp-expression" aria-label="Insert math symbols" title="Insert math symbols" hidden tabindex="-1">f(x)</button>
+                    <button id="root-fp-compute" type="button" class="btn-calculate-omni" aria-label="Run false position" title="Run false position">=</button>
+                  </div>
+                  <div class="root-symbol-helper" aria-label="Expression symbols">
+                    <div class="root-symbol-row" aria-label="Common symbols">
+                      <span class="root-symbol-label">Symbols</span>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="x">x</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="pi">pi</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="sqrt(">sqrt(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="sin(">sin(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="cos(">cos(</button>
+                      <button type="button" class="root-symbol-toggle" data-symbol-more-target="root-fp-more-symbols" aria-expanded="false" aria-controls="root-fp-more-symbols">More symbols</button>
+                    </div>
+                    <div id="root-fp-more-symbols" class="root-symbol-row root-symbol-row-more" hidden>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="tan(">tan(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="log(">log(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="e">e</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fp-expression" data-symbol-insert="e^(">e^(</button>
+                    </div>
+                  </div>
+                  <p class="input-hint">Bisection-style bracketing with linear interpolation.</p>
+                  <div class="root-config-grid">
+                    <label>a<input id="root-fp-a" type="text" value="1" aria-label="Left endpoint a"></label>
+                    <label>b<input id="root-fp-b" type="text" value="2" aria-label="Right endpoint b"></label>
+                    <label class="root-default-field">k digits<input id="root-fp-k" type="number" min="1" max="25" step="1" value="6" aria-label="Significant digits k"></label>
+                    <label class="root-default-field">Rule<select id="root-fp-mode" aria-label="Machine rule"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+                    <label class="root-default-field">Stop by<select id="root-fp-stop-kind" aria-label="Stopping mode"><option value="iterations" selected>Iterations (n)</option><option value="epsilon">Tolerance (epsilon)</option></select></label>
+                    <label id="root-fp-stop-value-label" class="root-default-field"><span id="root-fp-stop-value-label-text">Iterations (n)</span><input id="root-fp-stop-value" type="text" value="4" aria-label="Iterations n"></label>
+                  </div>
+                  <details id="root-fp-advanced" class="root-advanced-options disclosure disclosure-secondary" hidden>
+                    <summary>Bracket sign options</summary>
+                    <div class="root-advanced-grid">
+                      <label>Signs shown in the table<select id="root-fp-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
+                      <label>Signs used to choose the next interval<select id="root-fp-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section id="root-inputs-fixedpoint" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-fixedpoint" aria-label="Fixed point controls" hidden>
+                <div class="omnipotent-search-bar calculator-band">
+                  <div class="field-shell field-shell-expression search-shell">
+                    <label class="expression-prefix" for="root-fpi-expression">g(x) =</label>
+                    <input id="root-fpi-expression" type="text" maxlength="300" placeholder="cos(x)" aria-label="Iteration function g(x)">
+                    <button type="button" class="symbol-trigger root-legacy-symbol-trigger" data-symbol-target="root-fpi-expression" aria-label="Insert math symbols" title="Insert math symbols" hidden tabindex="-1">g(x)</button>
+                    <button id="root-fpi-compute" type="button" class="btn-calculate-omni" aria-label="Run fixed-point iteration" title="Run fixed-point iteration">=</button>
+                  </div>
+                  <div class="root-symbol-helper" aria-label="Expression symbols">
+                    <div class="root-symbol-row" aria-label="Common symbols">
+                      <span class="root-symbol-label">Symbols</span>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="x">x</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="pi">pi</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="sqrt(">sqrt(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="sin(">sin(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="cos(">cos(</button>
+                      <button type="button" class="root-symbol-toggle" data-symbol-more-target="root-fpi-more-symbols" aria-expanded="false" aria-controls="root-fpi-more-symbols">More symbols</button>
+                    </div>
+                    <div id="root-fpi-more-symbols" class="root-symbol-row root-symbol-row-more" hidden>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="tan(">tan(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="log(">log(</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="e">e</button>
+                      <button type="button" class="root-symbol-insert symbol-btn-inline" data-symbol-target="root-fpi-expression" data-symbol-insert="e^(">e^(</button>
+                    </div>
+                  </div>
+                  <p class="input-hint">Enter g(x) where the root satisfies x = g(x).</p>
+                  <div class="root-config-grid">
+                    <label>x0<input id="root-fpi-x0" type="text" value="1" aria-label="Starting point x0"></label>
+                    <label class="root-default-field">k digits<input id="root-fpi-k" type="number" min="1" max="25" step="1" value="6" aria-label="Significant digits k"></label>
+                    <label class="root-default-field">Rule<select id="root-fpi-mode" aria-label="Machine rule"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
+                    <label class="root-default-field">Stop by<select id="root-fpi-stop-kind" aria-label="Stopping mode"><option value="iterations" selected>Iterations (n)</option><option value="epsilon">Tolerance (epsilon)</option></select></label>
+                    <label id="root-fpi-stop-value-label" class="root-default-field"><span id="root-fpi-stop-value-label-text">Iterations (n)</span><input id="root-fpi-stop-value" type="text" value="4" aria-label="Iterations n"></label>
+                  </div>
+                </div>
+              </section>
+            </section>
+          </div>
+
+          <div class="root-studio-main">
+            <p id="root-error-msg" class="inline-error" role="alert" hidden></p>
+            <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
+
+            <section id="root-empty" class="empty-state root-empty-state">
+              <p class="result-label">Ready when you are</p>
+              <h2>Pick a method, enter a function, and run the method.</h2>
+              <p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table.</p>
+            </section>
+
+            <section id="root-result-stage" class="result-stage" hidden>
+              <section id="root-quiz-answer" class="root-quiz-answer" aria-label="Quiz-ready answer" tabindex="-1">
+                <div class="root-answer-card root-answer-main">
+                  <p class="result-label">2 · Quiz-ready answer</p>
+                  <p class="result-label">Approximate root</p>
+                  <p id="root-approx" class="answer-value">Not calculated yet</p>
+                  <p class="root-answer-method">Method: <strong id="root-active-method">Not calculated yet</strong></p>
+                  <div class="root-answer-actions">
+                    <button id="root-copy-answer" type="button" class="root-answer-copy">Copy answer</button>
+                    <p id="root-answer-copy-status" class="root-answer-copy-status" role="status" aria-live="polite"></p>
+                  </div>
+                  <div class="root-answer-context">
+                    <div class="root-result-insight">
+                      <p class="result-label">Stopping result</p>
+                      <p id="root-stopping-result" class="answer-value">Not calculated yet</p>
+                    </div>
+                    <div class="root-result-insight">
+                      <p class="result-label">Stopping parameters</p>
+                      <p id="root-convergence" class="answer-value">Not calculated yet</p>
+                    </div>
+                    <div class="root-result-insight">
+                      <p class="result-label">Final metric</p>
+                      <p id="root-final-metric" class="answer-value">Not calculated yet</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="root-answer-guidance" aria-label="Answer guidance">
+                  <div>
+                    <p class="result-label">What this means</p>
+                    <p id="root-interpretation">Run the method to see a short interpretation.</p>
+                  </div>
+                  <div>
+                    <p class="result-label">Try next</p>
+                    <p id="root-next-action">Run the method to see the next recommended action.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="root-evidence-toggle-wrap root-academic-paper" aria-label="Evidence summary">
+                <div class="root-evidence-toggle-copy">
+                  <p class="result-label">Evidence</p>
+                  <h2>Solution record</h2>
+                  <p>Open the full work only when you need diagnostics, the graph, the steps, or the table.</p>
+                </div>
+                <button id="root-evidence-toggle" type="button" class="root-evidence-toggle" aria-expanded="false" aria-controls="root-evidence-stack">Show full work</button>
+              </section>
+
+              <section id="root-evidence-stack" class="root-evidence-stack root-academic-paper" aria-label="Evidence and solution trace" tabindex="-1" hidden>
+                <div class="root-section-heading">
+                  <p class="result-label">Solution record</p>
+                  <h2 id="root-evidence-heading">Evidence</h2>
+                  <p>Use this record when you need diagnostics, graph behavior, the step-by-step work, or the full iteration table.</p>
+                </div>
+                <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
+                <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
+                  <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
+                  <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value">Not calculated yet</p></div>
+                  <div class="answer-hero"><p class="result-label">Decision basis</p><p id="root-decision-summary" class="answer-value">Not calculated yet</p></div>
+                </div>
+                <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
+                <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
+                <section class="root-solution-panel answer-hero" aria-label="Solution steps">
+                  <div class="root-solution-header">
+                    <h2>Solution steps</h2>
+                    <button id="root-copy-solution" type="button" class="link">Copy solution</button>
+                  </div>
+                  <ol id="root-solution-steps" class="root-solution-steps"></ol>
+                  <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
+                </section>
+                <div class="root-iteration-table-wrap">
+                  <table class="root-iteration-table">
+                    <thead id="root-iteration-thead"></thead>
+                    <tbody id="root-iteration-body"></tbody>
+                  </table>
+                </div>
+              </section>
+            </section>
+          </div>
         </div>
       </section>
-
-      <section id="root-inputs-newton" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-newton" aria-label="Newton-Raphson controls" hidden>
-        <div class="omnipotent-search-bar calculator-band">
-          <div class="field-shell field-shell-expression search-shell">
-            <input id="root-newton-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
-            <button type="button" class="symbol-trigger" data-symbol-target="root-newton-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
-            <button id="root-newton-compute" type="button" class="btn-calculate-omni" aria-label="Run Newton-Raphson" title="Run Newton-Raphson">=</button>
-          </div>
-          <p class="input-hint">Enter f(x) and its derivative f'(x) separately. Trig functions use the current <strong>Angle</strong> setting.</p>
-          <div class="root-config-grid">
-            <label>Derivative f'(x)<input id="root-newton-df" type="text" maxlength="300" placeholder="3x^2 - 1" aria-label="Derivative f'(x)"></label>
-            <label>Starting point x0<input id="root-newton-x0" type="text" value="1"></label>
-            <label>Significant digits (k)<input id="root-newton-k" type="number" min="1" max="25" step="1" value="6"></label>
-            <label>Machine rule<select id="root-newton-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
-            <label>Stopping mode<select id="root-newton-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
-            <label>Stopping value (n or epsilon)<input id="root-newton-stop-value" type="text" value="4"></label>
-          </div>
-        </div>
-      </section>
-
-      <section id="root-inputs-secant" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-secant" aria-label="Secant method controls" hidden>
-        <div class="omnipotent-search-bar calculator-band">
-          <div class="field-shell field-shell-expression search-shell">
-            <input id="root-secant-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
-            <button type="button" class="symbol-trigger" data-symbol-target="root-secant-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
-            <button id="root-secant-compute" type="button" class="btn-calculate-omni" aria-label="Run Secant method" title="Run Secant method">=</button>
-          </div>
-          <p class="input-hint">Enter f(x) and two starting points. No derivative needed. Trig functions use the current <strong>Angle</strong> setting.</p>
-          <div class="root-config-grid">
-            <label>First point x0<input id="root-secant-x0" type="text" value="1"></label>
-            <label>Second point x1<input id="root-secant-x1" type="text" value="2"></label>
-            <label>Significant digits (k)<input id="root-secant-k" type="number" min="1" max="25" step="1" value="6"></label>
-            <label>Machine rule<select id="root-secant-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
-            <label>Stopping mode<select id="root-secant-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
-            <label>Stopping value (n or epsilon)<input id="root-secant-stop-value" type="text" value="4"></label>
-          </div>
-        </div>
-      </section>
-
-      <section id="root-inputs-falseposition" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-falseposition" aria-label="False position controls" hidden>
-        <div class="omnipotent-search-bar calculator-band">
-          <div class="field-shell field-shell-expression search-shell">
-            <input id="root-fp-expression" type="text" maxlength="300" placeholder="x^3 - x - 1" aria-label="Function f(x)">
-            <button type="button" class="symbol-trigger" data-symbol-target="root-fp-expression" aria-label="Open symbols" title="Open symbols">f(x)</button>
-            <button id="root-fp-compute" type="button" class="btn-calculate-omni" aria-label="Run false position" title="Run false position">=</button>
-          </div>
-          <p class="input-hint">Like bisection, but uses linear interpolation: c = b - f(b)(b-a)/(f(b)-f(a)). Trig functions use the current <strong>Angle</strong> setting.</p>
-          <div class="root-config-grid">
-            <label>Left endpoint a<input id="root-fp-a" type="text" value="1"></label>
-            <label>Right endpoint b<input id="root-fp-b" type="text" value="2"></label>
-            <label>Significant digits (k)<input id="root-fp-k" type="number" min="1" max="25" step="1" value="6"></label>
-            <label>Machine rule<select id="root-fp-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
-            <label>Stopping mode<select id="root-fp-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
-            <label>Stopping value (n or epsilon)<input id="root-fp-stop-value" type="text" value="4"></label>
-          </div>
-          <details id="root-fp-advanced" class="root-advanced-options disclosure disclosure-secondary" hidden>
-            <summary>Finite-precision sign options (advanced)</summary>
-            <div class="root-advanced-grid">
-              <label>Signs shown in the table<select id="root-fp-sign-display"><option value="both" selected>Exact and machine signs</option><option value="machine">Machine signs only</option><option value="exact">Exact signs only</option></select></label>
-              <label>Signs used to choose the next interval<select id="root-fp-decision-basis"><option value="machine" selected>Machine signs decide</option><option value="exact">Exact signs decide</option></select></label>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <section id="root-inputs-fixedpoint" class="root-method-inputs control-band control-band-expression" role="tabpanel" aria-labelledby="root-tab-fixedpoint" aria-label="Fixed point controls" hidden>
-        <div class="omnipotent-search-bar calculator-band">
-          <div class="field-shell field-shell-expression search-shell">
-            <input id="root-fpi-expression" type="text" maxlength="300" placeholder="cos(x)" aria-label="Iteration function g(x)">
-            <button type="button" class="symbol-trigger" data-symbol-target="root-fpi-expression" aria-label="Open symbols" title="Open symbols">g(x)</button>
-            <button id="root-fpi-compute" type="button" class="btn-calculate-omni" aria-label="Run fixed-point iteration" title="Run fixed-point iteration">=</button>
-          </div>
-          <p class="input-hint">Enter g(x) such that x = g(x) at the root. The iteration is x(next) = g(x). Converges when |g'(x)| &lt; 1. Trig functions use the current <strong>Angle</strong> setting.</p>
-          <div class="root-config-grid">
-            <label>Starting point x0<input id="root-fpi-x0" type="text" value="1"></label>
-            <label>Significant digits (k)<input id="root-fpi-k" type="number" min="1" max="25" step="1" value="6"></label>
-            <label>Machine rule<select id="root-fpi-mode"><option value="chop">Chopping</option><option value="round" selected>Rounding</option></select></label>
-            <label>Stopping mode<select id="root-fpi-stop-kind"><option value="iterations" selected>Given iterations n</option><option value="epsilon">Given tolerance epsilon</option></select></label>
-            <label>Stopping value (n or epsilon)<input id="root-fpi-stop-value" type="text" value="4"></label>
-          </div>
-        </div>
-      </section>
-          </section>
-
-      <p id="root-error-msg" class="inline-error" role="alert" hidden></p>
-      <p id="root-status-msg" class="visually-hidden" role="status" aria-live="polite"></p>
-
-      <section id="root-empty" class="empty-state root-empty-state">
-        <p class="result-label">Ready when you are</p>
-        <h2>Pick a method, enter a function, and run the method.</h2>
-        <p class="input-hint">Results will appear here with the approximate root, stopping reason, diagnostics, graph, solution steps, and iteration table.</p>
-      </section>
-
-      <section id="root-result-stage" class="result-stage" hidden>
-        <section id="root-quiz-answer" class="root-quiz-answer root-answer-card" aria-label="Quiz-ready answer" tabindex="-1">
-          <p class="visually-hidden">Quiz-ready answer</p>
-          <div class="root-answer-main">
-            <p class="result-label">Approximate root</p>
-            <p id="root-approx" class="answer-value">Not calculated yet</p>
-            <p class="root-answer-method">Method: <strong id="root-active-method">Not calculated yet</strong></p>
-          </div>
-          <div class="root-answer-context">
-            <div class="root-result-insight">
-              <p class="result-label">Stopping result</p>
-              <p id="root-stopping-result" class="answer-value">Not calculated yet</p>
-            </div>
-            <div class="root-result-insight">
-              <p class="result-label">Stopping parameters</p>
-              <p id="root-convergence" class="answer-value">Not calculated yet</p>
-            </div>
-            <div class="root-result-insight">
-              <p class="result-label">Final metric</p>
-              <p id="root-final-metric" class="answer-value">Not calculated yet</p>
-            </div>
-          </div>
-          <div class="root-answer-guidance">
-            <div>
-              <p class="result-label">What this means</p>
-              <p id="root-interpretation">Run the method to see a short interpretation.</p>
-            </div>
-            <div>
-              <p class="result-label">Try next</p>
-              <p id="root-next-action">Run the method to see the next recommended action.</p>
-            </div>
-          </div>
-        </section>
-        <section id="root-evidence-stack" class="root-evidence-stack root-academic-paper" aria-label="Evidence and solution trace" tabindex="-1">
-          <div class="root-section-heading">
-            <p class="result-label">3 · Evidence</p>
-            <h2 id="root-evidence-heading">Evidence</h2>
-            <p>Use these details when you need diagnostics, graph behavior, solution steps, or the full iteration table.</p>
-          </div>
-          <div id="root-diagnostics" class="root-diagnostics" role="status" aria-live="polite" hidden></div>
-          <div id="root-bracket-panel" class="comparison-grid comparison-grid-board" hidden>
-            <div class="answer-hero"><p class="result-label">Interval status</p><p id="root-interval-status" class="answer-value">Not calculated yet</p></div>
-            <div class="answer-hero"><p class="result-label">Initial sign analysis</p><p id="root-sign-summary" class="answer-value">Not calculated yet</p></div>
-            <div class="answer-hero"><p class="result-label">Decision basis</p><p id="root-decision-summary" class="answer-value">Not calculated yet</p></div>
-          </div>
-          <div id="root-convergence-graph" class="root-convergence-graph" aria-label="Convergence graph"></div>
-          <p id="root-rate-summary" class="focus-note root-rate-summary"></p>
-          <section class="root-solution-panel answer-hero" aria-label="Solution steps">
-            <div class="root-solution-header">
-              <h2>Solution steps</h2>
-              <button id="root-copy-solution" type="button" class="link">Copy solution</button>
-            </div>
-            <ol id="root-solution-steps" class="root-solution-steps"></ol>
-            <p id="root-copy-status" class="focus-note" role="status" aria-live="polite"></p>
-          </section>
-          <div class="root-iteration-table-wrap">
-            <table class="root-iteration-table">
-              <thead id="root-iteration-thead"></thead>
-              <tbody id="root-iteration-body"></tbody>
-            </table>
-          </div>
-        </section>
-        </section>
-        </div>
-      </div>
-      </section>
-    </div>
     </div>
   </main>
-
   <div id="symbol-popover" class="symbol-popover" aria-label="Math symbols" hidden>
-    <button type="button" class="symbol-btn" data-symbol-insert="pi" aria-label="Insert pi">pi</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="e" aria-label="Insert Euler number">e</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="x" aria-label="Insert x">x</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="sqrt(" aria-label="Insert square root">sqrt(</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="sin(" aria-label="Insert sine">sin(</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="cos(" aria-label="Insert cosine">cos(</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="tan(" aria-label="Insert tangent">tan(</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="log(" aria-label="Insert logarithm">log(</button>
-    <button type="button" class="symbol-btn" data-symbol-insert="e^(" aria-label="Insert e to a power">e^(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="pi">pi</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="e">e</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="x">x</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="sqrt(">sqrt(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="sin(">sin(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="cos(">cos(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="tan(">tan(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="log(">log(</button>
+    <button type="button" class="symbol-btn" data-symbol-insert="e^(">e^(</button>
   </div>
-
   <script defer src="../math-engine.js?v=roots-v1"></script>
   <script defer src="../calc-engine.js?v=roots-v1"></script>
   <script defer src="../expression-engine.js?v=roots-v1"></script>
