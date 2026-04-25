@@ -1,5 +1,7 @@
 import type {
   AngleMode,
+  FixedPointCandidate,
+  FixedPointCandidateRun,
   DecisionBasis,
   MachineMode,
   MethodFormState,
@@ -108,6 +110,27 @@ export function runRootMethod(
     default:
       throw new Error(`Unsupported root method: ${method}`);
   }
+}
+
+export function runFixedPointCandidates(
+  candidates: FixedPointCandidate[],
+  baseFields: MethodFormState,
+  angleMode: AngleMode,
+): FixedPointCandidateRun[] {
+  return candidates.map((candidate) => {
+    try {
+      const result = runFixedPoint(
+        {
+          ...baseFields,
+          'root-fpi-expression': candidate.expression,
+        },
+        angleMode,
+      );
+      return { candidate, result };
+    } catch (error) {
+      return { candidate, result: null, errorMessage: errorMessage(error) };
+    }
+  });
 }
 
 export function errorMessage(error: unknown): string {

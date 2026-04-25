@@ -184,3 +184,58 @@ export interface WorkbenchStatus {
   kind: 'idle' | 'loading' | 'ready' | 'error';
   message: string;
 }
+
+export interface FixedPointCandidate {
+  id: string;
+  label: string;
+  expression: string;
+}
+
+export interface FixedPointRankingBlock {
+  targetLabel: string;
+  targetValue?: number;
+  initialValue: string;
+  candidates: FixedPointCandidate[];
+}
+
+export interface RootPreset {
+  id: string;
+  label: string;
+  group: string;
+  method: RootMethod;
+  fields: MethodFormState;
+  description: string;
+  guardedFieldIds: string[];
+  ranking?: FixedPointRankingBlock;
+}
+
+export type FixedPointOutcomeKind =
+  | 'convergent'
+  | 'diverged'
+  | 'cycle'
+  | 'stalled'
+  | 'undefined'
+  | 'other';
+
+export interface FixedPointCandidateRun {
+  candidate: FixedPointCandidate;
+  result: RootRunResult | null;
+  errorMessage?: string;
+}
+
+export interface FixedPointComparisonRow {
+  candidate: FixedPointCandidate;
+  outcome: FixedPointOutcomeKind;
+  rank: number | null;
+  iterations: number;
+  finalValue: unknown | null;
+  finalStep: unknown | null;
+  stopReason: string | null;
+  note: string;
+}
+
+export interface FixedPointComparisonResult {
+  targetLabel: string;
+  initialValue: string;
+  rows: FixedPointComparisonRow[];
+}

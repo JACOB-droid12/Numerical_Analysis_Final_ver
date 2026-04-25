@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { METHOD_CONFIGS, createDefaultFormState } from '../config/methods';
+import { PRESET_BY_ID, ROOT_PRESETS, populationZeroWarning } from '../config/presets';
+import { buildFixedPointComparison } from '../lib/fixedPointComparison';
 import { loadLegacyEngines } from '../lib/legacyEngineLoader';
-import { errorMessage, runRootMethod } from '../lib/rootEngineAdapter';
+import { errorMessage, runFixedPointCandidates, runRootMethod } from '../lib/rootEngineAdapter';
 import type {
   AngleMode,
   DisplayedRunState,
+  FixedPointComparisonResult,
   MethodFormState,
   RootMethod,
   RunRequestSnapshot,
@@ -75,6 +78,8 @@ export function useRootsWorkbench() {
   const [engineErrorMessage, setEngineErrorMessage] = useState('');
   const [workbenchStatus, setWorkbenchStatus] = useState<WorkbenchStatus>(READY_STATUS);
   const [evidenceExpanded, setEvidenceExpanded] = useState(true);
+  const [selectedPresetId, setSelectedPresetId] = useState('');
+  const [comparisonResult, setComparisonResult] = useState<FixedPointComparisonResult | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,6 +143,15 @@ export function useRootsWorkbench() {
     return METHOD_CONFIGS.find((config) => config.method === displayMethod) ?? METHOD_CONFIGS[0];
   }, [activeMethod, displayRun.run]);
   const methodConfigs = useMemo(() => METHOD_CONFIGS, []);
+  const presets = useMemo(() => ROOT_PRESETS, []);
+  const selectedPreset = useMemo(
+    () => (selectedPresetId ? PRESET_BY_ID.get(selectedPresetId) ?? null : null),
+    [selectedPresetId],
+  );
+  const presetWarning = useMemo(
+    () => populationZeroWarning(selectedPreset, selectedPreset ? forms[selectedPreset.method] : null),
+    [forms, selectedPreset],
+  );
   const status = useMemo<WorkbenchStatus>(() => {
     if (engineStatus === 'loading') {
       return LOADING_STATUS;
@@ -159,6 +173,7 @@ export function useRootsWorkbench() {
       }));
       setWorkbenchStatus(INPUTS_CHANGED_STATUS);
       setEvidenceExpanded(false);
+      setComparisonResult(null);
     },
     [],
   );
@@ -174,6 +189,7 @@ export function useRootsWorkbench() {
       setLastRun({ result, request });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
       setEvidenceExpanded(true);
+      setComparisonResult(null);
     } catch (error) {
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
@@ -183,11 +199,14 @@ export function useRootsWorkbench() {
   const toggleAngleMode = useCallback(() => {
     setAngleMode((current) => (current === 'deg' ? 'rad' : 'deg'));
     setEvidenceExpanded(false);
+    setComparisonResult(null);
     setWorkbenchStatus(ANGLE_MODE_CHANGED_STATUS);
   }, []);
 
   const setMethod = useCallback((method: RootMethod) => {
     setActiveMethod(method);
+    setSelectedPresetId('');
+    setComparisonResult(null);
     setWorkbenchStatus(READY_STATUS);
     setEvidenceExpanded(false);
   }, []);
@@ -198,9 +217,60 @@ export function useRootsWorkbench() {
       [activeMethod]: createDefaultFormState()[activeMethod],
     }));
     setLastRun(null);
+    setSelectedPresetId('');
+    setComparisonResult(null);
     setWorkbenchStatus(READY_STATUS);
     setEvidenceExpanded(false);
   }, [activeMethod]);
+
+  const applyPreset = useCallback((presetId: string) => {
+    const presetItem = PRESET_BY_ID.get(presetId);
+    if (!presetItem) {
+      setSelectedPresetId('');
+      setWorkbenchStatus(READY_STATUS);
+      return;
+    }
+
+    setForms((current) => ({
+      ...current,
+      [presetItem.method]: {
+        ...current[presetItem.method],
+        ...presetItem.fields,
+      },
+    }));
+    setActiveMethod(presetItem.method);
+    setSelectedPresetId(presetItem.id);
+    setLastRun(null);
+    setComparisonResult(null);
+    setEvidenceExpanded(false);
+    setWorkbenchStatus({
+      kind: 'ready',
+      message: `${presetItem.label} loaded. Review values, then run the method.`,
+    });
+  }, []);
+
+  const runFixedPointRanking = useCallback(() => {
+    if (engineStatus !== 'ready' || activeMethod !== 'fixedPoint' || !selectedPreset?.ranking) {
+      return;
+    }
+
+    try {
+      const request = createRequestSnapshot(activeMethod, forms, angleMode);
+      const result = runRootMethod(activeMethod, forms.fixedPoint, angleMode);
+      const candidateRuns = runFixedPointCandidates(
+        selectedPreset.ranking.candidates,
+        forms.fixedPoint,
+        angleMode,
+      );
+      setLastRun({ result, request });
+      setComparisonResult(buildFixedPointComparison(selectedPreset.ranking, candidateRuns));
+      setWorkbenchStatus({ kind: 'ready', message: 'Fixed-point ranking ready.' });
+      setEvidenceExpanded(true);
+    } catch (error) {
+      setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
+      setComparisonResult(null);
+    }
+  }, [activeMethod, angleMode, engineStatus, forms.fixedPoint, selectedPreset]);
 
   const runs = useMemo<Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>>(() => {
     if (!lastRun || displayRun.freshness !== 'current') {
@@ -218,18 +288,25 @@ export function useRootsWorkbench() {
     activeMethod,
     activeRun,
     angleMode,
+    applyPreset,
+    comparisonResult,
     displayConfig,
     displayRun,
     evidenceExpanded,
     forms,
     methodConfigs,
+    presetWarning,
+    presets,
     runs,
     setEvidenceExpanded,
     setMethod,
     resetActiveMethod,
     status,
+    selectedPreset,
+    selectedPresetId,
     toggleAngleMode,
     updateField,
     runActiveMethod,
+    runFixedPointRanking,
   };
 }

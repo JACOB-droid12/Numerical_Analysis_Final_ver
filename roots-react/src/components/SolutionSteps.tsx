@@ -9,6 +9,22 @@ interface SolutionStepsProps {
 
 type CopyStatus = 'idle' | 'success' | 'error';
 
+function formulaForRun(run: RootRunResult) {
+  if (run.method === 'bisection') {
+    return { label: 'Bisection midpoint formula:', formula: 'p_n = (a_n + b_n) / 2' };
+  }
+  if (run.method === 'falsePosition') {
+    return { label: 'False position formula:', formula: 'p_n = b_n - f(b_n)(b_n - a_n) / (f(b_n) - f(a_n))' };
+  }
+  if (run.method === 'secant') {
+    return { label: 'Secant iteration formula:', formula: 'x_(n+1) = x_n - f(x_n)(x_n - x_(n-1)) / (f(x_n) - f(x_(n-1)))' };
+  }
+  if (run.method === 'fixedPoint') {
+    return { label: 'Fixed-point iteration formula:', formula: 'p_(n+1) = g(p_n)' };
+  }
+  return { label: 'Newton-Raphson iteration formula:', formula: "x_(n+1) = x_n - f(x_n) / f'(x_n)" };
+}
+
 async function copyText(text: string): Promise<boolean> {
   if (navigator.clipboard?.writeText) {
     try {
@@ -40,6 +56,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
   const timerRef = useRef<number | null>(null);
   const steps = useMemo(() => buildSolutionSteps(run), [run]);
   const copyPayload = useMemo(() => solutionText(run), [run]);
+  const formula = useMemo(() => formulaForRun(run), [run]);
   const copyDisabled = !copyPayload;
 
   useEffect(
@@ -65,8 +82,8 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           <h2 className="section-kicker">
             Solution steps (Derivation)
           </h2>
-          <p className="mt-3 text-sm text-[var(--ink)]">Newton-Raphson iteration formula:</p>
-          <p className="mt-2 font-serif text-lg italic">x<sub>n+1</sub> = x<sub>n</sub> − f(x<sub>n</sub>) / f′(x<sub>n</sub>)</p>
+          <p className="mt-3 text-sm text-[var(--ink)]">{formula.label}</p>
+          <p className="mt-2 font-serif text-lg italic">{formula.formula}</p>
         </div>
         <button
           type="button"

@@ -5,13 +5,23 @@ import type { WorkbenchStatus } from '../types/roots';
 
 interface RunControlsProps {
   disabled: boolean;
+  rankingAvailable?: boolean;
   runLabel: string;
   status: WorkbenchStatus;
   onRun: () => void;
   onReset: () => void;
+  onRunRanking?: () => void;
 }
 
-export function RunControls({ disabled, runLabel, status, onRun, onReset }: RunControlsProps) {
+export function RunControls({
+  disabled,
+  rankingAvailable = false,
+  runLabel,
+  status,
+  onRun,
+  onReset,
+  onRunRanking,
+}: RunControlsProps) {
   const isError = status.kind === 'error';
   const isLoading = status.kind === 'loading';
   const isDisabled = disabled || isLoading;
@@ -37,6 +47,18 @@ export function RunControls({ disabled, runLabel, status, onRun, onReset }: RunC
         <RotateCcw aria-hidden="true" className="size-4" />
         Reset
       </Button>
+      {rankingAvailable ? (
+        <Button
+          variant="secondary"
+          className="run-ranking"
+          disabled={isDisabled}
+          onClick={() => {
+            if (!isDisabled) onRunRanking?.();
+          }}
+        >
+          Run fixed-point ranking
+        </Button>
+      ) : null}
       <p
         className={[
           'status-text',

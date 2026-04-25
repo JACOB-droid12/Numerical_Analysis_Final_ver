@@ -1,16 +1,25 @@
 import { ConvergenceGraph } from './ConvergenceGraph';
+import { FixedPointRankingPanel } from './FixedPointRankingPanel';
 import { IterationTable } from './IterationTable';
 import { SolutionSteps } from './SolutionSteps';
-import type { MethodConfig, RootRunResult } from '../types/roots';
+import { StoppingCheckPanel } from './StoppingCheckPanel';
+import type { FixedPointComparisonResult, MethodConfig, RootRunResult } from '../types/roots';
 
 interface EvidencePanelProps {
   config: MethodConfig;
   contentId: string;
   expanded: boolean;
+  comparisonResult: FixedPointComparisonResult | null;
   run: RootRunResult | null;
 }
 
-export function EvidencePanel({ config, contentId, expanded, run }: EvidencePanelProps) {
+export function EvidencePanel({
+  config,
+  contentId,
+  expanded,
+  comparisonResult,
+  run,
+}: EvidencePanelProps) {
   if (!run || !expanded) {
     return null;
   }
@@ -30,6 +39,8 @@ export function EvidencePanel({ config, contentId, expanded, run }: EvidencePane
         <ConvergenceGraph run={run} />
         <SolutionSteps run={run} />
         <IterationTable config={config} run={run} />
+        <StoppingCheckPanel run={run} />
+        {comparisonResult ? <FixedPointRankingPanel result={comparisonResult} /> : null}
       </div>
     </section>
   );

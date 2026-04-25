@@ -301,6 +301,24 @@ export function answerText(run: RootRunResult | null): string {
   ].join('\n');
 }
 
+function sentenceMethodLabel(method: RootMethod): string {
+  if (method === 'newton') return 'the Newton-Raphson method';
+  if (method === 'falsePosition') return 'the false position method';
+  if (method === 'fixedPoint') return 'fixed-point iteration';
+  return `the ${methodLabel(method).toLowerCase()} method`;
+}
+
+export function finalAnswerParagraph(run: RootRunResult | null): string {
+  if (!run?.summary) return '';
+  const expression = run.canonical || run.expression || 'the entered expression';
+  const approximation = formatValue(run.summary.approximation, 18);
+  const iterations = run.rows?.length ?? run.stopping?.actualIterations ?? 0;
+  const iterationText = `${iterations} iteration${iterations === 1 ? '' : 's'}`;
+  const stop = stopReasonLabel(run.summary.stopReason, run.method);
+
+  return `Using ${sentenceMethodLabel(run.method)} on ${expression}, the approximate solution is x = ${approximation} after ${iterationText}. The stopping condition was satisfied because ${stop.toLowerCase()}; ${stoppingText(run)}.`;
+}
+
 export function solutionText(run: RootRunResult | null): string {
   if (!run) return '';
   const steps = solutionSteps(run);
@@ -401,28 +419,43 @@ export function tableValuesForRow(
   run?: Pick<RootRunResult, 'signDisplay'> | null,
 ): string[] {
   if (method === 'bisection' || method === 'falsePosition') {
+    const interval = bracketDecisionText(row.decision);
+    const bracketValues = [
+      String(row.iteration),
+      formatValue(row.a),
+      formatValue(row.b),
+      formatValue(row.c),
+      formatBracketPoint(row.fc, run?.signDisplay ?? 'both', 12),
+      bracketSignsText(row, run?.signDisplay ?? 'both'),
+      interval,
+      formatValue(row.error),
+      String(row.note ?? ''),
+    ];
+    if (method === 'falsePosition') return bracketValues;
+
     return [
       String(row.iteration),
       formatValue(row.a),
       formatValue(row.b),
       formatValue(row.c),
-      formatBracketPoint(row.fa, run?.signDisplay ?? 'both', 12),
-      formatBracketPoint(row.fb, run?.signDisplay ?? 'both', 12),
       formatBracketPoint(row.fc, run?.signDisplay ?? 'both', 12),
       bracketSignsText(row, run?.signDisplay ?? 'both'),
-      bracketDecisionText(row.decision),
-      formatValue(row.width),
+      interval,
       formatValue(row.bound),
       formatValue(row.error),
       String(row.note ?? ''),
     ];
   }
   if (method === 'newton') {
+    const fxn = typeof row.fxn === 'number' ? row.fxn : null;
+    const dfxn = typeof row.dfxn === 'number' ? row.dfxn : null;
+    const correction = fxn != null && dfxn != null && dfxn !== 0 ? fxn / dfxn : null;
     return [
       String(row.iteration),
       formatValue(row.xn),
       formatValue(row.fxn),
       formatValue(row.dfxn),
+      formatValue(correction),
       formatValue(row.xNext),
       formatValue(row.error),
       String(row.note ?? ''),

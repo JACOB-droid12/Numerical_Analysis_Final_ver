@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, X } from 'lucide-react';
 
-import { answerText, formatValue, methodLabel } from '../lib/resultFormatters';
+import { answerText, finalAnswerParagraph, formatValue, methodLabel } from '../lib/resultFormatters';
 import type { RootRunResult, RunFreshness } from '../types/roots';
 
 interface AnswerPanelProps {
@@ -73,9 +73,11 @@ function freshnessNote(freshness: RunFreshness, staleReason: string | null): str
 
 export function AnswerPanel({ run, freshness = 'current', staleReason = null }: AnswerPanelProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
+  const [showFinalParagraph, setShowFinalParagraph] = useState(false);
   const timerRef = useRef<number | null>(null);
 
   const copyPayload = useMemo(() => answerText(run), [run]);
+  const paragraph = useMemo(() => finalAnswerParagraph(run), [run]);
 
   useEffect(
     () => () => {
@@ -166,6 +168,18 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
       </div>
       {summary?.stopDetail ? (
         <p className="mt-3 text-xs leading-5 muted-copy">{freshnessNote(freshness, staleReason)} {summary.stopDetail}</p>
+      ) : null}
+      {paragraph ? (
+        <div className="final-answer-block">
+          <button
+            type="button"
+            className="copy-icon-button final-answer-button"
+            onClick={() => setShowFinalParagraph((current) => !current)}
+          >
+            {showFinalParagraph ? 'Hide final answer' : 'Format final answer'}
+          </button>
+          {showFinalParagraph ? <p>{paragraph}</p> : null}
+        </div>
       ) : null}
     </section>
   );

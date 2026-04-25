@@ -8,6 +8,7 @@ import { EmptyState } from './components/EmptyState';
 import { EvidencePanel } from './components/EvidencePanel';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
+import { PresetSelector } from './components/PresetSelector';
 import { RunControls } from './components/RunControls';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 
@@ -18,12 +19,19 @@ export default function App() {
     activeForm,
     activeMethod,
     angleMode,
+    applyPreset,
+    comparisonResult,
     displayConfig,
     displayRun,
     evidenceExpanded,
     methodConfigs,
+    presetWarning,
+    presets,
     resetActiveMethod,
     runActiveMethod,
+    runFixedPointRanking,
+    selectedPreset,
+    selectedPresetId,
     setMethod,
     status,
     toggleAngleMode,
@@ -67,6 +75,12 @@ export default function App() {
 
           <section className="console-grid">
             <section id="equation-studio" className="equation-studio" aria-label="Equation studio">
+              <PresetSelector
+                presets={presets}
+                selectedPresetId={selectedPresetId}
+                warning={presetWarning}
+                onSelect={applyPreset}
+              />
               <MethodForm
                 config={activeConfig}
                 formState={activeForm}
@@ -74,10 +88,14 @@ export default function App() {
               />
               <RunControls
                 disabled={status.kind === 'loading'}
+                rankingAvailable={Boolean(
+                  selectedPreset?.ranking && activeMethod === 'fixedPoint',
+                )}
                 runLabel={activeConfig.runLabel}
                 status={status}
                 onRun={runActiveMethod}
                 onReset={resetActiveMethod}
+                onRunRanking={runFixedPointRanking}
               />
             </section>
 
@@ -106,6 +124,7 @@ export default function App() {
               <EvidencePanel
                 config={displayConfig}
                 contentId={fullWorkRegionId}
+                comparisonResult={comparisonResult}
                 expanded={evidenceExpanded}
                 run={displayedRun}
               />

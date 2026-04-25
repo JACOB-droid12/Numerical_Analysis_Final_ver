@@ -49,7 +49,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     expressionLabel: 'f(x)',
     expressionFieldId: 'root-bis-expression',
     runLabel: 'Run bisection',
-    tableHeaders: ['i', 'a', 'b', 'c', 'f(a)', 'f(b)', 'f(c)', 'Signs', 'Decision', 'Width', 'Bound', 'Error', 'Note'],
+    tableHeaders: ['n', 'a_n', 'b_n', 'p_n', 'f(p_n)', 'Signs', 'Kept interval', 'Bound', 'Error', 'Note'],
     fields: [
       { id: 'root-bis-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
       { id: 'root-bis-a', label: 'a', kind: 'text', defaultValue: '1' },
@@ -101,7 +101,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     expressionLabel: 'f(x)',
     expressionFieldId: 'root-newton-expression',
     runLabel: 'Run Newton-Raphson',
-    tableHeaders: ['i', 'xn', 'f(xn)', "f'(xn)", 'x next', 'Error', 'Note'],
+    tableHeaders: ['n', 'x_n', 'f(x_n)', "f'(x_n)", "Correction f/f'", 'x_(n+1)', 'Error', 'Note'],
     fields: [
       { id: 'root-newton-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
       { id: 'root-newton-df', label: "f'(x)", kind: 'text', defaultValue: '2x', placeholder: '3x^2 - 1' },
@@ -119,7 +119,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     expressionLabel: 'f(x)',
     expressionFieldId: 'root-secant-expression',
     runLabel: 'Run secant',
-    tableHeaders: ['i', 'x prev', 'xn', 'f(x prev)', 'f(xn)', 'x next', 'Error', 'Note'],
+    tableHeaders: ['n', 'x_(n-1)', 'x_n', 'f(x_(n-1))', 'f(x_n)', 'x_(n+1)', 'Error', 'Note'],
     fields: [
       { id: 'root-secant-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
       { id: 'root-secant-x0', label: 'x0', kind: 'text', defaultValue: '1' },
@@ -137,7 +137,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     expressionLabel: 'f(x)',
     expressionFieldId: 'root-fp-expression',
     runLabel: 'Run false position',
-    tableHeaders: ['i', 'a', 'b', 'c', 'f(a)', 'f(b)', 'f(c)', 'Signs', 'Decision', 'Width', 'Target epsilon', 'Error', 'Note'],
+    tableHeaders: ['n', 'a_n', 'b_n', 'p_n', 'f(p_n)', 'Signs', 'Retained interval', 'Error', 'Note'],
     fields: [
       { id: 'root-fp-expression', label: 'f(x)', kind: 'text', defaultValue: 'x^2 - 2', placeholder: 'x^3 - x - 1' },
       { id: 'root-fp-a', label: 'a', kind: 'text', defaultValue: '1' },
@@ -178,7 +178,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     expressionLabel: 'g(x)',
     expressionFieldId: 'root-fpi-expression',
     runLabel: 'Run fixed-point iteration',
-    tableHeaders: ['i', 'xn', 'g(xn)', 'Error', 'Note'],
+    tableHeaders: ['n', 'p_n', 'g(p_n)', '|p_n - p_(n-1)|', 'Note'],
     fields: [
       { id: 'root-fpi-expression', label: 'g(x)', kind: 'text', defaultValue: 'cos(x)', placeholder: 'cos(x)' },
       { id: 'root-fpi-x0', label: 'x0', kind: 'text', defaultValue: '1' },
