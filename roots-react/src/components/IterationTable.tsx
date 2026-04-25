@@ -6,9 +6,32 @@ interface IterationTableProps {
   run: RootRunResult;
 }
 
+function csvCell(value: string) {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
 export function IterationTable({ config, run }: IterationTableProps) {
   const rows = run.rows ?? [];
   const tableCaption = `${config.shortLabel} iteration table showing ${rows.length} row${rows.length === 1 ? '' : 's'} with ${config.tableHeaders.length} columns.`;
+  const downloadCsv = () => {
+    if (!rows.length) return;
+
+    const body = rows.map((row) => {
+      const values = tableValuesForRow(run.method, row, run);
+      const alignedValues = Array.from({ length: config.tableHeaders.length }, (_, cellIndex) =>
+        values[cellIndex] ?? '',
+      );
+      return alignedValues.map(csvCell).join(',');
+    });
+    const csv = [config.tableHeaders.map(csvCell).join(','), ...body].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${config.shortLabel.toLowerCase().replace(/\s+/g, '-')}-iterations.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <section className="iteration-panel">
@@ -16,7 +39,14 @@ export function IterationTable({ config, run }: IterationTableProps) {
         <h2 className="section-kicker">
           Iteration table
         </h2>
-        <button type="button" className="copy-icon-button h-8 w-auto px-3 text-xs">Download CSV</button>
+        <button
+          type="button"
+          className="copy-icon-button h-8 w-auto px-3 text-xs"
+          disabled={!rows.length}
+          onClick={downloadCsv}
+        >
+          Download CSV
+        </button>
       </div>
 
       {rows.length ? (

@@ -2,26 +2,33 @@
 
 :root {
   color-scheme: light;
-  --canvas: #f7f8f5;
-  --surface: #fcfcf8;
-  --surface-raised: #fffffb;
-  --surface-muted: #eef0eb;
-  --ink: #171817;
-  --text: #171817;
-  --muted: #646964;
-  --quiet: #8b918b;
-  --line: #e0e4dd;
-  --line-strong: #c9d0c6;
-  --action-blue: #1f6feb;
-  --action-blue-strong: #1557c0;
-  --green: #16855f;
+  --canvas: oklch(97.6% 0.008 128);
+  --surface: oklch(98.7% 0.008 118);
+  --surface-raised: oklch(99.4% 0.006 118);
+  --surface-muted: oklch(94.5% 0.01 128);
+  --ink: oklch(20.2% 0.008 150);
+  --text: oklch(20.2% 0.008 150);
+  --muted: oklch(48.5% 0.013 150);
+  --quiet: oklch(63% 0.012 150);
+  --line: oklch(89% 0.011 128);
+  --line-strong: oklch(82.5% 0.014 128);
+  --action-blue: oklch(54.5% 0.2 260);
+  --action-blue-strong: oklch(45% 0.19 260);
+  --green: oklch(52% 0.13 160);
   --green-soft: rgba(22, 133, 95, 0.1);
-  --orange: #c66a18;
+  --orange: oklch(59% 0.15 58);
   --orange-soft: rgba(198, 106, 24, 0.1);
-  --red: #c23934;
-  --clay: #a86500;
+  --red: oklch(55% 0.17 28);
+  --clay: oklch(55% 0.12 74);
   --focus-ring: rgba(31, 111, 235, 0.14);
   --shadow-surface: 0 1px 2px rgba(23, 24, 23, 0.05), 0 12px 30px -18px rgba(23, 24, 23, 0.22);
+  --graph-bg: var(--surface);
+  --graph-grid: var(--line);
+  --graph-axis: var(--line-strong);
+  --diagnostic-bg: color-mix(in oklch, var(--surface-muted) 58%, transparent);
+  --diagnostic-strong-bg: color-mix(in oklch, var(--surface-muted) 72%, transparent);
+  --warning-border: color-mix(in oklch, var(--red) 45%, var(--line));
+  --warning-bg: color-mix(in oklch, var(--red) 10%, transparent);
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -30,6 +37,36 @@
   --space-2xl: 32px;
   --space-3xl: 48px;
   font-family: "Inter", "SF Pro Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: oklch(18% 0.012 155);
+    --surface: oklch(23.5% 0.012 155);
+    --surface-raised: oklch(27% 0.012 155);
+    --surface-muted: oklch(31% 0.012 155);
+    --ink: oklch(94% 0.007 130);
+    --text: oklch(94% 0.007 130);
+    --muted: oklch(74% 0.012 145);
+    --quiet: oklch(63% 0.012 145);
+    --line: oklch(36% 0.014 155);
+    --line-strong: oklch(45% 0.014 155);
+    --action-blue: oklch(68% 0.15 258);
+    --action-blue-strong: oklch(75% 0.13 258);
+    --green: oklch(70% 0.12 158);
+    --green-soft: color-mix(in oklch, var(--green) 18%, transparent);
+    --orange: oklch(74% 0.13 65);
+    --orange-soft: color-mix(in oklch, var(--orange) 18%, transparent);
+    --red: oklch(69% 0.15 28);
+    --clay: oklch(72% 0.11 74);
+    --focus-ring: color-mix(in oklch, var(--action-blue) 25%, transparent);
+    --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.28), 0 18px 42px -22px rgba(0, 0, 0, 0.72);
+    --diagnostic-bg: color-mix(in oklch, var(--surface-muted) 46%, transparent);
+    --diagnostic-strong-bg: color-mix(in oklch, var(--surface-muted) 60%, transparent);
+    --warning-border: color-mix(in oklch, var(--red) 52%, var(--line));
+    --warning-bg: color-mix(in oklch, var(--red) 16%, transparent);
+  }
 }
 
 *,
@@ -45,7 +82,8 @@ html {
 
 body {
   margin: 0;
-  min-width: 320px;
+  width: 100%;
+  min-width: 0;
   min-height: 100vh;
   background: var(--canvas);
   color: var(--text);
@@ -120,8 +158,9 @@ a:focus-visible {
   border-radius: 10px;
   background: var(--surface-raised);
   color: var(--action-blue);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
   font-size: 1rem;
-  font-weight: 760;
+  font-weight: 650;
   box-shadow: var(--shadow-surface);
 }
 
@@ -184,7 +223,7 @@ a:focus-visible {
   transform: scale(0.99);
 }
 
-.method-tab[aria-pressed="true"] {
+.method-tab[aria-checked="true"] {
   border-color: rgba(31, 111, 235, 0.38);
   background: rgba(31, 111, 235, 0.08);
   box-shadow: inset 0 0 0 1px rgba(31, 111, 235, 0.14);
@@ -214,23 +253,19 @@ a:focus-visible {
   line-height: 1.15;
 }
 
-.system-ready {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin: auto 0 0;
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.82rem;
+
+.diagnostic-panel,
+.diagnostic-tile {
+  background: var(--diagnostic-bg);
 }
 
-.system-ready span {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--green);
-  box-shadow: 0 0 0 4px var(--green-soft);
+.diagnostic-panel.compact {
+  background: var(--diagnostic-strong-bg);
+}
+
+.warning-item {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
 }
 
 .workbench-main {
@@ -243,7 +278,7 @@ a:focus-visible {
   align-items: start;
   justify-content: space-between;
   gap: var(--space-xl);
-  padding-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
 }
 
 .top-command h1 {
@@ -263,12 +298,11 @@ a:focus-visible {
   padding-top: var(--space-xs);
 }
 
-.top-command button,
 .angle-toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
-  min-height: 38px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-raised);
@@ -279,7 +313,6 @@ a:focus-visible {
   transition: background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.top-command button:hover,
 .angle-toggle:hover {
   border-color: var(--line-strong);
   background: var(--surface-muted);
@@ -290,10 +323,6 @@ a:focus-visible {
   width: 16px;
   height: 16px;
   stroke-width: 1.8;
-}
-
-.quick-command {
-  color: var(--action-blue) !important;
 }
 
 .console-grid {
@@ -424,8 +453,8 @@ a:focus-visible {
 }
 
 .symbol-chip {
-  min-width: 42px;
-  min-height: 32px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -483,7 +512,7 @@ a:focus-visible {
 
 .field-control {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-raised);
@@ -514,7 +543,7 @@ a:focus-visible {
 .segment {
   display: grid;
   overflow: hidden;
-  min-height: 36px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-raised);
@@ -529,7 +558,11 @@ a:focus-visible {
 }
 
 .stepper button,
+.stepper output,
 .segment button {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
   border: 0;
   border-left: 1px solid var(--line);
   background: transparent;
@@ -620,11 +653,16 @@ a:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.answer-root--stale {
+  color: var(--muted);
+  opacity: 0.78;
+}
+
 .copy-icon-button {
   display: grid;
   place-items: center;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-raised);
@@ -666,6 +704,30 @@ a:focus-visible {
   border-radius: 999px;
   background: currentColor;
   content: "";
+}
+
+.status-pill--stale {
+  border-color: color-mix(in oklch, var(--clay), transparent 60%);
+  background: color-mix(in oklch, var(--clay), transparent 88%);
+  color: var(--clay);
+}
+
+.rerun-button {
+  display: inline;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: var(--action-blue);
+  font-size: 0.86rem;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: transparent;
+}
+
+.rerun-button:hover {
+  text-decoration-color: currentColor;
 }
 
 .confidence-grid {
@@ -758,6 +820,11 @@ a:focus-visible {
 .evidence-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.95fr) minmax(260px, 0.8fr) minmax(420px, 1.35fr);
+}
+
+.copy-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .evidence-grid > section {
@@ -896,7 +963,7 @@ a:focus-visible {
 .iteration-panel .copy-icon-button {
   width: auto;
   min-width: 112px;
-  min-height: 34px;
+  min-height: 44px;
 }
 
 .iteration-table thead th {
@@ -924,6 +991,19 @@ a:focus-visible {
 .numeric-value {
   font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
   font-variant-numeric: tabular-nums;
+}
+
+.formula-line {
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--ink);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-muted);
+  border-radius: 8px;
+  display: inline-block;
+  margin-top: var(--space-xs);
 }
 
 .muted-copy {

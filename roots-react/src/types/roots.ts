@@ -124,6 +124,8 @@ export interface RootRunResult {
   signDisplay?: SignDisplay | null;
   rows?: IterationRow[];
   warnings?: RootWarning[];
+  /** Unix ms timestamp set when the engine produces this result. */
+  completedAt?: number;
   [key: string]: unknown;
 }
 

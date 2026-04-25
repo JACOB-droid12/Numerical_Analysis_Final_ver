@@ -1,5 +1,4 @@
 import { useId } from 'react';
-import { CircleHelp, Command } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
@@ -41,12 +40,36 @@ export default function App() {
   const displayedRun = displayRun.run;
   const hasRun = displayedRun !== null;
 
+  const emptyDigitsField = activeConfig.fields.find(f => f.id.endsWith('-k'));
+  const emptyModeField = activeConfig.fields.find(f => f.id.endsWith('-mode'));
+  const emptyStopKindField = activeConfig.fields.find(f => f.id.endsWith('-stop-kind'));
+  const emptyStopValueField = activeConfig.fields.find(f => f.id.endsWith('-stop-value'));
+
+  const emptyDigits = emptyDigitsField
+    ? (activeForm[emptyDigitsField.id] ?? emptyDigitsField.defaultValue)
+    : null;
+
+  const emptyModeRaw = emptyModeField
+    ? (activeForm[emptyModeField.id] ?? emptyModeField.defaultValue)
+    : null;
+  const emptyRounding = emptyModeRaw && emptyModeField?.options
+    ? (emptyModeField.options.find(o => o.value === emptyModeRaw)?.label ?? emptyModeRaw)
+    : emptyModeRaw;
+
+  const emptyStopKind = emptyStopKindField
+    ? (activeForm[emptyStopKindField.id] ?? emptyStopKindField.defaultValue)
+    : null;
+
+  const emptyStopValue = emptyStopValueField
+    ? (activeForm[emptyStopValueField.id] ?? emptyStopValueField.defaultValue)
+    : null;
+
   return (
     <main className="app-shell">
       <div className="workbench-frame">
         <aside className="method-rail" aria-label="Root method picker">
           <div className="rail-head">
-            <span className="brand-mark" aria-hidden="true">R</span>
+            <span className="brand-mark" aria-hidden="true">f(x)</span>
             <div>
               <p className="rail-title">Roots</p>
               <p className="rail-subtitle">One method active</p>
@@ -57,7 +80,6 @@ export default function App() {
             methods={methodConfigs}
             onSelect={setMethod}
           />
-          <p className="system-ready"><span /> Engine ready</p>
         </aside>
 
         <div className="workbench-main">
@@ -68,8 +90,6 @@ export default function App() {
             </div>
             <nav aria-label="Utility controls">
               <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-              <button type="button"><CircleHelp aria-hidden="true" /> Help</button>
-              <button type="button" className="quick-command"><Command aria-hidden="true" /> Quick Command</button>
             </nav>
           </header>
 
@@ -106,6 +126,7 @@ export default function App() {
                     run={displayedRun}
                     freshness={displayRun.freshness}
                     staleReason={displayRun.staleReason}
+                    onRerun={runActiveMethod}
                   />
                   <ConfidenceSummary
                     run={displayedRun}
@@ -114,7 +135,13 @@ export default function App() {
                   />
                 </>
               ) : (
-                <EmptyState />
+                <EmptyState
+                  digits={emptyDigits}
+                  rounding={emptyRounding}
+                  stopKind={emptyStopKind}
+                  stopValue={emptyStopValue}
+                  maxIterations={emptyStopValue}
+                />
               )}
             </aside>
           </section>

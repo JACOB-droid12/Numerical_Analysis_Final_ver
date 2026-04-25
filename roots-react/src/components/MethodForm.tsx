@@ -81,11 +81,12 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
 
       return (
         <label key={field.id} className={field.id === config.expressionFieldId ? 'expression-field' : 'field-row'}>
-          {field.id === config.expressionFieldId ? null : <span>{field.label}</span>}
+          <span className={field.id === config.expressionFieldId ? 'sr-only' : ''}>{field.label}</span>
           {field.kind === 'select' ? (
             <select
               id={fieldDomId}
               name={field.id}
+              aria-label={field.label}
               value={value}
               onChange={(event) => onChange(config.method, field.id, event.target.value)}
               className={commonClassName}
@@ -101,6 +102,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
               ref={field.id === config.expressionFieldId ? expressionRef : undefined}
               id={fieldDomId}
               name={field.id}
+              aria-label={field.label}
               type={field.kind === 'number' ? 'number' : 'text'}
               inputMode={field.kind === 'number' ? 'decimal' : undefined}
               value={value}
@@ -151,13 +153,17 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
               <div className="stepper" aria-label="Digit precision">
                 <button
                   type="button"
+                  aria-label="Decrease digit precision"
                   onClick={() => onChange(config.method, digitsField.id, String(Math.max(1, Number(formState[digitsField.id] ?? digitsField.defaultValue ?? 6) - 1)))}
                 >
                   −
                 </button>
-                <button type="button" className="active">{formState[digitsField.id] ?? digitsField.defaultValue}</button>
+                <output className="active" aria-live="polite">
+                  {formState[digitsField.id] ?? digitsField.defaultValue}
+                </output>
                 <button
                   type="button"
+                  aria-label="Increase digit precision"
                   onClick={() => onChange(config.method, digitsField.id, String(Number(formState[digitsField.id] ?? digitsField.defaultValue ?? 6) + 1))}
                 >
                   +
@@ -168,10 +174,11 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
           {modeField ? (
             <div className="segmented-row">
               <span>Rounding</span>
-              <div className="segment">
+              <div className="segment" aria-label="Machine arithmetic rule">
                 <button
                   type="button"
                   className={(formState[modeField.id] ?? modeField.defaultValue) === 'round' ? 'active' : ''}
+                  aria-pressed={(formState[modeField.id] ?? modeField.defaultValue) === 'round'}
                   onClick={() => onChange(config.method, modeField.id, 'round')}
                 >
                   Round
@@ -179,6 +186,7 @@ export function MethodForm({ config, formState, onChange }: MethodFormProps) {
                 <button
                   type="button"
                   className={(formState[modeField.id] ?? modeField.defaultValue) === 'chop' ? 'active' : ''}
+                  aria-pressed={(formState[modeField.id] ?? modeField.defaultValue) === 'chop'}
                   onClick={() => onChange(config.method, modeField.id, 'chop')}
                 >
                   Chop

@@ -14,10 +14,10 @@ function formulaForRun(run: RootRunResult) {
     return { label: 'Bisection midpoint formula:', formula: 'p_n = (a_n + b_n) / 2' };
   }
   if (run.method === 'falsePosition') {
-    return { label: 'False position formula:', formula: 'p_n = b_n - f(b_n)(b_n - a_n) / (f(b_n) - f(a_n))' };
+    return { label: 'False position formula:', formula: 'p_n = b_n - f(b_n) (b_n - a_n) / (f(b_n) - f(a_n))' };
   }
   if (run.method === 'secant') {
-    return { label: 'Secant iteration formula:', formula: 'x_(n+1) = x_n - f(x_n)(x_n - x_(n-1)) / (f(x_n) - f(x_(n-1)))' };
+    return { label: 'Secant iteration formula:', formula: 'x_(n+1) = x_n - f(x_n) (x_n - x_(n-1)) / (f(x_n) - f(x_(n-1)))' };
   }
   if (run.method === 'fixedPoint') {
     return { label: 'Fixed-point iteration formula:', formula: 'p_(n+1) = g(p_n)' };
@@ -83,7 +83,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
             Solution steps (Derivation)
           </h2>
           <p className="mt-3 text-sm text-[var(--ink)]">{formula.label}</p>
-          <p className="mt-2 font-serif text-lg italic">{formula.formula}</p>
+          <p className="formula-line">{formula.formula}</p>
         </div>
         <button
           type="button"
@@ -138,7 +138,6 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           </li>
         ))}
       </ol>
-      <p className="mt-5 text-right text-sm text-[var(--ink)]">View full derivation →</p>
     </section>
   );
 }

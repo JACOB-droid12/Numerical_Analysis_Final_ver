@@ -67,6 +67,22 @@ function staleReason(
   return 'Inputs changed. Run again to update the answer.';
 }
 
+function visibleFields(config: typeof METHOD_CONFIGS[number], formState: MethodFormState) {
+  return config.fields.filter((field) => (field.when ? field.when(formState) : true));
+}
+
+function missingRequiredFields(config: typeof METHOD_CONFIGS[number], formState: MethodFormState) {
+  return visibleFields(config, formState).filter((field) => {
+    if (field.kind === 'select') return false;
+    return !String(formState[field.id] ?? '').trim();
+  });
+}
+
+function invalidRunMessage(result: ReturnType<typeof runRootMethod>) {
+  if (result.summary?.stopReason !== 'invalid-input') return null;
+  return result.warnings?.[0]?.message ?? 'Check the required inputs before running the method.';
+}
+
 export function useRootsWorkbench() {
   const [activeMethod, setActiveMethod] = useState<RootMethod>('newton');
   const [angleMode, setAngleMode] = useState<AngleMode>('rad');
@@ -183,9 +199,29 @@ export function useRootsWorkbench() {
       return;
     }
 
+    const missingFields = missingRequiredFields(activeConfig, forms[activeMethod]);
+    if (missingFields.length) {
+      setLastRun(null);
+      setWorkbenchStatus({
+        kind: 'error',
+        message: `Enter ${missingFields.map((field) => field.label).join(', ')} before running ${activeConfig.shortLabel}.`,
+      });
+      setEvidenceExpanded(false);
+      setComparisonResult(null);
+      return;
+    }
+
     try {
       const request = createRequestSnapshot(activeMethod, forms, angleMode);
       const result = runRootMethod(activeMethod, forms[activeMethod], angleMode);
+      const invalidMessage = invalidRunMessage(result);
+      if (invalidMessage) {
+        setLastRun(null);
+        setWorkbenchStatus({ kind: 'error', message: invalidMessage });
+        setEvidenceExpanded(false);
+        setComparisonResult(null);
+        return;
+      }
       setLastRun({ result, request });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
       setEvidenceExpanded(true);
@@ -194,7 +230,7 @@ export function useRootsWorkbench() {
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
     }
-  }, [activeMethod, angleMode, engineStatus, forms]);
+  }, [activeConfig, activeMethod, angleMode, engineStatus, forms]);
 
   const toggleAngleMode = useCallback(() => {
     setAngleMode((current) => (current === 'deg' ? 'rad' : 'deg'));
@@ -255,9 +291,25 @@ export function useRootsWorkbench() {
       return;
     }
 
+    const missingFields = missingRequiredFields(activeConfig, forms.fixedPoint);
+    if (missingFields.length) {
+      setWorkbenchStatus({
+        kind: 'error',
+        message: `Enter ${missingFields.map((field) => field.label).join(', ')} before running the ranking.`,
+      });
+      setComparisonResult(null);
+      return;
+    }
+
     try {
       const request = createRequestSnapshot(activeMethod, forms, angleMode);
       const result = runRootMethod(activeMethod, forms.fixedPoint, angleMode);
+      const invalidMessage = invalidRunMessage(result);
+      if (invalidMessage) {
+        setWorkbenchStatus({ kind: 'error', message: invalidMessage });
+        setComparisonResult(null);
+        return;
+      }
       const candidateRuns = runFixedPointCandidates(
         selectedPreset.ranking.candidates,
         forms.fixedPoint,
@@ -271,7 +323,7 @@ export function useRootsWorkbench() {
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setComparisonResult(null);
     }
-  }, [activeMethod, angleMode, engineStatus, forms.fixedPoint, selectedPreset]);
+  }, [activeConfig, activeMethod, angleMode, engineStatus, forms, selectedPreset]);
 
   const runs = useMemo<Partial<Record<RootMethod, ReturnType<typeof runRootMethod>>>>(() => {
     if (!lastRun || displayRun.freshness !== 'current') {

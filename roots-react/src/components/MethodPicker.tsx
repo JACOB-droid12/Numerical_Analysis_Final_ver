@@ -8,15 +8,15 @@ interface MethodPickerProps {
 
 export function MethodPicker({ activeMethod, methods, onSelect }: MethodPickerProps) {
   const glyphs: Record<RootMethod, string> = {
-    bisection: '[ ]',
-    newton: 'N′',
-    secant: '∠',
-    falsePosition: '⊕',
-    fixedPoint: 'C',
+    bisection: 'Bis',
+    newton: 'New',
+    secant: 'Sec',
+    falsePosition: 'FP',
+    fixedPoint: 'Fix',
   };
 
   return (
-    <div className="method-list">
+    <div className="method-list" role="radiogroup" aria-label="Root method">
       {methods.map((method) => {
         const isActive = method.method === activeMethod;
 
@@ -24,8 +24,9 @@ export function MethodPicker({ activeMethod, methods, onSelect }: MethodPickerPr
           <button
             key={method.method}
             type="button"
+            role="radio"
             onClick={() => onSelect(method.method)}
-            aria-pressed={isActive}
+            aria-checked={isActive}
             className="method-tab"
           >
             <span className="method-glyph" aria-hidden="true">{glyphs[method.method]}</span>

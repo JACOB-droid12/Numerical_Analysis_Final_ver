@@ -94,13 +94,27 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
   return null;
 }
 
+function captionForMethod(method: RootMethod): string {
+  switch (method) {
+    case 'newton':
+      return 'Quadratic convergence observed.';
+    case 'secant':
+      return 'Superlinear convergence observed.';
+    case 'bisection':
+      return 'Linear bracket halving observed.';
+    case 'falsePosition':
+      return 'Linear convergence observed.';
+    default:
+      return 'Linear convergence observed (rate depends on |g\'(p)|).';
+  }
+}
+
 export function ConvergenceGraph({ run, compact = false, hero = false }: ConvergenceGraphProps) {
   const rows = run.rows ?? [];
   const titleId = useId();
   const svgTitleId = useId();
   const descId = useId();
-  const lineGradientId = `${svgTitleId.replace(/[^a-zA-Z0-9_-]/g, '')}-line`;
-  const wrapperClassName = hero || compact ? 'graph-panel' : 'graph-panel';
+  const wrapperClassName = 'graph-panel';
   const points = rows
     .map((row, index) => ({
       x: typeof row.iteration === 'number' ? row.iteration : index + 1,
@@ -162,13 +176,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
       >
         <title id={svgTitleId}>Convergence graph</title>
         <desc id={descId}>{graphSummary}</desc>
-        <defs>
-          <linearGradient id={lineGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
-            <stop offset="0%" stopColor="#1f6feb" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#16855f" stopOpacity="0.92" />
-          </linearGradient>
-        </defs>
-        <rect x="0" y="0" width={width} height={height} rx="12" fill="#fcfcf8" />
+        <rect x="0" y="0" width={width} height={height} rx="12" fill="var(--graph-bg)" />
         {Array.from({ length: 8 }, (_, index) => (
           <line
             key={`grid-y-${index}`}
@@ -176,7 +184,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
             y1={padY + (index * (height - padY * 2)) / 7}
             x2={width - padX}
             y2={padY + (index * (height - padY * 2)) / 7}
-            stroke="#e0e4dd"
+            stroke="var(--graph-grid)"
             strokeWidth="1"
           />
         ))}
@@ -187,7 +195,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
             y1={padY}
             x2={padX + (index * (width - padX * 2)) / 8}
             y2={height - padY}
-            stroke="#e0e4dd"
+            stroke="var(--graph-grid)"
             strokeWidth="1"
           />
         ))}
@@ -196,7 +204,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y1={height - padY}
           x2={width - padX}
           y2={height - padY}
-          stroke="#c9d0c6"
+          stroke="var(--graph-axis)"
           strokeWidth="1"
         />
         <line
@@ -204,21 +212,21 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y1={padY}
           x2={padX}
           y2={height - padY}
-          stroke="#c9d0c6"
+          stroke="var(--graph-axis)"
           strokeWidth="1"
         />
-        <path d={path} fill="none" stroke={`url(#${lineGradientId})`} strokeWidth={hero ? '3' : '2.5'} />
+        <path d={path} fill="none" stroke="#1f6feb" strokeWidth={hero ? '3' : '2.5'} />
         {points.map((point, index) => (
           <circle
             key={`${point.x}-${point.y}-${index}`}
             cx={toSvgX(point.x)}
             cy={toSvgY(point.y)}
             r={index === points.length - 1 ? '5' : '3.5'}
-            fill={index === points.length - 1 ? '#16855f' : '#1f6feb'}
+            fill={index === points.length - 1 ? 'var(--green)' : 'var(--action-blue)'}
           />
         ))}
       </svg>
-      <p className="graph-caption">Quadratic convergence observed on the latest numerical trace.</p>
+      <p className="graph-caption">{captionForMethod(run.method)}</p>
     </section>
   );
 }

@@ -23,7 +23,7 @@ function bracketDiagnostics(run: RootRunResult) {
         Bracket diagnostics
       </h3>
       <dl className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+        <div className="diagnostic-tile rounded-[6px] border hairline px-4 py-3">
           <dt className="section-kicker text-[0.68rem]">
             Interval status
           </dt>
@@ -31,13 +31,13 @@ function bracketDiagnostics(run: RootRunResult) {
             {summary?.intervalStatus ?? 'No interval status reported.'}
           </dd>
         </div>
-        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+        <div className="diagnostic-tile rounded-[6px] border hairline px-4 py-3">
           <dt className="section-kicker text-[0.68rem]">
             Initial sign analysis
           </dt>
           <dd className="mt-1 text-sm leading-6 text-[var(--text)]">{signAnalysis}</dd>
         </div>
-        <div className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] px-4 py-3">
+        <div className="diagnostic-tile rounded-[6px] border hairline px-4 py-3">
           <dt className="section-kicker text-[0.68rem]">
             Residual
           </dt>
@@ -53,7 +53,7 @@ function bracketDiagnostics(run: RootRunResult) {
 export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps) {
   if (compact) {
     return (
-      <section className="rounded-[6px] border hairline bg-[#0c1216]/80 p-3">
+      <section className="diagnostic-panel compact rounded-[6px] border hairline p-3">
         <h2 className="section-kicker">
           Diagnostic preview
         </h2>
@@ -65,7 +65,7 @@ export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps
   const warnings = run.warnings ?? [];
 
   return (
-    <section className="rounded-[6px] border hairline bg-[rgba(4,8,11,0.34)] p-4">
+    <section className="diagnostic-panel rounded-[6px] border hairline p-4">
       <div className="space-y-3">
         <h2 className="section-kicker">
           Diagnostics
@@ -75,7 +75,7 @@ export function DiagnosticsPanel({ run, compact = false }: DiagnosticsPanelProps
             {warnings.map((warning, index) => (
               <li
                 key={`${warning.code}-${index}`}
-                className="rounded-[6px] border border-[rgba(236,106,78,0.45)] bg-[rgba(236,106,78,0.1)] px-4 py-3 text-sm text-[var(--red)]"
+                className="warning-item rounded-[6px] border px-4 py-3 text-sm text-[var(--red)]"
               >
                 {warning.message}
               </li>

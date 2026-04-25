@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Copy, X } from 'lucide-react';
 
 import { answerText, finalAnswerParagraph, formatValue, methodLabel } from '../lib/resultFormatters';
@@ -8,6 +8,7 @@ interface AnswerPanelProps {
   run: RootRunResult | null;
   freshness?: RunFreshness;
   staleReason?: string | null;
+  onRerun?: () => void;
 }
 
 type CopyStatus = 'idle' | 'success' | 'error';
@@ -64,6 +65,37 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
+function formatRelativeTime(ts: number): string {
+  const diffMs = Date.now() - ts;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 10) return 'just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hr ago`;
+  return new Date(ts).toLocaleTimeString();
+}
+
+function useRelativeTime(ts: number): string {
+  const [label, setLabel] = useState(() => formatRelativeTime(ts));
+
+  const tsRef = useRef(ts);
+  tsRef.current = ts;
+
+  const recompute = useCallback(() => {
+    setLabel(formatRelativeTime(tsRef.current));
+  }, []);
+
+  useEffect(() => {
+    recompute();
+    const id = window.setInterval(recompute, 15_000);
+    return () => window.clearInterval(id);
+  }, [recompute]);
+
+  return label;
+}
+
 function freshnessNote(freshness: RunFreshness, staleReason: string | null): string {
   if (freshness === 'stale') {
     return staleReason ?? 'This result is outdated because the inputs changed after it was computed.';
@@ -71,10 +103,13 @@ function freshnessNote(freshness: RunFreshness, staleReason: string | null): str
   return 'Copy the answer now or inspect the confidence and evidence below.';
 }
 
-export function AnswerPanel({ run, freshness = 'current', staleReason = null }: AnswerPanelProps) {
+export function AnswerPanel({ run, freshness = 'current', staleReason = null, onRerun }: AnswerPanelProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
   const [showFinalParagraph, setShowFinalParagraph] = useState(false);
   const timerRef = useRef<number | null>(null);
+
+  const completedAt = run?.completedAt ?? Date.now();
+  const updatedLabel = useRelativeTime(completedAt);
 
   const copyPayload = useMemo(() => answerText(run), [run]);
   const paragraph = useMemo(() => finalAnswerParagraph(run), [run]);
@@ -108,7 +143,7 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
       <header>
         <div>
           <p className="section-kicker">Root (Approximate)</p>
-          <p className="answer-root numeric-value">{approximation}</p>
+          <p className={['answer-root numeric-value', freshness === 'stale' ? 'answer-root--stale' : ''].filter(Boolean).join(' ')}>{approximation}</p>
         </div>
         <button
           type="button"
@@ -153,17 +188,23 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
         </button>
       </header>
 
+      {freshness === 'stale' && onRerun ? (
+        <button
+          type="button"
+          className="rerun-button"
+          aria-label="Re-run with current inputs"
+          onClick={onRerun}
+        >
+          Re-run with current inputs
+        </button>
+      ) : null}
       <div className="meta-row">
           <span
-            className={`status-pill ${
-              freshness === 'stale'
-                ? 'border-[rgba(180,119,93,0.5)] bg-[rgba(180,119,93,0.12)] text-[var(--clay)]'
-                : ''
-            }`}
+            className={['status-pill', freshness === 'stale' ? 'status-pill--stale' : ''].filter(Boolean).join(' ')}
           >
             {freshness === 'stale' ? 'Outdated' : 'Current'}
           </span>
-          <span>Updated: just now</span>
+          <span>Updated: {updatedLabel}</span>
           <span>Method: {methodLabel(run.method)}</span>
       </div>
       {summary?.stopDetail ? (
@@ -176,7 +217,7 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
             className="copy-icon-button final-answer-button"
             onClick={() => setShowFinalParagraph((current) => !current)}
           >
-            {showFinalParagraph ? 'Hide final answer' : 'Format final answer'}
+            {showFinalParagraph ? 'Hide explanation' : 'Show explanation'}
           </button>
           {showFinalParagraph ? <p>{paragraph}</p> : null}
         </div>

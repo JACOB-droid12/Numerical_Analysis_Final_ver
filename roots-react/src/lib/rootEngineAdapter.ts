@@ -96,20 +96,28 @@ export function runRootMethod(
   fields: MethodFormState,
   angleMode: AngleMode,
 ): RootRunResult {
+  let result: RootRunResult;
   switch (method) {
     case 'bisection':
-      return runBisection(fields, angleMode);
+      result = runBisection(fields, angleMode);
+      break;
     case 'newton':
-      return runNewton(fields, angleMode);
+      result = runNewton(fields, angleMode);
+      break;
     case 'secant':
-      return runSecant(fields, angleMode);
+      result = runSecant(fields, angleMode);
+      break;
     case 'falsePosition':
-      return runFalsePosition(fields, angleMode);
+      result = runFalsePosition(fields, angleMode);
+      break;
     case 'fixedPoint':
-      return runFixedPoint(fields, angleMode);
+      result = runFixedPoint(fields, angleMode);
+      break;
     default:
       throw new Error(`Unsupported root method: ${method}`);
   }
+  result.completedAt = Date.now();
+  return result;
 }
 
 export function runFixedPointCandidates(
