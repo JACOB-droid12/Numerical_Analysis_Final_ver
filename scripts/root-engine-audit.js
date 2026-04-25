@@ -145,9 +145,9 @@ function run() {
     report.check(
       "Lecture bisection bound returns width / 2^n for ten iterations",
       "Stopping formulas",
-      "0.00097656",
+      "0.0009765625",
       C.formatReal(epsilon, 8),
-      C.formatReal(epsilon, 8) === "0.00097656",
+      C.formatReal(epsilon, 8) === "0.0009765625",
       "For [1,2], the guaranteed absolute bound after 10 iterations is 1 / 2^10."
     );
   }
