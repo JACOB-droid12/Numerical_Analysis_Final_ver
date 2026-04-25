@@ -1,0 +1,511 @@
+import { METHOD_BY_NAME } from '../config/methods';
+import type { IterationRow, RootMethod, RootRunResult } from '../types/roots';
+
+const EMPTY = 'Not calculated yet';
+const FALLBACK = '-';
+
+export function methodLabel(method: RootMethod | undefined): string {
+  if (!method) return EMPTY;
+  return METHOD_BY_NAME.get(method)?.label ?? method;
+}
+
+function isObjectLike(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function formatRationalLike(value: Record<string, unknown>): string | null {
+  if (!Object.prototype.hasOwnProperty.call(value, 'sign')) return null;
+  const sign = Number(value.sign);
+  const num = value.num;
+  const den = value.den;
+  if (!Number.isFinite(sign) || (sign !== -1 && sign !== 0 && sign !== 1)) return null;
+  if (typeof num !== 'bigint' && typeof num !== 'number') return null;
+  if (typeof den !== 'bigint' && typeof den !== 'number') return null;
+  const numerator = `${typeof num === 'bigint' ? num.toString() : String(num)}`;
+  const denominator = `${typeof den === 'bigint' ? den.toString() : String(den)}`;
+  if (denominator === '1') {
+    return sign < 0 ? `-${numerator}` : numerator;
+  }
+  return sign < 0 && numerator !== '0' ? `-${numerator}/${denominator}` : `${numerator}/${denominator}`;
+}
+
+function formatComplexLike(value: Record<string, unknown>, digits: number): string | null {
+  if (!Object.prototype.hasOwnProperty.call(value, 're') || !Object.prototype.hasOwnProperty.call(value, 'im')) {
+    return null;
+  }
+  const re = formatValue(value.re, digits);
+  const im = formatValue(value.im, digits);
+  if (re === FALLBACK && im === FALLBACK) return null;
+  if (im === '0' || im === '0.0') return re;
+  const signedIm = String(im).startsWith('-') ? `- ${String(im).slice(1)}` : `+ ${im}`;
+  return `${re} ${signedIm}i`;
+}
+
+function formatPointLike(value: Record<string, unknown>, digits: number): string | null {
+  const hasExact = Object.prototype.hasOwnProperty.call(value, 'exact');
+  const hasApprox = Object.prototype.hasOwnProperty.call(value, 'approx');
+  const hasMachine = Object.prototype.hasOwnProperty.call(value, 'machine');
+  if (!hasExact && !hasApprox && !hasMachine) return null;
+
+  const exact = hasExact ? formatValue(value.exact, digits) : null;
+  const approx = hasApprox ? formatValue(value.approx, digits) : null;
+  const machine = hasMachine ? formatValue(value.machine, digits) : null;
+
+  const exactPart = exact && exact !== FALLBACK ? exact : null;
+  const approxPart = approx && approx !== FALLBACK ? approx : null;
+  const machinePart = machine && machine !== FALLBACK ? machine : null;
+
+  if (exactPart && approxPart && exactPart !== approxPart) {
+    return `E: ${exactPart} / M: ${approxPart}`;
+  }
+  if (exactPart && machinePart && exactPart !== machinePart) {
+    return `E: ${exactPart} / M: ${machinePart}`;
+  }
+  if (exactPart) return exactPart;
+  if (approxPart) return approxPart;
+  if (machinePart) return machinePart;
+  return null;
+}
+
+function formatBracketPoint(
+  point: unknown,
+  signDisplay: RootRunResult['signDisplay'],
+  digits: number,
+): string {
+  if (!isObjectLike(point)) return formatValue(point, digits);
+
+  const reference = Object.prototype.hasOwnProperty.call(point, 'reference')
+    ? formatValue(point.reference, digits)
+    : null;
+  const machine = Object.prototype.hasOwnProperty.call(point, 'machine')
+    ? formatValue(point.machine, digits)
+    : null;
+  const exact = Object.prototype.hasOwnProperty.call(point, 'exact')
+    ? formatValue(point.exact, digits)
+    : null;
+  const approx = Object.prototype.hasOwnProperty.call(point, 'approx')
+    ? formatValue(point.approx, digits)
+    : null;
+
+  const referenceValue = reference && reference !== FALLBACK ? reference : null;
+  const machineValue = machine && machine !== FALLBACK ? machine : null;
+  const exactValue = exact && exact !== FALLBACK ? exact : null;
+  const approxValue = approx && approx !== FALLBACK ? approx : null;
+
+  const exactSide = exactValue ?? referenceValue ?? approxValue;
+  const machineSide = machineValue ?? approxValue ?? referenceValue;
+
+  if (signDisplay === 'exact') return exactSide ?? machineSide ?? FALLBACK;
+  if (signDisplay === 'machine') return machineSide ?? exactSide ?? FALLBACK;
+  if (exactSide && machineSide && exactSide !== machineSide) {
+    return `E: ${exactSide} / M: ${machineSide}`;
+  }
+  return exactSide ?? machineSide ?? FALLBACK;
+}
+
+function formatArrayLike(value: unknown[], digits: number): string {
+  return `[${value.map((item) => formatValue(item, digits)).join(', ')}]`;
+}
+
+function formatObjectEntries(value: Record<string, unknown>, digits: number): string {
+  const entries = Object.entries(value).map(([key, entry]) => `${key}: ${formatValue(entry, digits)}`);
+  return `{ ${entries.join(', ')} }`;
+}
+
+function formatSign(sign: unknown): string {
+  if (sign === 0) return '0';
+  if (typeof sign === 'number') return sign < 0 ? '-' : '+';
+  if (typeof sign === 'string') {
+    const normalized = sign.trim();
+    if (normalized === '0') return '0';
+    if (normalized === '-' || normalized === '-1') return '-';
+    if (normalized === '+' || normalized === '1') return '+';
+  }
+  return '?';
+}
+
+function formatSignPair(signDisplay: RootRunResult['signDisplay'], exactSign: unknown, machineSign: unknown): string {
+  if (signDisplay === 'exact') return `E(${formatSign(exactSign)})`;
+  if (signDisplay === 'machine') return `M(${formatSign(machineSign)})`;
+  return `E(${formatSign(exactSign)}) / M(${formatSign(machineSign)})`;
+}
+
+export function formatValue(value: unknown, digits = 12): string {
+  if (value == null) return 'N/A';
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return String(value);
+    return Number(value.toPrecision(digits)).toString();
+  }
+  if (typeof value === 'bigint') return value.toString();
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return formatArrayLike(value, digits);
+  if (isObjectLike(value)) {
+    const pointLike = formatPointLike(value, digits);
+    if (pointLike) return pointLike;
+
+    const complexLike = formatComplexLike(value, digits);
+    if (complexLike) return complexLike;
+
+    const rationalLike = formatRationalLike(value);
+    if (rationalLike) return rationalLike;
+
+    if ('approx' in value) {
+      return formatValue(value.approx, digits);
+    }
+    if ('machine' in value) {
+      return formatValue(value.machine, digits);
+    }
+    if ('value' in value) {
+      return formatValue(value.value, digits);
+    }
+    if ('re' in value || 'im' in value || 'num' in value || 'den' in value) {
+      return formatObjectEntries(value, digits);
+    }
+    return formatObjectEntries(value, digits);
+  }
+  return String(value);
+}
+
+export function stopReasonLabel(reason: string | null | undefined, method?: RootMethod): string {
+  const map: Record<string, string> = {
+    'iteration-limit': 'Completed the requested iterations',
+    'iteration-cap': 'Stopped at the safety cap',
+    'tolerance-reached': 'Reached the requested tolerance',
+    'tolerance-already-met': 'Starting interval already meets the tolerance',
+    'endpoint-root': 'An endpoint is already the root',
+    'exact-zero': method === 'fixedPoint' ? 'The iteration reached an exact fixed point' : 'Reference value is exactly zero',
+    'machine-zero': 'Machine value is zero or near zero',
+    'invalid-starting-interval': 'Not a valid starting bracket',
+    'invalid-bracket': 'The interval does not bracket a sign change',
+    'discontinuity-detected': 'Stopped at a discontinuity or singularity',
+    'singularity-encountered': 'Function evaluation failed during the iteration',
+    'non-finite-evaluation': 'Function evaluation returned a non-finite value',
+    'derivative-zero': 'Derivative is zero, so the method cannot continue',
+    stagnation: 'The method stalled because the denominator is near zero',
+    diverged: 'Iteration diverged',
+    'diverged-step': 'Step grew too quickly',
+    'step-small-residual-large': 'Step is small but residual remains large',
+    'retained-endpoint-stagnation': 'Same endpoint retained too long',
+    'cycle-detected': 'Iteration entered a cycle',
+    'invalid-input': 'Invalid input',
+  };
+
+  return reason ? map[reason] ?? reason : EMPTY;
+}
+
+export function diagnosticsPreviewText(run: RootRunResult): string {
+  if (run.warnings?.length) {
+    const message = run.warnings[0]?.message?.trim();
+    return message || 'Warnings were reported for this run.';
+  }
+
+  const stop = stopReasonLabel(run.summary?.stopReason, run.method);
+  const metric = formatValue(run.summary?.error ?? run.summary?.bound ?? run.summary?.residual);
+  return `${stop}; final metric: ${metric}.`;
+}
+
+export interface ConfidenceItem {
+  label: string;
+  value: string;
+}
+
+export function compactConfidenceItems(run: RootRunResult): ConfidenceItem[] {
+  return [
+    {
+      label: 'Stop',
+      value: stopReasonLabel(run.summary?.stopReason ?? null, run.method),
+    },
+    {
+      label: 'Metric',
+      value: formatValue(run.summary?.error ?? run.summary?.bound ?? run.summary?.residual),
+    },
+    {
+      label: 'Basis',
+      value: run.summary?.residualBasis ?? (run.decisionBasis ? `${run.decisionBasis} signs` : 'Current precision'),
+    },
+  ];
+}
+
+export function staleStatusText(staleReason: string | null): string {
+  return staleReason ?? 'This result is from the most recent successful run.';
+}
+
+export function stoppingText(run: RootRunResult | null): string {
+  if (!run?.stopping) return EMPTY;
+  const stopping = run.stopping;
+  if (stopping.kind === 'epsilon') {
+    const toleranceLabel = stopping.toleranceType ? `${stopping.toleranceType} ` : '';
+    const actual = stopping.actualIterations ?? run.rows?.length ?? stopping.iterationsRequired ?? 0;
+    const planned = stopping.plannedIterations;
+    const iterationText =
+      planned != null && actual != null && planned !== actual
+        ? `iterations tried = ${actual} (planned ${planned})`
+        : `iterations tried = ${actual}`;
+    return `${toleranceLabel}epsilon = ${stopping.input}, ${iterationText}`;
+  }
+  if (run.method === 'bisection') {
+    return `n = ${stopping.input}, epsilon <= ${formatValue(stopping.epsilonBound)}`;
+  }
+  return `n = ${stopping.input}, final |error| = ${formatValue(run.summary?.error)}`;
+}
+
+export function interpretationText(run: RootRunResult | null): string {
+  if (!run?.summary) return 'Run the method to see a short interpretation.';
+  const reason = run.summary.stopReason;
+  if (reason === 'iteration-limit') {
+    return 'You stopped after the requested iterations, so this is the answer for the fixed-n version of the problem.';
+  }
+  if (reason === 'tolerance-reached') {
+    return 'The method met the requested tolerance under the current precision settings.';
+  }
+  if (reason === 'endpoint-root') {
+    return 'One endpoint is already the root, so no iteration is needed.';
+  }
+  if (reason === 'exact-zero' || reason === 'machine-zero') {
+    return run.method === 'fixedPoint'
+      ? 'The iteration landed on a fixed point under the current precision rule.'
+      : 'The function value is zero or machine-zero at the reported approximation.';
+  }
+  if (reason === 'cycle-detected') {
+    return 'The fixed-point iteration repeated a cycle instead of settling to one value.';
+  }
+  if (reason === 'iteration-cap') {
+    return 'The safety cap was reached before the requested tolerance was met.';
+  }
+  return stopReasonLabel(reason, run.method);
+}
+
+export function nextActionText(run: RootRunResult | null): string {
+  if (!run?.summary) return 'Run the method to see the next recommended action.';
+  const reason = run.summary.stopReason;
+  if (reason === 'iteration-limit') return 'Need a smaller error? Increase n or switch to tolerance mode.';
+  if (reason === 'tolerance-reached') return 'Copy the answer or open the evidence if you need to show work.';
+  if (reason === 'invalid-bracket' || reason === 'invalid-starting-interval') return 'Choose an interval where the endpoint signs differ.';
+  if (reason === 'derivative-zero') return 'Try a different starting value or check the derivative.';
+  if (reason === 'iteration-cap') return 'Change the starting value or method if the table is not improving.';
+  return 'Review the diagnostics and iteration table before changing inputs.';
+}
+
+export function answerText(run: RootRunResult | null): string {
+  if (!run?.summary) return '';
+  return [
+    `Method: ${methodLabel(run.method)}`,
+    `Approximate root: ${formatValue(run.summary.approximation, 18)}`,
+    `Stopping result: ${stopReasonLabel(run.summary.stopReason, run.method)}`,
+    `Stopping parameters: ${stoppingText(run)}`,
+  ].join('\n');
+}
+
+export function finalAnswerParagraph(run: RootRunResult | null): string {
+  if (!run?.summary) return '';
+  const expression = run.canonical || run.expression || 'the entered expression';
+  const approximation = formatValue(run.summary.approximation, 18);
+  const stop = stopReasonLabel(run.summary.stopReason, run.method);
+  const metric = formatValue(run.summary.error ?? run.summary.bound ?? run.summary.residual, 12);
+  return `Using ${methodLabel(run.method)} on ${expression}, the approximate solution is x = ${approximation}. The stopping check is ${stop.toLowerCase()} with ${stoppingText(run)} and final metric ${metric}.`;
+}
+
+export function solutionText(run: RootRunResult | null): string {
+  if (!run) return '';
+  const steps = solutionSteps(run);
+  return [
+    `Method: ${methodLabel(run.method)}`,
+    `Expression: ${run.canonical || run.expression || 'N/A'}`,
+    `Approximate root: ${formatValue(run.summary?.approximation, 18)}`,
+    '',
+    'Steps:',
+    ...steps.map((step, index) => `${index + 1}. ${step}`),
+  ].join('\n');
+}
+
+export function solutionSteps(run: RootRunResult): string[] {
+  const expression = run.canonical || run.expression || 'the expression';
+  const approx = formatValue(run.summary?.approximation, 18);
+  const count = run.rows?.length ?? 0;
+  const machine = run.machine ? `Use ${run.machine.k}-digit ${run.machine.mode} arithmetic.` : '';
+
+  if (run.method === 'bisection') {
+    return [
+      `Apply Bisection to f(x) = ${expression}.`,
+      `Use the current bracket and selected sign decision basis.`,
+      run.stopping?.kind === 'epsilon'
+        ? `Stop when the requested tolerance is met: epsilon = ${run.stopping.input}.`
+        : `Run for n = ${run.stopping?.input ?? count} iterations.`,
+      `The approximate root after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
+      machine,
+    ].filter(Boolean);
+  }
+
+  if (run.method === 'falsePosition') {
+    return [
+      `Apply False Position to f(x) = ${expression}.`,
+      'Use linear interpolation inside the active bracket.',
+      run.stopping?.kind === 'epsilon'
+        ? `Stop when the requested tolerance is met: epsilon = ${run.stopping.input}.`
+        : `Run for n = ${run.stopping?.input ?? count} iterations.`,
+      `The approximate root after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
+      machine,
+    ].filter(Boolean);
+  }
+
+  if (run.method === 'newton') {
+    return [
+      `Apply Newton-Raphson to f(x) = ${expression}.`,
+      "Use x next = x - f(x) / f'(x).",
+      run.stopping?.kind === 'epsilon'
+        ? `Stop when |x next - x| < epsilon = ${run.stopping.input}.`
+        : `Run for n = ${run.stopping?.input ?? count} iterations.`,
+      `The approximate root after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
+      machine,
+    ].filter(Boolean);
+  }
+
+  if (run.method === 'secant') {
+    return [
+      `Apply the Secant method to f(x) = ${expression}.`,
+      'Use x next = x - f(x)(x - x prev) / (f(x) - f(x prev)).',
+      run.stopping?.kind === 'epsilon'
+        ? `Stop when |x next - x| < epsilon = ${run.stopping.input}.`
+        : `Run for n = ${run.stopping?.input ?? count} iterations.`,
+      `The approximate root after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
+      machine,
+    ].filter(Boolean);
+  }
+
+  return [
+    `Apply fixed-point iteration with g(x) = ${expression}.`,
+    'Use x next = g(x).',
+    run.stopping?.kind === 'epsilon'
+      ? `Stop when |x next - x| < epsilon = ${run.stopping.input}.`
+      : `Run for n = ${run.stopping?.input ?? count} iterations.`,
+    `The approximate fixed point after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
+    machine,
+  ].filter(Boolean);
+}
+
+function bracketSignsText(row: IterationRow, signDisplay: RootRunResult['signDisplay']): string {
+  const exactSigns = isObjectLike(row.exactSigns) ? row.exactSigns : {};
+  const machineSigns = isObjectLike(row.machineSigns) ? row.machineSigns : {};
+  const labels = ['a', 'b', 'c'] as const;
+
+  return labels
+    .map((label) => `${label}: ${formatSignPair(signDisplay, exactSigns[label], machineSigns[label])}`)
+    .join(', ');
+}
+
+function bracketDecisionText(decision: unknown): string {
+  if (decision === 'left') return 'Keep [a, c]';
+  if (decision === 'right') return 'Keep [c, b]';
+  return decision == null ? '' : String(decision);
+}
+
+function numericApproximation(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'bigint') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    if ('sign' in record && 'num' in record && 'den' in record) {
+      const sign = numericApproximation(record.sign);
+      const num = numericApproximation(record.num);
+      const den = numericApproximation(record.den);
+      if (sign != null && num != null && den != null && den !== 0) {
+        return (sign < 0 ? -1 : 1) * (num / den);
+      }
+    }
+    if ('re' in record || 'im' in record) {
+      const re = numericApproximation(record.re);
+      const im = numericApproximation(record.im);
+      if (re != null && (im == null || Math.abs(im) < 1e-12)) {
+        return re;
+      }
+      return null;
+    }
+    return numericApproximation(record.approx ?? record.machine ?? record.reference ?? record.value ?? null);
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function correctionText(row: IterationRow): string {
+  const numerator = numericApproximation(row.fxn);
+  const denominator = numericApproximation(row.dfxn);
+  if (numerator == null || denominator == null || denominator === 0) return 'N/A';
+  return formatValue(numerator / denominator, 12);
+}
+
+function retainedIntervalText(row: IterationRow): string {
+  if (row.decision === 'left') {
+    return `[${formatValue(row.a)}, ${formatValue(row.c)}]`;
+  }
+  if (row.decision === 'right') {
+    return `[${formatValue(row.c)}, ${formatValue(row.b)}]`;
+  }
+  return bracketDecisionText(row.decision);
+}
+
+export function tableValuesForRow(
+  method: RootMethod,
+  row: IterationRow,
+  run?: Pick<RootRunResult, 'signDisplay'> | null,
+): string[] {
+  if (method === 'bisection' || method === 'falsePosition') {
+    if (method === 'bisection') {
+      return [
+        String(row.iteration),
+        formatValue(row.c),
+        formatBracketPoint(row.fc, run?.signDisplay ?? 'both', 12),
+        retainedIntervalText(row),
+        formatValue(row.bound),
+        formatValue(row.error),
+        String(row.note ?? ''),
+      ];
+    }
+
+    return [
+      String(row.iteration),
+      formatValue(row.c),
+      formatBracketPoint(row.fc, run?.signDisplay ?? 'both', 12),
+      retainedIntervalText(row),
+      formatValue(row.width),
+      formatValue(row.error),
+      String(row.note ?? ''),
+    ];
+  }
+  if (method === 'newton') {
+    return [
+      String(row.iteration),
+      formatValue(row.xn),
+      formatValue(row.fxn),
+      formatValue(row.dfxn),
+      correctionText(row),
+      formatValue(row.xNext),
+      formatValue(row.error),
+      String(row.note ?? ''),
+    ];
+  }
+  if (method === 'secant') {
+    return [
+      String(row.iteration),
+      formatValue(row.xPrev),
+      formatValue(row.xn),
+      formatValue(row.fxPrev),
+      formatValue(row.fxn),
+      formatValue(row.xNext),
+      formatValue(row.error),
+      String(row.note ?? ''),
+    ];
+  }
+  return [
+    String(row.iteration),
+    formatValue(row.xn),
+    formatValue(row.gxn),
+    formatValue(row.error),
+    String(row.note ?? ''),
+  ];
+}
