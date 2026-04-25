@@ -7,6 +7,9 @@ on:
       - staging
     paths:
       - ".github/workflows/roots-react-ci.yml"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
       - "root-engine.js"
       - "roots-react/**"
       - "scripts/engine-correctness-audit.js"
@@ -19,6 +22,9 @@ on:
       - staging
     paths:
       - ".github/workflows/roots-react-ci.yml"
+      - "math-engine.js"
+      - "calc-engine.js"
+      - "expression-engine.js"
       - "root-engine.js"
       - "roots-react/**"
       - "scripts/engine-correctness-audit.js"

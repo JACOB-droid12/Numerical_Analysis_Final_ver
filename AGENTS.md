@@ -2,6 +2,10 @@
 
 A single-page vanilla JavaScript numerical analysis calculator. No build system, no framework, no npm -- just HTML/CSS/JS served statically.
 
+## Current Source Of Truth
+
+Use `AGENTS.md`, `README.md`, `docs/roots-context.md`, `docs/roots-ai-fast-lane.md`, and `docs/deployment/README.md` for current architecture and deployment boundaries. Files under `docs/superpowers/plans/` and `docs/superpowers/specs/` are historical implementation notes unless the user explicitly asks for that history.
+
 ## Roots Fast Lane
 
 Roots UI work should start with `docs/roots-context.md` and `docs/roots-ai-fast-lane.md`.

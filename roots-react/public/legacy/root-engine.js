@@ -634,7 +634,7 @@
 
       let midpoint;
       if (Math.abs(denomVal) < C.EPS) {
-        midpoint = iterationValue(C.div(C.add(left, right), TWO), machine, basis);
+        midpoint = iterationValue(midpointValue(left, right), machine, basis);
       } else {
         const width = C.sub(right, left);
         const numerator = C.mul(bPoint.machine, width);
@@ -694,12 +694,12 @@
       }
     }
 
-    const lastApprox = rows.length ? rows[rows.length - 1].c : C.div(C.add(left, right), TWO);
+    const lastApprox = rows.length ? rows[rows.length - 1].c : midpointValue(left, right);
     return earlyResult(lastApprox, "valid-bracket", initialOpenStopReason(stopping), rows);
   }
 
   function midpointValue(left, right) {
-    return C.div(C.add(left, right), TWO);
+    return C.add(left, C.div(C.sub(right, left), TWO));
   }
 
   function earlyResultLikeFalsePosition(options, ast, machine, stopping, leftPoint, rightPoint, stopReason, stopDetail, rows) {
@@ -1366,7 +1366,7 @@
     const absoluteMode = stopping.kind === "epsilon" && stopping.toleranceType === "absolute";
 
     if (absoluteMode && stopping.iterationsRequired === 0) {
-      const midpoint = C.div(C.add(left, right), TWO);
+      const midpoint = midpointValue(left, right);
       let midpointPoint;
       try {
         midpointPoint = evaluatePoint(ast, midpoint, machine, options.angleMode);
@@ -1390,7 +1390,7 @@
     let prevC = null;
     const loopLimit = relativeMode ? stopping.maxIterations : stopping.iterationsRequired;
     for (let iteration = 1; iteration <= loopLimit; iteration += 1) {
-      const midpointExact = C.div(C.add(left, right), TWO);
+      const midpointExact = midpointValue(left, right);
       const midpoint = iterationValue(midpointExact, machine, basis);
       const aPoint = evaluatePoint(ast, left, machine, options.angleMode);
       const bPoint = evaluatePoint(ast, right, machine, options.angleMode);
@@ -1494,7 +1494,7 @@
     const finalBracketRow = lastRow(rows);
     const residualData = finalBracketRow ? pointResidual(finalBracketRow.fc, basis) : { residual: null, residualBasis: "unavailable" };
     return bisectionResult(options, ast, machine, leftPoint, rightPoint, stopping, summaryPackage(
-      finalBracketRow ? finalBracketRow.c : C.div(C.add(left, right), TWO),
+      finalBracketRow ? finalBracketRow.c : midpointValue(left, right),
       "valid-bracket",
       relativeMode ? "iteration-cap" : (options.stopping.kind === "epsilon" ? "tolerance-reached" : "iteration-limit"),
       {

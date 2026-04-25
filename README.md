@@ -1,35 +1,52 @@
 # Numerical Analysis Teaching Lab
 
-This repository contains a static browser-based numerical analysis calculator. No install or backend is required.
+This repository now contains three related surfaces:
 
-## Entry points
+- legacy static calculator at `index.html`,
+- standalone static Roots workbench at `roots/index.html`,
+- isolated Vite + React Roots pilot at `roots-react/`.
 
-- Main calculator: `index.html`
-- Standalone Roots workbench: `roots/index.html`
+The legacy calculator and `roots/` backup are plain HTML/CSS/JavaScript. The React pilot is the only Vercel deployment target and has its own npm/Vite toolchain inside `roots-react/`.
 
-## Project layout
+## Current Source Of Truth
 
-- `index.html` - main app shell and the bridge to the standalone Roots workbench
-- `roots/index.html` - standalone Roots entry point
-- `roots/roots-app.js` - Roots interaction wiring
-- `roots/roots-state.js` - Roots state and cache
-- `roots/roots-render.js` - Roots render/update logic
-- `roots/roots-engine-adapter.js` - request packaging between UI state and `root-engine.js`
-- `roots/roots.css` - Roots-only styling
-- `root-engine.js` - numerical root-finding behavior
-- `scripts/engine-correctness-audit.js` - machine arithmetic and expression audit
-- `scripts/root-engine-audit.js` - root engine audit
-- `scripts/roots-mini-app-static-audit.js` - static cutover and entry-point audit
-- `scripts/roots-mini-app-ui-audit.js` - Roots UI wiring audit
-- `docs/superpowers/specs/` and `docs/superpowers/plans/` - design and implementation notes
-- `docs/roots-context.md` - compact Roots file map and edit boundaries for AI-assisted work
-- `docs/roots-ai-fast-lane.md` - routing guide for low-context Roots edits
-- `lesson-roundoff.pdf` - supporting course material
-- `scripts/build-deliverable.ps1` - packages the static app into a shareable folder
+Start with `AGENTS.md` for agent instructions.
 
-## Verify
+Use these files for current architecture and release boundaries:
 
-Run the audit scripts from the project folder:
+- `docs/roots-context.md` - static Roots file map and edit boundaries
+- `docs/roots-ai-fast-lane.md` - route table for low-context static Roots work
+- `docs/deployment/README.md` - Vercel and Roots React release entry point
+- `roots-react/README.md` - React pilot commands and UI dependency notes
+
+Files under `docs/superpowers/plans/` and `docs/superpowers/specs/` are historical implementation notes unless a task explicitly asks for that history.
+
+## Entry Points
+
+- Main legacy calculator: `index.html`
+- Static Roots backup: `roots/index.html`
+- React Roots pilot: `roots-react/index.html`
+- React production URL: `https://roots-react.vercel.app`
+
+Do not deploy the repository root to Vercel. Use `roots-react` as the Vercel project root directory.
+
+## Project Layout
+
+- `index.html`, `app.js`, `styles.css` - legacy static calculator shell
+- `roots/` - standalone static Roots backup
+- `roots-react/` - Vite + React + TypeScript Roots pilot
+- `root-engine.js` - canonical root-finding numerical engine
+- `math-engine.js`, `calc-engine.js`, `expression-engine.js`, `poly-engine.js`, `ieee754.js` - shared numerical engines
+- `roots-react/public/legacy/` - committed synced copies required by Vercel builds
+- `roots-react/scripts/sync-legacy-engines.mjs` - syncs shared engines into `roots-react/public/legacy/`
+- `scripts/roots-react-release-check.ps1` - canonical Roots React release gate
+- `scripts/*.js` - static app and engine audit scripts
+- `docs/deployment/` - Vercel release workflow and handoff checklists
+- `calculator-companion-site/` and `calculator-site-content/` - static companion site and JSON content
+
+## Common Commands
+
+Run from the repository root:
 
 ```powershell
 node scripts/engine-correctness-audit.js
@@ -37,4 +54,25 @@ node scripts/root-engine-audit.js
 node scripts/roots-mini-app-static-audit.js
 node scripts/roots-mini-app-ui-audit.js
 node scripts/roots-fast-lane-audit.js
+.\scripts\roots-react-release-check.ps1
 ```
+
+Run from `roots-react/`:
+
+```powershell
+npm install
+npm run sync:legacy
+npm run typecheck
+npm run build
+npm run dev
+```
+
+## Release Rule
+
+Before merging, staging, or promoting Roots React work, run:
+
+```powershell
+.\scripts\roots-react-release-check.ps1
+```
+
+That gate verifies the shared numerical engines, syncs legacy engine copies for Vercel, checks for stale synced files, typechecks the React app, and builds the Vite app.
