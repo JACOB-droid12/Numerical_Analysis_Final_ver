@@ -32,6 +32,7 @@
 .zencoder/
 .playwright-cli/
 .playwright-mcp/
+.edge-devtools-*/
 .worktrees/
 worktrees/
 output/
