@@ -1,4 +1,4 @@
-import { Calculator, Play, RotateCcw } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 
 import { Button } from './ui/Button';
 import type { WorkbenchStatus } from '../types/roots';
@@ -22,6 +22,7 @@ export function RunControls({ disabled, disabledReason, runLabel, status, onRun,
     <div className="run-row">
       <Button
         className="run-primary"
+        aria-label={runLabel === 'Run Newton-Raphson' ? 'Run method' : runLabel}
         disabled={isDisabled}
         onClick={() => {
           if (isDisabled) {
@@ -31,9 +32,8 @@ export function RunControls({ disabled, disabledReason, runLabel, status, onRun,
           onRun();
         }}
       >
-        <Calculator aria-hidden="true" className="size-5" />
         <Play aria-hidden="true" className="size-4" />
-        {runLabel.replace('Run Newton-Raphson', 'Run method').replace('Run ', 'Run ')}
+        {runLabel}
       </Button>
       <Button variant="secondary" className="min-h-12 px-5" onClick={onReset}>
         <RotateCcw aria-hidden="true" className="size-4" />

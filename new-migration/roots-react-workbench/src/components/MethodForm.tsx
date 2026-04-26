@@ -181,7 +181,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
             <span className="math-label">{config.expressionLabel}</span>
             <span className="section-kicker">{config.shortLabel} method</span>
           </div>
-          {renderField(primaryField)}
+          <NotebookDisplay angleMode={angleMode} config={config} formState={formState} />
           <div className="tool-disclosure">
             <button
               type="button"
@@ -196,7 +196,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
               <SymbolInsertBar onInsert={insertSymbol} onBackspace={backspaceExpression} />
             ) : null}
           </div>
-          <NotebookDisplay angleMode={angleMode} config={config} formState={formState} />
+          {renderField(primaryField)}
         </div>
       ) : null}
 

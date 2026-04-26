@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { CircleHelp, Command } from 'lucide-react';
+import { ChevronDown, CircleHelp, Copy, Keyboard, RotateCcw, Search } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
@@ -14,6 +14,18 @@ import { QuickCommandMenu } from './components/QuickCommandMenu';
 import { RunControls } from './components/RunControls';
 import { METHOD_PRESETS } from './config/methods';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
+import { answerText } from './lib/resultFormatters';
+
+function formatLastRun(timestamp: string | null) {
+  if (!timestamp) return 'Not run yet';
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return 'Unknown time';
+
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
 
 export default function App() {
   const fullWorkRegionId = useId();
@@ -42,67 +54,106 @@ export default function App() {
   const hasRun = displayedRun !== null;
   const expressionValue = activeForm[activeConfig.expressionFieldId]?.trim() ?? '';
   const expressionReady = expressionValue.length > 0;
+  const copyPayload = answerText(displayedRun);
+
+  const copyActiveAnswer = async () => {
+    if (!copyPayload || !navigator.clipboard?.writeText) return;
+    try {
+      await navigator.clipboard.writeText(copyPayload);
+    } catch {
+      // The answer panel keeps its own copy feedback; this toolbar action is best-effort.
+    }
+  };
 
   return (
     <main className="app-shell">
+      <section className="mac-window" aria-label="Roots Workbench">
+        <header className="window-toolbar">
+          <h1 className="sr-only">Answer workstation</h1>
+
+          <nav className="toolbar-actions" aria-label="Application controls">
+            <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
+            <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
+            <div className="utility-control toolbar-search">
+              <button
+                type="button"
+                className="quick-command"
+                aria-expanded={openUtility === 'presets'}
+                onClick={() => setOpenUtility((current) => (current === 'presets' ? null : 'presets'))}
+              >
+                <Search aria-hidden="true" />
+                <span className="keycap">⌘K</span>
+                <span>Quick command</span>
+              </button>
+              {openUtility === 'presets' ? (
+                <QuickCommandMenu
+                  presets={METHOD_PRESETS}
+                  onApply={applyPreset}
+                  onClose={() => setOpenUtility(null)}
+                />
+              ) : null}
+            </div>
+            <div className="toolbar-icon-group">
+              <div className="utility-control">
+                <button
+                  type="button"
+                  className="toolbar-icon-button"
+                  aria-expanded={openUtility === 'help'}
+                  onClick={() => setOpenUtility((current) => (current === 'help' ? null : 'help'))}
+                >
+                  <CircleHelp aria-hidden="true" />
+                  <span className="sr-only">Help</span>
+                </button>
+                {openUtility === 'help' ? (
+                  <HelpPopover config={activeConfig} onClose={() => setOpenUtility(null)} />
+                ) : null}
+              </div>
+              <button type="button" className="toolbar-icon-button" aria-label="Shortcuts">
+                <Keyboard aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="toolbar-icon-button"
+                aria-label="Copy answer"
+                disabled={!copyPayload}
+                onClick={copyActiveAnswer}
+              >
+                <Copy aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="toolbar-icon-button"
+                aria-label="Reset active method"
+                onClick={resetActiveMethod}
+              >
+                <RotateCcw aria-hidden="true" />
+              </button>
+              <button type="button" className="toolbar-icon-button" aria-label="More actions">
+                <ChevronDown aria-hidden="true" />
+              </button>
+            </div>
+          </nav>
+        </header>
+
       <div className="workbench-frame">
         <aside className="method-rail" aria-label="Root method picker">
           <div className="rail-head">
             <span className="brand-mark" aria-hidden="true">√</span>
-            <div>
-              <p className="rail-title">Roots</p>
-              <p className="rail-subtitle">One method active</p>
-            </div>
           </div>
           <MethodPicker
             activeMethod={activeMethod}
             methods={methodConfigs}
             onSelect={setMethod}
           />
-          <p className="system-ready"><span /> Engine ready</p>
+          <div className="rail-secondary" aria-label="Secondary navigation">
+            <span className="rail-secondary-item">History</span>
+            <span className="rail-secondary-item">Saved</span>
+            <span className="rail-secondary-item">Settings</span>
+          </div>
+          <p className="system-ready sr-only"><span /> Engine ready</p>
         </aside>
 
         <div className="workbench-main">
-          <header className="top-command">
-            <div>
-              <p className="section-kicker">Roots React Workbench</p>
-              <h1>Answer workstation</h1>
-            </div>
-            <nav aria-label="Utility controls">
-              <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
-              <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-              <div className="utility-control">
-                <button
-                  type="button"
-                  aria-expanded={openUtility === 'help'}
-                  onClick={() => setOpenUtility((current) => (current === 'help' ? null : 'help'))}
-                >
-                  <CircleHelp aria-hidden="true" /> Help
-                </button>
-                {openUtility === 'help' ? (
-                  <HelpPopover config={activeConfig} onClose={() => setOpenUtility(null)} />
-                ) : null}
-              </div>
-              <div className="utility-control">
-                <button
-                  type="button"
-                  className="quick-command"
-                  aria-expanded={openUtility === 'presets'}
-                  onClick={() => setOpenUtility((current) => (current === 'presets' ? null : 'presets'))}
-                >
-                  <Command aria-hidden="true" /> Quick Command
-                </button>
-                {openUtility === 'presets' ? (
-                  <QuickCommandMenu
-                    presets={METHOD_PRESETS}
-                    onApply={applyPreset}
-                    onClose={() => setOpenUtility(null)}
-                  />
-                ) : null}
-              </div>
-            </nav>
-          </header>
-
           <section className="console-grid">
             <section id="equation-studio" className="equation-studio" aria-label="Equation studio">
               <div className="workflow-heading">
@@ -170,6 +221,12 @@ export default function App() {
           </div>
         </div>
       </div>
+        <footer className="workbench-statusbar">
+          <span><span className="status-dot" /> Ready</span>
+          <span>Last run: {formatLastRun(displayRun.ranAt)}</span>
+          <span>Engine: {engineMode === 'modern' ? 'Modern beta' : 'Legacy'} · Angle: {angleMode.toUpperCase()} · Precision: current settings</span>
+        </footer>
+      </section>
     </main>
   );
 }

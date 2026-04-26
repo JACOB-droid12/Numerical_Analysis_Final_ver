@@ -12,7 +12,7 @@ const OPTIONS: Array<{ value: RootEngineMode; label: string }> = [
 
 export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
   const description = engineMode === 'modern'
-    ? 'Modern beta uses the new TypeScript + math.js engine. It is available for testing and comparison. Results may differ slightly in stop reasons, iteration details, and formatting.'
+    ? 'Modern beta uses the new TypeScript + math.js engine. It is available for testing and comparison.'
     : 'Legacy is the default engine used by the current app.';
 
   return (
@@ -24,11 +24,13 @@ export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
             <button
               key={option.value}
               type="button"
+              aria-label={option.label}
               aria-pressed={engineMode === option.value}
               className={engineMode === option.value ? 'active' : ''}
               onClick={() => onChange(option.value)}
             >
-              {option.label}
+              {option.value === 'modern' ? 'Modern' : option.label}
+              {option.value === 'modern' ? <span className="beta-badge">beta</span> : null}
             </button>
           ))}
         </div>
@@ -36,7 +38,7 @@ export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
       <p className="engine-toggle-help">{description}</p>
       {engineMode === 'modern' ? (
         <p className="engine-beta-notice" role="status">
-          Modern beta is active. This engine is being tested against the legacy engine and high-precision golden cases.
+          Modern beta is active.
         </p>
       ) : null}
     </div>

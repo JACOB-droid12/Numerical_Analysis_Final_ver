@@ -8,11 +8,11 @@ interface MethodPickerProps {
 
 export function MethodPicker({ activeMethod, methods, onSelect }: MethodPickerProps) {
   const glyphs: Record<RootMethod, string> = {
-    bisection: '[ ]',
-    newton: 'N′',
-    secant: '∠',
-    falsePosition: '⊕',
-    fixedPoint: 'C',
+    bisection: '↔',
+    newton: 'ƒ′',
+    secant: '∕∕',
+    falsePosition: '×',
+    fixedPoint: '○↻',
   };
 
   return (

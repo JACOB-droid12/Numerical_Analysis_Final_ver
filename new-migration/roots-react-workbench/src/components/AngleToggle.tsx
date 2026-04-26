@@ -7,7 +7,6 @@ interface AngleToggleProps {
 
 export function AngleToggle({ angleMode, onToggle }: AngleToggleProps) {
   const isDegrees = angleMode === 'deg';
-  const label = isDegrees ? 'DEG' : 'RAD';
 
   return (
     <button
@@ -18,7 +17,10 @@ export function AngleToggle({ angleMode, onToggle }: AngleToggleProps) {
       aria-pressed={isDegrees}
     >
       <span>Angle</span>
-      <span className="numeric-value font-semibold">{label}</span>
+      <span className="angle-segments" aria-hidden="true">
+        <span className={!isDegrees ? 'active' : ''}>Rad</span>
+        <span className={isDegrees ? 'active' : ''}>Deg</span>
+      </span>
     </button>
   );
 }
