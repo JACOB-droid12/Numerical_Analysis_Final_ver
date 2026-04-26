@@ -248,11 +248,13 @@ export interface RunRequestSnapshot {
 export interface StoredRunState {
   result: RootRunResult;
   request: RunRequestSnapshot;
+  ranAt: string;
 }
 
 export interface DisplayedRunState {
   run: RootRunResult | null;
   request: RunRequestSnapshot | null;
+  ranAt: string | null;
   freshness: RunFreshness;
   staleReason: string | null;
   hasCompareEntry: boolean;

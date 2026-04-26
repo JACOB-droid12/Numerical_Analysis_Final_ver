@@ -13,6 +13,7 @@ import type { RootRunResult, RunFreshness } from '../types/roots';
 interface AnswerPanelProps {
   run: RootRunResult | null;
   freshness?: RunFreshness;
+  runTimestamp?: string | null;
   staleReason?: string | null;
 }
 
@@ -77,7 +78,23 @@ function freshnessNote(freshness: RunFreshness, staleReason: string | null): str
   return 'Copy the answer now or inspect the confidence and evidence below.';
 }
 
-export function AnswerPanel({ run, freshness = 'current', staleReason = null }: AnswerPanelProps) {
+function formatRunTime(timestamp: string | null | undefined): string {
+  if (!timestamp) return 'unknown time';
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return 'unknown time';
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(date);
+}
+
+export function AnswerPanel({
+  run,
+  freshness = 'current',
+  runTimestamp = null,
+  staleReason = null,
+}: AnswerPanelProps) {
   const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
   const timerRef = useRef<number | null>(null);
 
@@ -196,7 +213,7 @@ export function AnswerPanel({ run, freshness = 'current', staleReason = null }: 
           >
             {freshness === 'stale' ? 'Outdated' : 'Current'}
           </span>
-          <span>Updated: just now</span>
+          <span>Run: {formatRunTime(runTimestamp)}</span>
           <span>Method: {methodLabel(run.method)}</span>
       </div>
       {summary?.stopDetail ? (

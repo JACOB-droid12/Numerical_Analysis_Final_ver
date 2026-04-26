@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef } from 'react';
-import { CheckCircle2, Maximize2 } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { CheckCircle2, Keyboard, SlidersHorizontal } from 'lucide-react';
 
 import type {
   AngleMode,
@@ -24,6 +24,7 @@ function isVisible(field: MethodFieldConfig, formState: MethodFormState) {
 
 export function MethodForm({ angleMode, config, formState, onChange }: MethodFormProps) {
   const expressionRef = useRef<HTMLInputElement | null>(null);
+  const [showSymbolTools, setShowSymbolTools] = useState(false);
 
   const visibleFields = useMemo(
     () => config.fields.filter((field) => isVisible(field, formState)),
@@ -98,13 +99,19 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
     (field: MethodFieldConfig) => {
       const value = formState[field.id] ?? field.defaultValue ?? '';
       const fieldDomId = `roots-${config.method}-${field.id}`;
-      const commonClassName = `field-control numeric-value${field.id === config.expressionFieldId ? ' expression-input' : ''}`;
+      const isExpressionField = field.id === config.expressionFieldId;
+      const hasExpressionValue = isExpressionField ? value.trim().length > 0 : false;
+      const commonClassName = [
+        'field-control numeric-value',
+        isExpressionField ? 'expression-input' : '',
+        isExpressionField && !hasExpressionValue ? 'expression-input--empty' : '',
+      ].filter(Boolean).join(' ');
       const expressionAriaLabel =
-        field.id === config.expressionFieldId ? `${config.shortLabel} ${config.expressionLabel}` : undefined;
+        isExpressionField ? `${config.shortLabel} ${config.expressionLabel}` : undefined;
 
       return (
-        <label key={field.id} className={field.id === config.expressionFieldId ? 'expression-field' : 'field-row'}>
-          {field.id === config.expressionFieldId ? null : <span>{field.label}</span>}
+        <label key={field.id} className={isExpressionField ? 'expression-field' : 'field-row'}>
+          {isExpressionField ? null : <span>{field.label}</span>}
           {field.kind === 'select' ? (
             <select
               id={fieldDomId}
@@ -130,7 +137,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
             />
           ) : (
             <input
-              ref={field.id === config.expressionFieldId ? expressionRef : undefined}
+              ref={isExpressionField ? expressionRef : undefined}
               id={fieldDomId}
               name={field.id}
               type={field.kind === 'number' ? 'number' : 'text'}
@@ -142,10 +149,13 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
               className={commonClassName}
             />
           )}
-          {field.id === config.expressionFieldId ? (
-            <span className="input-status-icons" aria-hidden="true">
-              <CheckCircle2 size={23} strokeWidth={1.7} />
-              <Maximize2 size={22} strokeWidth={1.5} />
+          {isExpressionField ? (
+            <span
+              className={`input-status-icons ${hasExpressionValue ? 'input-status-icons--ready' : 'input-status-icons--empty'}`}
+              aria-live="polite"
+            >
+              <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
+              <span>{hasExpressionValue ? 'Entered' : 'Empty'}</span>
             </span>
           ) : null}
         </label>
@@ -158,6 +168,10 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
   const modeField = precisionFields.find((field) => field.id.endsWith('-mode'));
   const stopKindField = precisionFields.find((field) => field.id.endsWith('-stop-kind'));
   const stopValueField = precisionFields.find((field) => field.id.endsWith('-stop-value'));
+  const digitsValue = digitsField ? formState[digitsField.id] ?? digitsField.defaultValue : '-';
+  const modeValue = modeField ? formState[modeField.id] ?? modeField.defaultValue : 'round';
+  const stopKindValue = stopKindField ? formState[stopKindField.id] ?? stopKindField.defaultValue : 'iterations';
+  const stopValue = stopValueField ? formState[stopValueField.id] ?? stopValueField.defaultValue : '-';
 
   return (
     <section className="studio-form">
@@ -168,7 +182,20 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
             <span className="section-kicker">{config.shortLabel} method</span>
           </div>
           {renderField(primaryField)}
-          <SymbolInsertBar onInsert={insertSymbol} onBackspace={backspaceExpression} />
+          <div className="tool-disclosure">
+            <button
+              type="button"
+              className="disclosure-button"
+              aria-expanded={showSymbolTools}
+              onClick={() => setShowSymbolTools((current) => !current)}
+            >
+              <Keyboard aria-hidden="true" />
+              Math keys
+            </button>
+            {showSymbolTools ? (
+              <SymbolInsertBar onInsert={insertSymbol} onBackspace={backspaceExpression} />
+            ) : null}
+          </div>
           <NotebookDisplay angleMode={angleMode} config={config} formState={formState} />
         </div>
       ) : null}
@@ -177,8 +204,17 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
         <div className="field-stack">
           {detailFields.map(renderField)}
         </div>
-        <div className="precision-stack">
-          <p className="section-kicker">Precision mode</p>
+        <details className="precision-stack">
+          <summary>
+            <span className="precision-summary-title">
+              <SlidersHorizontal aria-hidden="true" />
+              Computation settings
+            </span>
+            <span className="precision-summary-value">
+              k = {digitsValue} · {modeValue === 'chop' ? 'chop · ' : ''}{stopKindValue === 'epsilon' ? 'epsilon' : 'n'} = {stopValue}
+            </span>
+          </summary>
+          <div className="precision-fields">
           {digitsField ? (
             <div className="segmented-row">
               <span>Digits</span>
@@ -224,7 +260,8 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
           ) : null}
           {stopKindField ? renderField(stopKindField) : null}
           {stopValueField ? renderField(stopValueField) : null}
-        </div>
+          </div>
+        </details>
       </div>
 
       {advancedFields.length ? (

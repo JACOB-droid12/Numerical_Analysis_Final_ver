@@ -123,6 +123,7 @@ export function useRootsWorkbench() {
       return {
         run: null,
         request: null,
+        ranAt: null,
         freshness: 'empty',
         staleReason: null,
         hasCompareEntry: false,
@@ -133,6 +134,7 @@ export function useRootsWorkbench() {
     return {
       run: lastRun.result,
       request: lastRun.request,
+      ranAt: lastRun.ranAt,
       freshness,
       staleReason: freshness === 'stale' ? staleReason(lastRun.request, activeRequest) : null,
       hasCompareEntry: true,
@@ -184,7 +186,7 @@ export function useRootsWorkbench() {
         return;
       }
 
-      setLastRun({ result, request });
+      setLastRun({ result, request, ranAt: new Date().toISOString() });
       setWorkbenchStatus({ kind: 'ready', message: 'Answer ready.' });
       setEvidenceExpanded(true);
     } catch (error) {

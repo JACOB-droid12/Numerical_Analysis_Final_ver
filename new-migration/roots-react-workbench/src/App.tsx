@@ -37,13 +37,15 @@ export default function App() {
 
   const displayedRun = displayRun.run;
   const hasRun = displayedRun !== null;
+  const expressionValue = activeForm[activeConfig.expressionFieldId]?.trim() ?? '';
+  const expressionReady = expressionValue.length > 0;
 
   return (
     <main className="app-shell">
       <div className="workbench-frame">
         <aside className="method-rail" aria-label="Root method picker">
           <div className="rail-head">
-            <span className="brand-mark" aria-hidden="true">R</span>
+            <span className="brand-mark" aria-hidden="true">√</span>
             <div>
               <p className="rail-title">Roots</p>
               <p className="rail-subtitle">One method active</p>
@@ -106,7 +108,10 @@ export default function App() {
                 onChange={updateField}
               />
               <RunControls
-                disabled={status.kind === 'loading'}
+                disabled={status.kind === 'loading' || !expressionReady}
+                disabledReason={
+                  expressionReady ? undefined : `Enter ${activeConfig.expressionLabel} before running the method.`
+                }
                 runLabel={activeConfig.runLabel}
                 status={status}
                 onRun={runActiveMethod}
@@ -120,6 +125,7 @@ export default function App() {
                   <AnswerPanel
                     run={displayedRun}
                     freshness={displayRun.freshness}
+                    runTimestamp={displayRun.ranAt}
                     staleReason={displayRun.staleReason}
                   />
                   <ConfidenceSummary

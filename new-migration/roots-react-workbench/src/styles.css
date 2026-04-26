@@ -5,6 +5,9 @@
   --canvas: #f7f8f5;
   --surface: #fcfcf8;
   --surface-raised: #fffffb;
+  --lcd-surface: #eaf2eb;
+  --lcd-shadow: #cddbd0;
+  --lcd-ink: #152018;
   --surface-muted: #eef0eb;
   --ink: #171817;
   --text: #171817;
@@ -29,8 +32,8 @@
   --space-xl: 24px;
   --space-2xl: 32px;
   --space-3xl: 48px;
-  --font-body: "Source Sans 3", "SF Pro Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Source Serif 4", Georgia, Cambria, serif;
+  --font-body: Inter, "SF Pro Text", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: Inter, "SF Pro Display", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
   font-family: var(--font-body);
 }
@@ -475,20 +478,23 @@ a:focus-visible {
   font-size: 1.48rem;
   font-weight: 520;
   line-height: 1.15;
-  padding: var(--space-lg) 4.6rem var(--space-lg) var(--space-lg);
+  padding: var(--space-lg) 6.1rem var(--space-lg) var(--space-lg);
 }
 
 .input-status-icons {
   position: absolute;
   top: 50%;
   right: var(--space-lg);
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-md);
   transform: translateY(-50%);
   color: var(--green);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
-.input-status-icons span:last-child {
+.input-status-icons--empty {
   color: var(--muted);
 }
 
@@ -496,6 +502,36 @@ a:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
+}
+
+.tool-disclosure {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.disclosure-button {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-sm);
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  padding: 0 var(--space-md);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.disclosure-button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-muted);
+}
+
+.disclosure-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .symbol-chip {
@@ -519,14 +555,11 @@ a:focus-visible {
 
 .calculator-notebook {
   display: grid;
-  gap: var(--space-md);
+  gap: var(--space-sm);
   padding: var(--space-md);
   border: 1px solid var(--line-strong);
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(31, 111, 235, 0.05), transparent 42%),
-    var(--surface);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  background: var(--surface);
 }
 
 .notebook-topline,
@@ -547,23 +580,23 @@ a:focus-visible {
   align-items: center;
   min-height: 26px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--surface-raised);
   padding: 4px 10px;
 }
 
 .notebook-screen {
   display: grid;
-  gap: 6px;
-  min-height: 104px;
+  gap: var(--space-md);
+  min-height: 96px;
   padding: var(--space-lg);
-  border: 1px solid rgba(23, 24, 23, 0.74);
+  border: 1px solid color-mix(in srgb, var(--lcd-shadow), var(--ink) 14%);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(22, 133, 95, 0.1), transparent 56%),
-    #111713;
-  color: #edf6ef;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    linear-gradient(180deg, color-mix(in srgb, var(--lcd-surface), var(--surface-raised) 20%), var(--lcd-surface)),
+    var(--lcd-surface);
+  color: var(--lcd-ink);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-raised), transparent 18%);
 }
 
 .result-label {
@@ -576,17 +609,34 @@ a:focus-visible {
 }
 
 .notebook-screen .result-label {
-  color: rgba(237, 246, 239, 0.62);
+  color: color-mix(in srgb, var(--lcd-ink), transparent 34%);
 }
 
 .notebook-equation {
   margin: 0;
-  color: #f7fbf6;
-  font-family: var(--font-display);
-  font-size: 1.58rem;
-  font-weight: 650;
+  color: var(--lcd-ink);
+  font-family: var(--font-mono);
+  font-size: 1.34rem;
+  font-weight: 680;
   line-height: 1.15;
   overflow-wrap: anywhere;
+}
+
+.calculator-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  color: color-mix(in srgb, var(--lcd-ink), transparent 18%);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.calculator-status-line span {
+  min-height: 22px;
+  border: 1px solid color-mix(in srgb, var(--lcd-shadow), transparent 18%);
+  border-radius: 6px;
+  padding: 3px 7px;
 }
 
 .notebook-setup {
@@ -636,6 +686,46 @@ a:focus-visible {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
+}
+
+.precision-stack summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.precision-stack summary::-webkit-details-marker {
+  display: none;
+}
+
+.precision-summary-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 720;
+}
+
+.precision-summary-title svg {
+  width: 16px;
+  height: 16px;
+  color: var(--action-blue);
+}
+
+.precision-summary-value {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.precision-fields {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
 .field-row {
@@ -805,7 +895,7 @@ a:focus-visible {
 .answer-root {
   margin: var(--space-sm) 0;
   color: var(--green);
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: 2.18rem;
   font-weight: 700;
   line-height: 1.05;
@@ -815,7 +905,7 @@ a:focus-visible {
 .answer-value {
   margin: 0;
   color: var(--ink);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.12rem;
   font-weight: 650;
   line-height: 1.15;
@@ -1061,6 +1151,38 @@ a:focus-visible {
   padding: var(--space-xl) var(--space-xl) 0;
 }
 
+.evidence-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-xl) 0;
+}
+
+.evidence-tabs button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 var(--space-md);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.evidence-tabs button[aria-selected="true"] {
+  border-color: rgba(31, 111, 235, 0.38);
+  background: rgba(31, 111, 235, 0.08);
+  color: var(--action-blue-strong);
+}
+
+.evidence-detail {
+  padding: var(--space-xl);
+}
+
+.evidence-pane {
+  min-width: 0;
+}
+
 .evidence-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.85fr) minmax(260px, 0.8fr) minmax(360px, 1.1fr) minmax(420px, 1.3fr);
@@ -1099,7 +1221,7 @@ a:focus-visible {
   margin: var(--space-sm) 0 0;
   color: var(--ink);
   font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
-  font-size: clamp(0.9rem, 1.1vw, 1.06rem);
+  font-size: 1rem;
   font-weight: 620;
   line-height: 1.45;
   overflow-wrap: anywhere;
@@ -1289,8 +1411,58 @@ a:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .workbench-main,
   .method-rail {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in oklch, var(--surface) 92%, var(--surface-muted));
+  }
+
+  .rail-head {
+    gap: var(--space-sm);
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .rail-subtitle,
+  .system-ready,
+  .method-list::before {
+    display: none;
+  }
+
+  .method-list {
+    display: flex;
+    gap: var(--space-sm);
+    margin-inline: calc(var(--space-md) * -1);
+    overflow-x: auto;
+    padding-inline: var(--space-md);
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .method-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .method-tab {
+    flex: 0 0 148px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    min-height: 50px;
+    padding: var(--space-sm);
+  }
+
+  .workbench-main,
+  .equation-studio,
+  .result-console,
+  .evidence-grid > section {
     padding: var(--space-lg);
   }
 
@@ -1306,20 +1478,39 @@ a:focus-visible {
     justify-content: start;
   }
 
-  .equation-studio,
-  .result-console,
-  .evidence-grid > section {
-    padding: var(--space-lg);
-  }
-
   .parameter-grid,
   .field-row,
   .run-row {
     grid-template-columns: 1fr;
   }
 
+  .run-row {
+    position: sticky;
+    bottom: var(--space-sm);
+    z-index: 8;
+    margin: var(--space-lg) calc(var(--space-sm) * -1) 0;
+    padding: var(--space-sm);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-raised), transparent 4%);
+    box-shadow: 0 16px 42px -24px rgba(23, 24, 23, 0.42);
+  }
+
+  .run-row .status-text {
+    margin: 0;
+  }
+
   .expression-field .field-control {
     font-size: 1.14rem;
+    padding-right: var(--space-lg);
+    padding-bottom: 2.5rem;
+  }
+
+  .input-status-icons {
+    top: auto;
+    right: var(--space-lg);
+    bottom: var(--space-md);
+    transform: none;
   }
 
   .notebook-equation,
@@ -1330,6 +1521,24 @@ a:focus-visible {
   .notebook-topline,
   .notebook-tape {
     justify-content: start;
+  }
+
+  .evidence-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: var(--space-lg) var(--space-lg) 0;
+  }
+
+  .evidence-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .evidence-detail {
+    padding: var(--space-lg);
+  }
+
+  .evidence-detail .graph-panel svg {
+    max-height: 320px;
   }
 }
 

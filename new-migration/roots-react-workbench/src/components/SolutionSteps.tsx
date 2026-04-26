@@ -95,18 +95,18 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           aria-live="polite"
           aria-label={
             copyStatus === 'success'
-              ? 'Solution generated'
+              ? 'Solution steps copied'
               : copyStatus === 'error'
-                ? 'Generate solution failed'
-                : 'Generate solution'
+                ? 'Copy solution steps failed'
+                : 'Copy solution steps'
           }
           className="copy-icon-button h-8 w-auto px-3 text-xs"
         >
           {copyStatus === 'success'
-            ? 'Generated'
+            ? 'Copied'
             : copyStatus === 'error'
               ? 'Failed'
-              : 'Generate solution'}
+              : 'Copy steps'}
         </button>
       </div>
 
@@ -122,7 +122,6 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           </li>
         ))}
       </ol>
-      <p className="mt-5 text-right text-sm text-[var(--ink)]">View full derivation →</p>
     </section>
   );
 }
