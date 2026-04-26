@@ -4,6 +4,7 @@ import { ChevronDown, CircleHelp, Copy, Keyboard, RotateCcw, Search } from 'luci
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
 import { ConfidenceSummary } from './components/ConfidenceSummary';
+import { ClassroomToolsPanel } from './components/ClassroomToolsPanel';
 import { EmptyState } from './components/EmptyState';
 import { EngineToggle } from './components/EngineToggle';
 import { EvidencePanel } from './components/EvidencePanel';
@@ -15,6 +16,7 @@ import { RunControls } from './components/RunControls';
 import { METHOD_PRESETS } from './config/methods';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 import { answerText } from './lib/resultFormatters';
+import type { PrecisionDisplayConfig } from './types/roots';
 
 function formatLastRun(timestamp: string | null) {
   if (!timestamp) return 'Not run yet';
@@ -30,6 +32,10 @@ function formatLastRun(timestamp: string | null) {
 export default function App() {
   const fullWorkRegionId = useId();
   const [openUtility, setOpenUtility] = useState<'help' | 'presets' | null>(null);
+  const [precisionDisplay, setPrecisionDisplay] = useState<PrecisionDisplayConfig>({
+    mode: 'standard',
+    digits: 5,
+  });
   const {
     activeConfig,
     activeForm,
@@ -169,6 +175,13 @@ export default function App() {
                 formState={activeForm}
                 onChange={updateField}
               />
+              <ClassroomToolsPanel
+                angleMode={angleMode}
+                formState={activeForm}
+                method={activeMethod}
+                precisionDisplay={precisionDisplay}
+                onPrecisionDisplayChange={setPrecisionDisplay}
+              />
               <RunControls
                 disabled={status.kind === 'loading' || !expressionReady}
                 disabledReason={
@@ -215,6 +228,7 @@ export default function App() {
                 config={displayConfig}
                 contentId={fullWorkRegionId}
                 expanded={evidenceExpanded}
+                precisionDisplay={precisionDisplay}
                 run={displayedRun}
               />
             ) : null}

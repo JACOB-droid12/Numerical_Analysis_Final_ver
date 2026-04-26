@@ -908,6 +908,85 @@ a:focus-visible {
   margin-top: var(--space-xl);
 }
 
+.classroom-tools {
+  display: grid;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-muted), transparent 32%);
+}
+
+.classroom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+
+.classroom-card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-sm);
+  min-width: 0;
+  padding: var(--space-md);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.classroom-card h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 760;
+}
+
+.classroom-segment {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.classroom-result {
+  margin: var(--space-xs) 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.classroom-result span {
+  color: var(--ink);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.classroom-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.classroom-facts div {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.58fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.classroom-facts dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.classroom-facts dd {
+  margin: 0;
+  color: var(--ink);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
 .status-text {
   grid-column: 1 / -1;
   margin: 0;
@@ -2806,6 +2885,7 @@ body {
 
   .field-stack,
   .precision-fields,
+  .classroom-facts div,
   .run-row {
     grid-template-columns: 1fr;
   }

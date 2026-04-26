@@ -13,7 +13,7 @@ import {
   tableHeadersForRun,
   tableValuesForRow,
 } from '../resultFormatters';
-import type { RootRunResult } from '../../types/roots';
+import type { PrecisionDisplayConfig, RootRunResult } from '../../types/roots';
 import {
   modernRootResultToUiResult,
   runModernRootMethodForUi,
@@ -63,14 +63,14 @@ function expectUiSuccess(run: RootRunResult): RootRunResult {
   return run;
 }
 
-function csvFor(run: RootRunResult): string {
+function csvFor(run: RootRunResult, precisionDisplay?: PrecisionDisplayConfig): string {
   const config = METHOD_CONFIG_BY_ID[run.method];
   const headers = tableHeadersForRun(run, config.tableHeaders);
   const rows = run.rows ?? [];
   return rowsToCsv([
     headers,
     ...rows.map((row) => {
-      const values = tableValuesForRow(run.method, row, run);
+      const values = tableValuesForRow(run.method, row, run, precisionDisplay);
       return Array.from({ length: headers.length }, (_, index) => values[index] ?? '');
     }),
   ]);
@@ -308,6 +308,26 @@ describe('modern root engine UI adapter', () => {
     expect(csv).toContain('pₙ₊₁');
     expect(csv).toContain('Approx. Error');
     expect(csv.split('\r\n').length).toBe((run.rows?.length ?? 0) + 1);
+  });
+
+  it('uses the selected modern precision display for CSV values', () => {
+    const run = runModernRootMethodForUi({
+      method: 'bisection',
+      expression: 'x^3 - x - 1',
+      lower: 1,
+      upper: 2,
+      maxIterations: 3,
+    });
+
+    const standardCsv = csvFor(run, { mode: 'standard', digits: 5 });
+    const choppedCsv = csvFor(run, { mode: 'chop', digits: 5 });
+    const roundedCsv = csvFor(run, { mode: 'round', digits: 5 });
+
+    expect(standardCsv).toContain('1.25');
+    expect(choppedCsv).toContain('1.25');
+    expect(choppedCsv).toContain('-0.29687');
+    expect(roundedCsv).toContain('-0.29688');
+    expect(run.summary?.approximation).toBeTypeOf('number');
   });
 
   it('leaves legacy table and CSV headers unchanged', () => {

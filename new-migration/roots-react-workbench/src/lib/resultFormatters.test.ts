@@ -7,6 +7,7 @@ import {
   methodFormulaDisplay,
   solutionSteps,
   stopReasonLabel,
+  tableValuesForRow,
 } from './resultFormatters';
 import type { RootRunResult } from '../types/roots';
 
@@ -81,5 +82,55 @@ describe('result formatters', () => {
       { label: 'Metric', value: '0.001' },
       { label: 'Basis', value: 'machine signs' },
     ]);
+  });
+
+  it('keeps standard precision display unchanged for modern table rows', () => {
+    const values = tableValuesForRow(
+      'bisection',
+      { iteration: 1, lower: 1.23456789, upper: 2, midpoint: 1.617283945, fMidpoint: 0.123456789, error: 0.382716055 },
+      { engine: 'modern' },
+      { mode: 'standard', digits: 5 },
+    );
+
+    expect(values).toEqual(['1', '1.23456789', '2', '1.617283945', '0.123456789', '0.382716055']);
+  });
+
+  it('applies chopping and rounding display to modern table rows only', () => {
+    const row = {
+      iteration: 1,
+      xCurrent: 3.1415926535,
+      fCurrent: -0.123456789,
+      derivativeCurrent: 2.718281828,
+      xNext: 3.187004405,
+      error: 0.0454117515,
+    };
+
+    expect(tableValuesForRow('newton', row, { engine: 'modern' }, { mode: 'chop', digits: 5 })).toEqual([
+      '1',
+      '3.1415',
+      '-0.12345',
+      '2.7182',
+      '-0.045417',
+      '3.187',
+      '0.045411',
+    ]);
+
+    expect(tableValuesForRow('newton', row, { engine: 'modern' }, { mode: 'round', digits: 5 })).toEqual([
+      '1',
+      '3.1416',
+      '-0.12346',
+      '2.7183',
+      '-0.045417',
+      '3.187',
+      '0.045412',
+    ]);
+
+    const legacyValues = tableValuesForRow(
+      'newton',
+      { iteration: 1, xn: 3.1415926535, fxn: -0.123456789, dfxn: 2.718281828, xNext: 3.187004405 },
+      { engine: 'legacy' },
+      { mode: 'chop', digits: 5 },
+    );
+    expect(legacyValues[1]).toBe('3.1415926535');
   });
 });

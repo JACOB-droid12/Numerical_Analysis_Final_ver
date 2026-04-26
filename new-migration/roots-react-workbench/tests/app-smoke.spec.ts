@@ -9,6 +9,8 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByRole('button', { name: 'Legacy' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
   await expect(page.getByText('Modern beta is active.')).not.toBeVisible();
+  await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
+  await expect(page.getByText('Precision / Machine Arithmetic')).toBeVisible();
 
   await page.getByRole('button', { name: 'Help' }).click();
   await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
@@ -24,6 +26,8 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
 
   await page.getByRole('button', { name: /Bisection/ }).click();
+  await expect(page.getByText('Bracket signs')).toBeVisible();
+  await expect(page.getByText('Bisection helper')).toBeVisible();
   await page.getByRole('button', { name: 'Run bisection' }).click();
 
   await expect(page.getByText('Method: Bisection')).toBeVisible();

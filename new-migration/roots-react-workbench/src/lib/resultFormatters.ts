@@ -1,5 +1,12 @@
 import { METHOD_BY_NAME } from '../config/methods';
-import type { IterationRow, RootMethod, RootRunResult, RunFreshness } from '../types/roots';
+import { chopToSignificantDigits, roundToSignificantDigits } from './machineArithmetic/decimalMachine';
+import type {
+  IterationRow,
+  PrecisionDisplayConfig,
+  RootMethod,
+  RootRunResult,
+  RunFreshness,
+} from '../types/roots';
 
 const EMPTY = 'Not calculated yet';
 const FALLBACK = '-';
@@ -528,6 +535,21 @@ export function solutionText(run: RootRunResult | null): string {
   ].join('\n');
 }
 
+function formatModernTableValue(value: unknown, precisionDisplay?: PrecisionDisplayConfig): string {
+  if (!precisionDisplay || precisionDisplay.mode === 'standard') {
+    return formatValue(value);
+  }
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return formatValue(value);
+  }
+  if (!Number.isInteger(precisionDisplay.digits) || precisionDisplay.digits < 1) {
+    return formatValue(value);
+  }
+  return precisionDisplay.mode === 'chop'
+    ? chopToSignificantDigits(value, precisionDisplay.digits)
+    : roundToSignificantDigits(value, precisionDisplay.digits);
+}
+
 export function solutionSteps(run: RootRunResult): string[] {
   const expression = run.canonical || run.expression || 'the expression';
   const approx = formatValue(run.summary?.approximation, 18);
@@ -639,55 +661,56 @@ export function tableValuesForRow(
   method: RootMethod,
   row: IterationRow,
   run?: { engine?: unknown; signDisplay?: RootRunResult['signDisplay'] } | null,
+  precisionDisplay?: PrecisionDisplayConfig,
 ): string[] {
   if (run?.engine === 'modern') {
     if (method === 'bisection') {
       return [
         String(row.iteration),
-        formatValue(row.lower ?? row.a),
-        formatValue(row.upper ?? row.b),
-        formatValue(row.midpoint ?? row.c),
-        formatValue(row.fMidpoint ?? row.fc),
-        formatValue(row.error),
+        formatModernTableValue(row.lower ?? row.a, precisionDisplay),
+        formatModernTableValue(row.upper ?? row.b, precisionDisplay),
+        formatModernTableValue(row.midpoint ?? row.c, precisionDisplay),
+        formatModernTableValue(row.fMidpoint ?? row.fc, precisionDisplay),
+        formatModernTableValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'falsePosition') {
       return [
         String(row.iteration),
-        formatValue(row.lower ?? row.a),
-        formatValue(row.upper ?? row.b),
-        formatValue(row.point ?? row.c),
-        formatValue(row.fPoint ?? row.fc),
-        formatValue(row.error),
+        formatModernTableValue(row.lower ?? row.a, precisionDisplay),
+        formatModernTableValue(row.upper ?? row.b, precisionDisplay),
+        formatModernTableValue(row.point ?? row.c, precisionDisplay),
+        formatModernTableValue(row.fPoint ?? row.fc, precisionDisplay),
+        formatModernTableValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'secant') {
       return [
         String(row.iteration),
-        formatValue(row.xPrevious ?? row.xPrev),
-        formatValue(row.xCurrent ?? row.xn),
-        formatValue(row.xNext),
-        formatValue(row.fNext),
-        formatValue(row.error),
+        formatModernTableValue(row.xPrevious ?? row.xPrev, precisionDisplay),
+        formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
+        formatModernTableValue(row.xNext, precisionDisplay),
+        formatModernTableValue(row.fNext, precisionDisplay),
+        formatModernTableValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'newton') {
       return [
         String(row.iteration),
-        formatValue(row.xCurrent ?? row.xn),
-        formatValue(row.fCurrent ?? row.fxn),
-        formatValue(row.derivativeCurrent ?? row.dfxn),
-        formatValue(newtonCorrection(row)),
-        formatValue(row.xNext),
-        formatValue(row.error),
+        formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
+        formatModernTableValue(row.fCurrent ?? row.fxn, precisionDisplay),
+        formatModernTableValue(row.derivativeCurrent ?? row.dfxn, precisionDisplay),
+        formatModernTableValue(newtonCorrection(row), precisionDisplay),
+        formatModernTableValue(row.xNext, precisionDisplay),
+        formatModernTableValue(row.error, precisionDisplay),
       ];
     }
     return [
       String(row.iteration),
-      formatValue(row.xCurrent ?? row.xn),
-      formatValue(row.xNext ?? row.gxn),
-      formatValue(row.error),
-      formatValue(row.residual),
+      formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
+      formatModernTableValue(row.xNext ?? row.gxn, precisionDisplay),
+      formatModernTableValue(row.error, precisionDisplay),
+      formatModernTableValue(row.residual, precisionDisplay),
     ];
   }
 

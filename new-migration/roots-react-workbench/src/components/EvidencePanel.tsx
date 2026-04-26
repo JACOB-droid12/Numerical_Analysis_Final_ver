@@ -4,12 +4,13 @@ import { ConvergenceGraph } from './ConvergenceGraph';
 import { IterationTable } from './IterationTable';
 import { SolutionSteps } from './SolutionSteps';
 import { WorkflowPanel } from './WorkflowPanel';
-import type { MethodConfig, RootRunResult } from '../types/roots';
+import type { MethodConfig, PrecisionDisplayConfig, RootRunResult } from '../types/roots';
 
 interface EvidencePanelProps {
   config: MethodConfig;
   contentId: string;
   expanded: boolean;
+  precisionDisplay: PrecisionDisplayConfig;
   run: RootRunResult | null;
 }
 
@@ -26,7 +27,7 @@ function hasWorkflowContent(run: RootRunResult) {
   );
 }
 
-export function EvidencePanel({ config, contentId, expanded, run }: EvidencePanelProps) {
+export function EvidencePanel({ config, contentId, expanded, precisionDisplay, run }: EvidencePanelProps) {
   const [activeTab, setActiveTab] = useState<EvidenceTab>('steps');
 
   if (!run || !expanded) {
@@ -106,7 +107,7 @@ export function EvidencePanel({ config, contentId, expanded, run }: EvidencePane
             aria-labelledby={`${contentId}-table-tab`}
             className="evidence-pane"
           >
-            <IterationTable config={config} run={run} />
+            <IterationTable config={config} precisionDisplay={precisionDisplay} run={run} />
           </div>
         ) : null}
       </div>

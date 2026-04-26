@@ -47,6 +47,7 @@ test('loads the workbench in modern engine mode without crashing', async ({ page
   await expect(page.getByLabel('Root method picker')).toBeVisible();
   await expect(page.getByLabel('Equation studio')).toBeVisible();
   await expect(page.getByLabel('Result console')).toBeVisible();
+  await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Modern beta' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Modern beta uses the new TypeScript + math.js engine.')).toBeVisible();
   await expect(page.getByText(/Modern beta is active/)).toBeVisible();
@@ -59,6 +60,9 @@ test('runs Bisection on x^3 - x - 1', async ({ page }) => {
   await setField(page, 'root-bis-b', '2');
   await setIterations(page, 'root-bis-stop-value', '30');
 
+  await expect(page.getByText('IVT bracket')).toBeVisible();
+  await expect(page.getByText('Satisfied')).toBeVisible();
+  await expect(page.getByText('N = ceil(log₂((b - a) / ε)):')).toBeVisible();
   await runCurrentMethod(page, 'Run bisection');
   await expectMethodResult(page, 'Bisection', 1.324717957);
   await page.getByRole('tab', { name: 'Table' }).click();

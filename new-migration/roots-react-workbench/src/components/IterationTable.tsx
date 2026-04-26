@@ -2,14 +2,15 @@ import { useCallback } from 'react';
 
 import { rowsToCsv } from '../lib/csv';
 import { tableHeadersForRun, tableValuesForRow } from '../lib/resultFormatters';
-import type { MethodConfig, RootRunResult } from '../types/roots';
+import type { MethodConfig, PrecisionDisplayConfig, RootRunResult } from '../types/roots';
 
 interface IterationTableProps {
   config: MethodConfig;
+  precisionDisplay: PrecisionDisplayConfig;
   run: RootRunResult;
 }
 
-export function IterationTable({ config, run }: IterationTableProps) {
+export function IterationTable({ config, precisionDisplay, run }: IterationTableProps) {
   const rows = run.rows ?? [];
   const tableHeaders = tableHeadersForRun(run, config.tableHeaders);
   const tableCaption = `${config.shortLabel} iteration table showing ${rows.length} row${rows.length === 1 ? '' : 's'} with ${tableHeaders.length} columns.`;
@@ -21,7 +22,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
     const csvRows = [
       tableHeaders,
       ...rows.map((row) => {
-        const values = tableValuesForRow(run.method, row, run);
+        const values = tableValuesForRow(run.method, row, run, precisionDisplay);
         return Array.from({ length: tableHeaders.length }, (_, cellIndex) => values[cellIndex] ?? '');
       }),
     ];
@@ -73,7 +74,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
             </thead>
             <tbody>
               {rows.map((row, index) => {
-                const values = tableValuesForRow(run.method, row, run);
+                const values = tableValuesForRow(run.method, row, run, precisionDisplay);
                 const alignedValues = Array.from({ length: tableHeaders.length }, (_, cellIndex) =>
                   values[cellIndex] ?? '',
                 );
@@ -91,6 +92,11 @@ export function IterationTable({ config, run }: IterationTableProps) {
             </tbody>
           </table>
         </div>
+        {run.engine === 'modern' && precisionDisplay.mode !== 'standard' ? (
+          <p className="table-footnote">
+            {precisionDisplay.mode === 'chop' ? 'Chopping' : 'Rounding'} display uses {precisionDisplay.digits} significant digits. Internal calculations remain in standard precision.
+          </p>
+        ) : null}
         <p className="table-footnote">Showing {rows.length} of {rows.length} iterations • Scroll horizontally to view more columns</p>
         </>
       ) : (

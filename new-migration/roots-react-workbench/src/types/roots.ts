@@ -7,6 +7,7 @@ export type RootMethod =
 
 export type AngleMode = 'deg' | 'rad';
 export type MachineMode = 'chop' | 'round';
+export type PrecisionDisplayMode = 'standard' | 'chop' | 'round';
 export type StoppingKind = 'iterations' | 'epsilon';
 export type ToleranceType = 'absolute' | 'relative';
 export type DecisionBasis = 'exact' | 'machine';
@@ -17,6 +18,11 @@ export type FieldKind = 'text' | 'number' | 'select' | 'textarea';
 export interface MachineConfig {
   k: number;
   mode: MachineMode;
+}
+
+export interface PrecisionDisplayConfig {
+  mode: PrecisionDisplayMode;
+  digits: number;
 }
 
 export interface StoppingInput {
