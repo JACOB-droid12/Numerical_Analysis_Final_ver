@@ -11,8 +11,10 @@
     "sync:legacy": "node scripts/sync-legacy-engines.mjs",
     "check:legacy": "node scripts/check-legacy-engine-sync.mjs",
     "install:e2e": "playwright install chromium",
+    "generate:golden": "python scripts/generate-golden-values.py",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:e2e:comparison": "playwright test -c playwright.comparison.config.ts",
     "test": "npm run check:legacy && npm run test:unit && npm run install:e2e && npm run test:e2e",
     "release:check": "pwsh -NoProfile -ExecutionPolicy Bypass -File ..\\..\\scripts\\roots-react-release-check.ps1"
   },
@@ -22,6 +24,7 @@
     "gsap": "^3.15.0",
     "katex": "^0.16.45",
     "lucide-react": "^1.9.0",
+    "mathjs": "^15.2.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwind-merge": "^3.5.0"

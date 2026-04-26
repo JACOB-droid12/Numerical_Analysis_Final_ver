@@ -5,6 +5,7 @@ import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
 import { ConfidenceSummary } from './components/ConfidenceSummary';
 import { EmptyState } from './components/EmptyState';
+import { EngineToggle } from './components/EngineToggle';
 import { EvidencePanel } from './components/EvidencePanel';
 import { HelpPopover } from './components/HelpPopover';
 import { MethodForm } from './components/MethodForm';
@@ -25,10 +26,12 @@ export default function App() {
     applyPreset,
     displayConfig,
     displayRun,
+    engineMode,
     evidenceExpanded,
     methodConfigs,
     resetActiveMethod,
     runActiveMethod,
+    setEngineMode,
     setMethod,
     status,
     toggleAngleMode,
@@ -66,6 +69,7 @@ export default function App() {
               <h1>Answer workstation</h1>
             </div>
             <nav aria-label="Utility controls">
+              <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
               <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
               <div className="utility-control">
                 <button
@@ -101,6 +105,13 @@ export default function App() {
 
           <section className="console-grid">
             <section id="equation-studio" className="equation-studio" aria-label="Equation studio">
+              <div className="workflow-heading">
+                <span className="workflow-step" aria-hidden="true">1</span>
+                <div>
+                  <h2>Equation Studio</h2>
+                  <p>{activeConfig.shortLabel} method</p>
+                </div>
+              </div>
               <MethodForm
                 angleMode={angleMode}
                 config={activeConfig}
@@ -120,6 +131,13 @@ export default function App() {
             </section>
 
             <aside className="result-console" aria-label="Result console">
+              <div className="workflow-heading">
+                <span className="workflow-step" aria-hidden="true">2</span>
+                <div>
+                  <h2>Result</h2>
+                  <p>{hasRun ? 'Current calculation output' : 'Waiting for a run'}</p>
+                </div>
+              </div>
               {hasRun ? (
                 <>
                   <AnswerPanel

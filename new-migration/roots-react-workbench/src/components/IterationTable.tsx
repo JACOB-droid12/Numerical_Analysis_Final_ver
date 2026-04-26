@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 import { rowsToCsv } from '../lib/csv';
-import { tableValuesForRow } from '../lib/resultFormatters';
+import { tableHeadersForRun, tableValuesForRow } from '../lib/resultFormatters';
 import type { MethodConfig, RootRunResult } from '../types/roots';
 
 interface IterationTableProps {
@@ -11,17 +11,18 @@ interface IterationTableProps {
 
 export function IterationTable({ config, run }: IterationTableProps) {
   const rows = run.rows ?? [];
-  const tableCaption = `${config.shortLabel} iteration table showing ${rows.length} row${rows.length === 1 ? '' : 's'} with ${config.tableHeaders.length} columns.`;
+  const tableHeaders = tableHeadersForRun(run, config.tableHeaders);
+  const tableCaption = `${config.shortLabel} iteration table showing ${rows.length} row${rows.length === 1 ? '' : 's'} with ${tableHeaders.length} columns.`;
   const downloadCsv = useCallback(() => {
     if (!rows.length) {
       return;
     }
 
     const csvRows = [
-      config.tableHeaders,
+      tableHeaders,
       ...rows.map((row) => {
         const values = tableValuesForRow(run.method, row, run);
-        return Array.from({ length: config.tableHeaders.length }, (_, cellIndex) => values[cellIndex] ?? '');
+        return Array.from({ length: tableHeaders.length }, (_, cellIndex) => values[cellIndex] ?? '');
       }),
     ];
     const csv = rowsToCsv(csvRows);
@@ -37,7 +38,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  }, [config.tableHeaders, rows, run]);
+  }, [rows, run, tableHeaders]);
 
   return (
     <section className="iteration-panel">
@@ -63,7 +64,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
             <caption className="sr-only">{tableCaption}</caption>
             <thead>
               <tr>
-                {config.tableHeaders.map((header) => (
+                {tableHeaders.map((header) => (
                   <th key={header} scope="col">
                     {header}
                   </th>
@@ -73,7 +74,7 @@ export function IterationTable({ config, run }: IterationTableProps) {
             <tbody>
               {rows.map((row, index) => {
                 const values = tableValuesForRow(run.method, row, run);
-                const alignedValues = Array.from({ length: config.tableHeaders.length }, (_, cellIndex) =>
+                const alignedValues = Array.from({ length: tableHeaders.length }, (_, cellIndex) =>
                   values[cellIndex] ?? '',
                 );
 

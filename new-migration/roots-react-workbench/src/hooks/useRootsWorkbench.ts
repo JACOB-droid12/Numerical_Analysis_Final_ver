@@ -6,8 +6,12 @@ import {
   errorMessage,
   isInvalidRun,
   resultFailureMessage,
-  runRootMethod,
 } from '../lib/rootEngineAdapter';
+import {
+  runSelectedRootMethod,
+  selectedRootEngineName,
+  type RootEngineMode,
+} from '../lib/rootEngineSelector';
 import type {
   AngleMode,
   DisplayedRunState,
@@ -31,6 +35,10 @@ const ANGLE_MODE_CHANGED_STATUS: WorkbenchStatus = {
   kind: 'idle',
   message: 'Angle mode changed. Re-run to update trig values.',
 };
+const ENGINE_CHANGED_STATUS = (engineMode: RootEngineMode): WorkbenchStatus => ({
+  kind: 'idle',
+  message: `Engine switched to ${engineMode === 'modern' ? 'Modern beta' : 'Legacy'}. Run again to update the answer.`,
+});
 const PRESET_APPLIED_STATUS = (preset: MethodPreset): WorkbenchStatus => ({
   kind: 'idle',
   message: `${preset.label} loaded. Run the method to calculate the answer.`,
@@ -84,9 +92,17 @@ export function useRootsWorkbench() {
   const [engineErrorMessage, setEngineErrorMessage] = useState('');
   const [workbenchStatus, setWorkbenchStatus] = useState<WorkbenchStatus>(READY_STATUS);
   const [evidenceExpanded, setEvidenceExpanded] = useState(true);
+  const [engineMode, setEngineModeState] = useState<RootEngineMode>(() => selectedRootEngineName());
 
   useEffect(() => {
     let cancelled = false;
+
+    if (engineMode === 'modern') {
+      setEngineStatus('ready');
+      setEngineErrorMessage('');
+      setWorkbenchStatus(READY_STATUS);
+      return;
+    }
 
     loadLegacyEngines()
       .then(() => {
@@ -106,7 +122,7 @@ export function useRootsWorkbench() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [engineMode]);
 
   const activeConfig = useMemo(
     () => METHOD_CONFIGS.find((config) => config.method === activeMethod) ?? METHOD_CONFIGS[0],
@@ -177,7 +193,7 @@ export function useRootsWorkbench() {
 
     try {
       const request = createRequestSnapshot(activeMethod, forms, angleMode);
-      const result = runRootMethod(activeMethod, forms[activeMethod], angleMode);
+      const result = runSelectedRootMethod(activeMethod, forms[activeMethod], angleMode, engineMode);
 
       if (isInvalidRun(result)) {
         setLastRun(null);
@@ -194,7 +210,16 @@ export function useRootsWorkbench() {
       setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
       setEvidenceExpanded(false);
     }
-  }, [activeMethod, angleMode, engineStatus, forms]);
+  }, [activeMethod, angleMode, engineMode, engineStatus, forms]);
+
+  const setEngineMode = useCallback((mode: RootEngineMode) => {
+    setEngineModeState(mode);
+    setLastRun(null);
+    setEvidenceExpanded(false);
+    setEngineErrorMessage('');
+    setEngineStatus(mode === 'legacy' && !window.RootEngine ? 'loading' : 'ready');
+    setWorkbenchStatus(ENGINE_CHANGED_STATUS(mode));
+  }, []);
 
   const toggleAngleMode = useCallback(() => {
     setAngleMode((current) => (current === 'deg' ? 'rad' : 'deg'));
@@ -240,9 +265,11 @@ export function useRootsWorkbench() {
     angleMode,
     displayConfig,
     displayRun,
+    engineMode,
     evidenceExpanded,
     methodConfigs,
     applyPreset,
+    setEngineMode,
     setMethod,
     resetActiveMethod,
     status,

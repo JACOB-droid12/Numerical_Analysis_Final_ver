@@ -1,39 +1,43 @@
 import katex from 'katex';
+import { parse } from 'mathjs';
 
 function escapeLatex(value: string): string {
   return value.replace(/([#$%&_{}])/g, '\\$1');
 }
 
-function normalizeExpression(expression: string): string {
+function normalizeForMathJs(expression: string): string {
   return expression
     .trim()
     .replace(/\s+/g, ' ')
-    .replace(/\bsqrt\s*\(/gi, '\\sqrt{')
-    .replace(/\bln\s*\(/gi, '\\ln(')
-    .replace(/\bsin\s*\(/gi, '\\sin(')
-    .replace(/\bcos\s*\(/gi, '\\cos(')
-    .replace(/\btan\s*\(/gi, '\\tan(')
-    .replace(/\bpi\b/gi, '\\pi')
-    .replace(/\be\b/g, 'e')
-    .replace(/\*/g, '\\cdot ')
-    .replace(/\^(\d+|\w)/g, '^{$1}')
-    .replace(/sqrt\{([^)]*)\)/gi, '\\sqrt{$1}');
+    .replace(/(\d|\))(?=\s*(sin|cos|tan|ln|sqrt)\s*\()/gi, '$1*')
+    .replace(/(\d|\))(?=\s*[a-zA-Z])/g, '$1*')
+    .replace(/\)(?=\s*\()/g, ')*');
+}
+
+function expressionBodyToLatex(expression: string): string {
+  const normalized = normalizeForMathJs(expression);
+  if (!normalized) return '\\square';
+
+  try {
+    return parse(normalized).toTex({
+      parenthesis: 'keep',
+      implicit: 'hide',
+    });
+  } catch {
+    return `\\mathtt{${escapeLatex(normalized)}}`;
+  }
 }
 
 export function expressionToLatex(label: string, expression: string): string {
-  const normalizedLabel = label === 'g(x)' ? 'x_{n+1}' : label;
-  const left = normalizedLabel
-    .replace('f(x)', 'f(x)')
-    .replace('g(x)', 'g(x)')
-    .replace('x next', 'x_{n+1}');
-  const right = expression.trim() ? normalizeExpression(expression) : '\\square';
+  const left = label === 'x next' ? 'x_{n+1}' : label;
+  const right = expressionBodyToLatex(expression);
 
-  return `${left} = ${right}`;
+  return `\\textstyle ${left} = ${right}`;
 }
 
 export function renderLatex(latex: string): string {
   return katex.renderToString(latex, {
-    displayMode: true,
+    displayMode: false,
     output: 'html',
     strict: false,
     throwOnError: false,

@@ -5,6 +5,10 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
 
   await expect(page.getByRole('heading', { name: 'Answer workstation' })).toBeVisible();
   await expect(page.getByText('Engine ready')).toBeVisible();
+  await expect(page.getByLabel('Root engine selector')).toContainText('Engine:');
+  await expect(page.getByRole('button', { name: 'Legacy' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
+  await expect(page.getByText('Modern beta is active.')).not.toBeVisible();
 
   await page.getByRole('button', { name: 'Help' }).click();
   await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
@@ -27,4 +31,30 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(solutionPanel).toContainText('Bisection midpoint formula:');
   await expect(solutionPanel).toContainText('c_n = (a_n + b_n) / 2');
   await expect(solutionPanel).not.toContainText('Newton-Raphson iteration formula:');
+});
+
+test('switches from default legacy to modern beta and back without losing form values', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.getByRole('button', { name: 'Legacy' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Modern beta' }).click();
+  await expect(page.getByRole('button', { name: 'Modern beta' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Modern beta uses the new TypeScript + math.js engine.')).toBeVisible();
+  await expect(page.getByText(/Modern beta is active/)).toBeVisible();
+
+  await page.getByRole('button', { name: /Bisection/ }).click();
+  await page.locator('[name="root-bis-expression"]').fill('x^3 - x - 1');
+  await page.locator('[name="root-bis-a"]').fill('1');
+  await page.locator('[name="root-bis-b"]').fill('2');
+  await page.getByRole('button', { name: 'Run bisection' }).click();
+  await expect(page.getByText('Method: Bisection')).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Legacy' }).click();
+  await expect(page.getByRole('button', { name: 'Legacy' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
+  await expect(page.getByText(/Modern beta is active/)).not.toBeVisible();
+  await expect(page.locator('[name="root-bis-expression"]')).toHaveValue('x^3 - x - 1');
+  await page.getByRole('button', { name: 'Run bisection' }).click();
+  await expect(page.getByText('Method: Bisection')).toBeVisible();
 });

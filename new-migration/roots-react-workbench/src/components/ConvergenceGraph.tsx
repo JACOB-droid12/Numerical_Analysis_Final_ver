@@ -9,6 +9,11 @@ interface ConvergenceGraphProps {
   hero?: boolean;
 }
 
+export interface ConvergenceGraphPoint {
+  x: number;
+  y: number;
+}
+
 function parseNumericString(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -81,7 +86,7 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
         ? ['xNext', 'xn', 'approx', 'machine', 'reference', 'value', 'root']
         : method === 'secant'
           ? ['xNext', 'xn', 'approx', 'machine', 'reference', 'value', 'root']
-          : ['xNext', 'xn', 'approx', 'machine', 'reference', 'value', 'root'];
+          : ['xNext', 'gxn', 'gXn', 'next', 'approximation', 'xn', 'approx', 'machine', 'reference', 'value', 'root'];
 
   for (const key of preferredKeys) {
     if (Object.prototype.hasOwnProperty.call(row, key)) {
@@ -95,23 +100,27 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
   return null;
 }
 
-export function ConvergenceGraph({ run, compact = false, hero = false }: ConvergenceGraphProps) {
+export function buildConvergenceGraphPoints(run: RootRunResult): ConvergenceGraphPoint[] {
   const rows = run.rows ?? [];
+  return rows
+    .map((row, index) => ({
+      x: typeof row.iteration === 'number' ? row.iteration : index + 1,
+      y: pickRowValue(run.method, row),
+    }))
+    .filter(
+      (point): point is ConvergenceGraphPoint =>
+        Number.isFinite(point.x) && point.y != null && Number.isFinite(point.y),
+    );
+}
+
+export function ConvergenceGraph({ run, compact = false, hero = false }: ConvergenceGraphProps) {
   const titleId = useId();
   const svgTitleId = useId();
   const descId = useId();
   const lineGradientId = `${svgTitleId.replace(/[^a-zA-Z0-9_-]/g, '')}-line`;
   const wrapperClassName = hero || compact ? 'graph-panel' : 'graph-panel';
   const caption = graphCaption(run.method);
-  const points = rows
-    .map((row, index) => ({
-      x: typeof row.iteration === 'number' ? row.iteration : index + 1,
-      y: pickRowValue(run.method, row),
-    }))
-    .filter(
-      (point): point is { x: number; y: number } =>
-        Number.isFinite(point.x) && point.y != null && Number.isFinite(point.y),
-    );
+  const points = buildConvergenceGraphPoints(run);
 
   const graphSummary =
     points.length > 0
@@ -122,7 +131,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
     return (
       <section className={wrapperClassName}>
         <h2 id={titleId} className="section-kicker">
-          Convergence graph
+          Approximation graph
         </h2>
         <p className="mt-2 text-sm muted-copy">{graphSummary}</p>
         <p className="mt-3 text-sm text-[var(--text)]">No iteration data for graph.</p>
@@ -150,7 +159,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
     <section className={wrapperClassName}>
       <div className="flex items-center justify-between gap-3">
         <h2 id={titleId} className="section-kicker">
-          Convergence graph
+          Approximation graph
         </h2>
         <p className="numeric-value text-xs text-[var(--quiet)]">{points.length} points</p>
       </div>
@@ -162,7 +171,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
         aria-labelledby={svgTitleId}
         aria-describedby={descId}
       >
-        <title id={svgTitleId}>Convergence graph</title>
+        <title id={svgTitleId}>Approximation graph</title>
         <desc id={descId}>{graphSummary}</desc>
         <defs>
           <linearGradient id={lineGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
@@ -209,6 +218,25 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           stroke="#c9d0c6"
           strokeWidth="1"
         />
+        <text
+          x={width / 2}
+          y={height - 5}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#5c6658"
+        >
+          Iteration
+        </text>
+        <text
+          x={12}
+          y={height / 2}
+          textAnchor="middle"
+          fontSize="11"
+          fill="#5c6658"
+          transform={`rotate(-90 12 ${height / 2})`}
+        >
+          Root estimate
+        </text>
         <path d={path} fill="none" stroke={`url(#${lineGradientId})`} strokeWidth={hero ? '3' : '2.5'} />
         {points.map((point, index) => (
           <circle
@@ -220,7 +248,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           />
         ))}
       </svg>
-      <p className="graph-caption">{caption}</p>
+      <p className="graph-caption">Root estimate by iteration. {caption}</p>
     </section>
   );
 }

@@ -464,10 +464,11 @@ export function solutionText(run: RootRunResult | null): string {
   if (!run) return '';
   const steps = solutionSteps(run);
   const config = METHOD_BY_NAME.get(run.method);
+  const tableHeaders = tableHeadersForRun(run);
   const table =
     config && run.rows?.length
       ? [
-          config.tableHeaders.join(' | '),
+          tableHeaders.join(' | '),
           ...run.rows.map((row) => tableValuesForRow(run.method, row, run).join(' | ')),
         ]
       : [];
@@ -600,8 +601,66 @@ function bracketDecisionText(decision: unknown): string {
 export function tableValuesForRow(
   method: RootMethod,
   row: IterationRow,
-  run?: Pick<RootRunResult, 'signDisplay'> | null,
+  run?: { engine?: unknown; signDisplay?: RootRunResult['signDisplay'] } | null,
 ): string[] {
+  if (run?.engine === 'modern') {
+    if (method === 'bisection') {
+      return [
+        String(row.iteration),
+        formatValue(row.lower ?? row.a),
+        formatValue(row.upper ?? row.b),
+        formatValue(row.midpoint ?? row.c),
+        formatValue(row.fLower ?? row.fa),
+        formatValue(row.fUpper ?? row.fb),
+        formatValue(row.fMidpoint ?? row.fc),
+        formatValue(row.error),
+      ];
+    }
+    if (method === 'falsePosition') {
+      return [
+        String(row.iteration),
+        formatValue(row.lower ?? row.a),
+        formatValue(row.upper ?? row.b),
+        formatValue(row.point ?? row.c),
+        formatValue(row.fLower ?? row.fa),
+        formatValue(row.fUpper ?? row.fb),
+        formatValue(row.fPoint ?? row.fc),
+        formatValue(row.error),
+      ];
+    }
+    if (method === 'secant') {
+      return [
+        String(row.iteration),
+        formatValue(row.xPrevious ?? row.xPrev),
+        formatValue(row.xCurrent ?? row.xn),
+        formatValue(row.xNext),
+        formatValue(row.fPrevious ?? row.fxPrev),
+        formatValue(row.fCurrent ?? row.fxn),
+        formatValue(row.fNext),
+        formatValue(row.error),
+      ];
+    }
+    if (method === 'newton') {
+      return [
+        String(row.iteration),
+        formatValue(row.xCurrent ?? row.xn),
+        formatValue(row.fCurrent ?? row.fxn),
+        formatValue(row.derivativeCurrent ?? row.dfxn),
+        formatValue(row.xNext),
+        formatValue(row.fNext),
+        formatValue(row.error),
+      ];
+    }
+    return [
+      String(row.iteration),
+      formatValue(row.xCurrent ?? row.xn),
+      formatValue(row.xNext ?? row.gxn),
+      formatValue(row.gValue ?? row.gxn),
+      formatValue(row.error),
+      formatValue(row.residual),
+    ];
+  }
+
   if (method === 'bisection' || method === 'falsePosition') {
     return [
       String(row.iteration),
@@ -649,4 +708,24 @@ export function tableValuesForRow(
     formatValue(row.error),
     String(row.note ?? ''),
   ];
+}
+
+export function tableHeadersForRun(run: RootRunResult, fallbackHeaders?: string[]): string[] {
+  if (run.engine !== 'modern') {
+    return fallbackHeaders ?? METHOD_BY_NAME.get(run.method)?.tableHeaders ?? [];
+  }
+
+  if (run.method === 'bisection') {
+    return ['i', 'lower (a)', 'upper (b)', 'midpoint (c)', 'f(a)', 'f(b)', 'f(c)', 'Error'];
+  }
+  if (run.method === 'falsePosition') {
+    return ['i', 'lower (a)', 'upper (b)', 'point (c)', 'f(a)', 'f(b)', 'f(c)', 'Error'];
+  }
+  if (run.method === 'secant') {
+    return ['i', 'x previous', 'x current', 'x next', 'f(x previous)', 'f(x current)', 'f(x next)', 'Error'];
+  }
+  if (run.method === 'newton') {
+    return ['i', 'x current', 'f(x)', "f'(x)", 'x next', 'f(x next)', 'Error'];
+  }
+  return ['i', 'x current', 'x next = g(x current)', 'g value', 'Error', 'Residual'];
 }

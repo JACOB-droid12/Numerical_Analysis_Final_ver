@@ -5,9 +5,9 @@
   --canvas: #f7f8f5;
   --surface: #fcfcf8;
   --surface-raised: #fffffb;
-  --lcd-surface: #eaf2eb;
-  --lcd-shadow: #cddbd0;
-  --lcd-ink: #152018;
+  --lcd-surface: #dfece2;
+  --lcd-shadow: #b8cabc;
+  --lcd-ink: #092015;
   --surface-muted: #eef0eb;
   --ink: #171817;
   --text: #171817;
@@ -307,6 +307,63 @@ a:focus-visible {
   position: relative;
 }
 
+.engine-toggle-shell {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  max-width: min(100%, 520px);
+}
+
+.engine-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  justify-self: end;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  padding: 0 var(--space-xs) 0 var(--space-sm);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.engine-toggle-help,
+.engine-beta-notice {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.engine-beta-notice {
+  color: var(--action-blue-strong);
+}
+
+.engine-toggle-options {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.top-command .engine-toggle button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 0 var(--space-sm);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.top-command .engine-toggle button.active {
+  background: var(--action-blue);
+  color: var(--surface-raised);
+}
+
 .utility-popover {
   position: absolute;
   top: calc(100% + var(--space-sm));
@@ -588,15 +645,18 @@ a:focus-visible {
 .notebook-screen {
   display: grid;
   gap: var(--space-md);
-  min-height: 96px;
+  min-height: 116px;
   padding: var(--space-lg);
   border: 1px solid color-mix(in srgb, var(--lcd-shadow), var(--ink) 14%);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--lcd-surface), var(--surface-raised) 20%), var(--lcd-surface)),
+    linear-gradient(180deg, color-mix(in srgb, var(--lcd-surface), var(--surface-raised) 10%), var(--lcd-surface)),
+    repeating-linear-gradient(0deg, rgba(9, 32, 21, 0.028) 0, rgba(9, 32, 21, 0.028) 1px, transparent 1px, transparent 4px),
     var(--lcd-surface);
   color: var(--lcd-ink);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-raised), transparent 18%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface-raised), transparent 20%),
+    inset 0 -18px 44px color-mix(in srgb, var(--lcd-shadow), transparent 64%);
 }
 
 .result-label {
@@ -613,13 +673,34 @@ a:focus-visible {
 }
 
 .notebook-equation {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
   margin: 0;
   color: var(--lcd-ink);
   font-family: var(--font-mono);
-  font-size: 1.34rem;
-  font-weight: 680;
-  line-height: 1.15;
+  font-size: 1.48rem;
+  font-weight: 720;
+  line-height: 1.1;
   overflow-wrap: anywhere;
+}
+
+.notebook-equation .katex {
+  color: var(--lcd-ink);
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.05;
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface-raised), transparent 34%);
+}
+
+.notebook-equation .katex .mord,
+.notebook-equation .katex .mrel,
+.notebook-equation .katex .mbin {
+  color: inherit;
+}
+
+.notebook-equation .katex-html {
+  filter: contrast(1.14);
 }
 
 .calculator-status-line {
@@ -1476,6 +1557,17 @@ a:focus-visible {
 
   .top-command nav {
     justify-content: start;
+  }
+
+  .engine-toggle-shell,
+  .engine-toggle {
+    justify-items: start;
+    justify-self: start;
+  }
+
+  .engine-toggle-help,
+  .engine-beta-notice {
+    text-align: left;
   }
 
   .parameter-grid,
