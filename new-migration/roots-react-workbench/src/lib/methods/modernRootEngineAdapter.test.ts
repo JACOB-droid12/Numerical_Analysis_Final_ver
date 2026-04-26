@@ -92,16 +92,14 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('a');
     expect(run.rows?.[0]).toHaveProperty('c');
     expect(tableHeadersForRun(run)).toEqual([
-      'i',
-      'lower (a)',
-      'upper (b)',
-      'midpoint (c)',
-      'f(a)',
-      'f(b)',
-      'f(c)',
+      'n',
+      'aₙ',
+      'bₙ',
+      'pₙ',
+      'f(pₙ)',
       'Error',
     ]);
-    expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(8);
+    expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
 
   it('converts false position results into UI-compatible shape', () => {
@@ -117,8 +115,8 @@ describe('modern root engine UI adapter', () => {
     expect(run.summary?.approximation).toBeCloseTo(plasticRoot, 7);
     expect(run.rows?.[0]).toHaveProperty('a');
     expect(run.rows?.[0]).toHaveProperty('c');
-    expect(tableHeadersForRun(run)).toContain('point (c)');
-    expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(8);
+    expect(tableHeadersForRun(run)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error']);
+    expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
 
   it('converts secant results into UI-compatible shape', () => {
@@ -136,13 +134,11 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('xNext');
     expect(run.rows?.[0]).toHaveProperty('fNext');
     expect(tableHeadersForRun(run)).toEqual([
-      'i',
-      'x previous',
-      'x current',
-      'x next',
-      'f(x previous)',
-      'f(x current)',
-      'f(x next)',
+      'n',
+      'pₙ₋₂',
+      'pₙ₋₁',
+      'pₙ',
+      'f(pₙ)',
       'Error',
     ]);
   });
@@ -162,10 +158,9 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('gxn');
     expect(run.rows?.[0]).toHaveProperty('gValue');
     expect(tableHeadersForRun(run)).toEqual([
-      'i',
-      'x current',
-      'x next = g(x current)',
-      'g value',
+      'n',
+      'pₙ₋₁',
+      'pₙ = g(pₙ₋₁)',
       'Error',
       'Residual',
     ]);
@@ -187,12 +182,11 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('dfxn');
     expect(run.rows?.[0]).toHaveProperty('fNext');
     expect(tableHeadersForRun(run)).toEqual([
-      'i',
-      'x current',
-      'f(x)',
-      "f'(x)",
-      'x next',
-      'f(x next)',
+      'n',
+      'pₙ',
+      'f(pₙ)',
+      'f′(pₙ)',
+      'pₙ₊₁',
       'Error',
     ]);
   });
@@ -304,9 +298,26 @@ describe('modern root engine UI adapter', () => {
     });
 
     const csv = csvFor(run);
-    expect(csv).toContain("f'(x)");
-    expect(csv).toContain('x next');
+    expect(csv).toContain('f′(pₙ)');
+    expect(csv).toContain('pₙ₊₁');
     expect(csv.split('\r\n').length).toBe((run.rows?.length ?? 0) + 1);
+  });
+
+  it('leaves legacy table and CSV headers unchanged', () => {
+    const legacyRun: RootRunResult = {
+      method: 'bisection',
+      rows: [{ iteration: 1, a: 1, b: 2, c: 1.5, error: 0.5 }],
+      signDisplay: 'both',
+    };
+    const headers = tableHeadersForRun(legacyRun, METHOD_CONFIG_BY_ID.bisection.tableHeaders);
+    const csv = rowsToCsv([
+      headers,
+      tableValuesForRow(legacyRun.method, legacyRun.rows?.[0] ?? { iteration: 1 }, legacyRun),
+    ]);
+
+    expect(headers).toEqual(METHOD_CONFIG_BY_ID.bisection.tableHeaders);
+    expect(csv).toContain('Signs');
+    expect(csv).not.toContain('pₙ');
   });
 });
 

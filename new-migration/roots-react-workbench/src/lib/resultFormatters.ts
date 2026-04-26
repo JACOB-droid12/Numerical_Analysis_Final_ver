@@ -176,8 +176,13 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
     'iteration-limit': 'Completed the requested iterations',
     'iteration-cap': 'Stopped at the safety cap',
     'tolerance-reached': 'Reached the requested tolerance',
+    'tolerance-satisfied': 'Tolerance reached',
+    'function-tolerance-satisfied': 'Function tolerance reached',
+    'residual-tolerance-satisfied': 'Residual tolerance reached',
     'tolerance-already-met': 'Starting interval already meets the tolerance',
     'endpoint-root': 'An endpoint is already the root',
+    'exact-root': 'Exact root found',
+    'exact-fixed-point': 'Exact fixed point found',
     'exact-zero': method === 'fixedPoint' ? 'The iteration reached an exact fixed point' : 'Reference value is exactly zero',
     'machine-zero': 'Machine value is zero or near zero',
     'invalid-starting-interval': 'Not a valid starting bracket',
@@ -185,12 +190,18 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
     'discontinuity-detected': 'Stopped at a discontinuity or singularity',
     'singularity-encountered': 'Function evaluation failed during the iteration',
     'non-finite-evaluation': 'Function evaluation returned a non-finite value',
+    'complex-evaluation': 'Complex result rejected',
     'derivative-zero': 'Derivative is zero, so the method cannot continue',
+    'missing-derivative': 'Missing derivative',
+    'zero-denominator': 'Zero denominator',
+    'zero-derivative': 'Derivative is zero, so the method cannot continue',
     stagnation: 'The method stalled because the denominator is near zero',
     diverged: 'Iteration diverged',
+    'divergence-detected': 'Divergence detected',
     'diverged-step': 'Step grew too quickly',
     'step-small-residual-large': 'Step is small but residual remains large',
     'retained-endpoint-stagnation': 'Same endpoint retained too long',
+    'stagnation-detected': 'Stagnation detected',
     'cycle-detected': 'Iteration entered a cycle',
     'sample-root': 'Sample point is a root',
     'invalid-input': 'Invalid input',
@@ -610,8 +621,6 @@ export function tableValuesForRow(
         formatValue(row.lower ?? row.a),
         formatValue(row.upper ?? row.b),
         formatValue(row.midpoint ?? row.c),
-        formatValue(row.fLower ?? row.fa),
-        formatValue(row.fUpper ?? row.fb),
         formatValue(row.fMidpoint ?? row.fc),
         formatValue(row.error),
       ];
@@ -622,8 +631,6 @@ export function tableValuesForRow(
         formatValue(row.lower ?? row.a),
         formatValue(row.upper ?? row.b),
         formatValue(row.point ?? row.c),
-        formatValue(row.fLower ?? row.fa),
-        formatValue(row.fUpper ?? row.fb),
         formatValue(row.fPoint ?? row.fc),
         formatValue(row.error),
       ];
@@ -634,8 +641,6 @@ export function tableValuesForRow(
         formatValue(row.xPrevious ?? row.xPrev),
         formatValue(row.xCurrent ?? row.xn),
         formatValue(row.xNext),
-        formatValue(row.fPrevious ?? row.fxPrev),
-        formatValue(row.fCurrent ?? row.fxn),
         formatValue(row.fNext),
         formatValue(row.error),
       ];
@@ -647,7 +652,6 @@ export function tableValuesForRow(
         formatValue(row.fCurrent ?? row.fxn),
         formatValue(row.derivativeCurrent ?? row.dfxn),
         formatValue(row.xNext),
-        formatValue(row.fNext),
         formatValue(row.error),
       ];
     }
@@ -655,7 +659,6 @@ export function tableValuesForRow(
       String(row.iteration),
       formatValue(row.xCurrent ?? row.xn),
       formatValue(row.xNext ?? row.gxn),
-      formatValue(row.gValue ?? row.gxn),
       formatValue(row.error),
       formatValue(row.residual),
     ];
@@ -716,16 +719,16 @@ export function tableHeadersForRun(run: RootRunResult, fallbackHeaders?: string[
   }
 
   if (run.method === 'bisection') {
-    return ['i', 'lower (a)', 'upper (b)', 'midpoint (c)', 'f(a)', 'f(b)', 'f(c)', 'Error'];
+    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error'];
   }
   if (run.method === 'falsePosition') {
-    return ['i', 'lower (a)', 'upper (b)', 'point (c)', 'f(a)', 'f(b)', 'f(c)', 'Error'];
+    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error'];
   }
   if (run.method === 'secant') {
-    return ['i', 'x previous', 'x current', 'x next', 'f(x previous)', 'f(x current)', 'f(x next)', 'Error'];
+    return ['n', 'pₙ₋₂', 'pₙ₋₁', 'pₙ', 'f(pₙ)', 'Error'];
   }
   if (run.method === 'newton') {
-    return ['i', 'x current', 'f(x)', "f'(x)", 'x next', 'f(x next)', 'Error'];
+    return ['n', 'pₙ', 'f(pₙ)', 'f′(pₙ)', 'pₙ₊₁', 'Error'];
   }
-  return ['i', 'x current', 'x next = g(x current)', 'g value', 'Error', 'Residual'];
+  return ['n', 'pₙ₋₁', 'pₙ = g(pₙ₋₁)', 'Error', 'Residual'];
 }

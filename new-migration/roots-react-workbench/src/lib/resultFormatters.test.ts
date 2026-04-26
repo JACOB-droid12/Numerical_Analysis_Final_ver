@@ -72,6 +72,10 @@ describe('result formatters', () => {
 
   it('summarizes stop reason, metric, and basis for confidence cards', () => {
     expect(stopReasonLabel('derivative-zero', 'newton')).toBe('Derivative is zero, so the method cannot continue');
+    expect(stopReasonLabel('function-tolerance-satisfied', 'newton')).toBe('Function tolerance reached');
+    expect(stopReasonLabel('exact-root', 'bisection')).toBe('Exact root found');
+    expect(stopReasonLabel('complex-evaluation', 'fixedPoint')).toBe('Complex result rejected');
+    expect(stopReasonLabel('missing-derivative', 'newton')).toBe('Missing derivative');
     expect(compactConfidenceItems(run({ decisionBasis: 'machine' }))).toEqual([
       { label: 'Stop', value: 'Reached the requested tolerance' },
       { label: 'Metric', value: '0.001' },
