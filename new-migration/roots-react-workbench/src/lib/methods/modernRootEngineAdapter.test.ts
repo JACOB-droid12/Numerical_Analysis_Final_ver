@@ -97,7 +97,7 @@ describe('modern root engine UI adapter', () => {
       'bₙ',
       'pₙ',
       'f(pₙ)',
-      'Error',
+      'Approx. Error',
     ]);
     expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
@@ -115,7 +115,7 @@ describe('modern root engine UI adapter', () => {
     expect(run.summary?.approximation).toBeCloseTo(plasticRoot, 7);
     expect(run.rows?.[0]).toHaveProperty('a');
     expect(run.rows?.[0]).toHaveProperty('c');
-    expect(tableHeadersForRun(run)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error']);
+    expect(tableHeadersForRun(run)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error']);
     expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
 
@@ -139,7 +139,7 @@ describe('modern root engine UI adapter', () => {
       'pₙ₋₁',
       'pₙ',
       'f(pₙ)',
-      'Error',
+      'Approx. Error',
     ]);
   });
 
@@ -161,7 +161,7 @@ describe('modern root engine UI adapter', () => {
       'n',
       'pₙ₋₁',
       'pₙ = g(pₙ₋₁)',
-      'Error',
+      'Approx. Error',
       'Residual',
     ]);
   });
@@ -186,9 +186,14 @@ describe('modern root engine UI adapter', () => {
       'pₙ',
       'f(pₙ)',
       'f′(pₙ)',
+      'f(pₙ)/f′(pₙ)',
       'pₙ₊₁',
-      'Error',
+      'Approx. Error',
     ]);
+    const firstRow = run.rows?.[0] ?? { iteration: 1 };
+    const values = tableValuesForRow(run.method, firstRow, run);
+    expect(values).toHaveLength(7);
+    expect(Number(values[4])).toBeCloseTo(Number(firstRow.fCurrent) / Number(firstRow.derivativeCurrent), 12);
   });
 
   it('converts Newton-Raphson numeric derivative results into UI-compatible shape', () => {
@@ -299,7 +304,9 @@ describe('modern root engine UI adapter', () => {
 
     const csv = csvFor(run);
     expect(csv).toContain('f′(pₙ)');
+    expect(csv).toContain('f(pₙ)/f′(pₙ)');
     expect(csv).toContain('pₙ₊₁');
+    expect(csv).toContain('Approx. Error');
     expect(csv.split('\r\n').length).toBe((run.rows?.length ?? 0) + 1);
   });
 

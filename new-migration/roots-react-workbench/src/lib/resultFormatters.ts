@@ -609,6 +609,32 @@ function bracketDecisionText(decision: unknown): string {
   return decision == null ? '' : String(decision);
 }
 
+function newtonCorrection(row: IterationRow): number | null {
+  const fCurrent = typeof row.fCurrent === 'number'
+    ? row.fCurrent
+    : typeof row.fxn === 'number'
+      ? row.fxn
+      : null;
+  const derivativeCurrent = typeof row.derivativeCurrent === 'number'
+    ? row.derivativeCurrent
+    : typeof row.dfxn === 'number'
+      ? row.dfxn
+      : null;
+
+  if (
+    fCurrent == null ||
+    derivativeCurrent == null ||
+    !Number.isFinite(fCurrent) ||
+    !Number.isFinite(derivativeCurrent) ||
+    derivativeCurrent === 0
+  ) {
+    return null;
+  }
+
+  const correction = fCurrent / derivativeCurrent;
+  return Number.isFinite(correction) ? correction : null;
+}
+
 export function tableValuesForRow(
   method: RootMethod,
   row: IterationRow,
@@ -651,6 +677,7 @@ export function tableValuesForRow(
         formatValue(row.xCurrent ?? row.xn),
         formatValue(row.fCurrent ?? row.fxn),
         formatValue(row.derivativeCurrent ?? row.dfxn),
+        formatValue(newtonCorrection(row)),
         formatValue(row.xNext),
         formatValue(row.error),
       ];
@@ -719,16 +746,16 @@ export function tableHeadersForRun(run: RootRunResult, fallbackHeaders?: string[
   }
 
   if (run.method === 'bisection') {
-    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error'];
+    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error'];
   }
   if (run.method === 'falsePosition') {
-    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Error'];
+    return ['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error'];
   }
   if (run.method === 'secant') {
-    return ['n', 'pₙ₋₂', 'pₙ₋₁', 'pₙ', 'f(pₙ)', 'Error'];
+    return ['n', 'pₙ₋₂', 'pₙ₋₁', 'pₙ', 'f(pₙ)', 'Approx. Error'];
   }
   if (run.method === 'newton') {
-    return ['n', 'pₙ', 'f(pₙ)', 'f′(pₙ)', 'pₙ₊₁', 'Error'];
+    return ['n', 'pₙ', 'f(pₙ)', 'f′(pₙ)', 'f(pₙ)/f′(pₙ)', 'pₙ₊₁', 'Approx. Error'];
   }
-  return ['n', 'pₙ₋₁', 'pₙ = g(pₙ₋₁)', 'Error', 'Residual'];
+  return ['n', 'pₙ₋₁', 'pₙ = g(pₙ₋₁)', 'Approx. Error', 'Residual'];
 }

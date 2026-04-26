@@ -65,6 +65,7 @@ test('runs Bisection on x^3 - x - 1', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'aₙ', exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'pₙ', exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'f(pₙ)', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Approx. Error', exact: true })).toBeVisible();
 });
 
 test('runs False Position on x^2 - 4', async ({ page }) => {
@@ -108,7 +109,9 @@ test('runs Newton-Raphson with the auto numeric derivative path', async ({ page 
   await expectMethodResult(page, 'Newton-Raphson', 1.324717957);
   await page.getByRole('tab', { name: 'Table' }).click();
   await expect(page.getByRole('columnheader', { name: 'f′(pₙ)', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'f(pₙ)/f′(pₙ)', exact: true })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'pₙ₊₁', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Approx. Error', exact: true })).toBeVisible();
 });
 
 test('runs Newton-Raphson with a provided derivative', async ({ page }) => {

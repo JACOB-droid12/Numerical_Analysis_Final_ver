@@ -13,6 +13,8 @@ The Roots React Workbench now includes an opt-in Modern beta root-method engine 
 - Added Legacy vs Modern beta Playwright comparison coverage.
 - Added Python/mpmath-generated golden oracle fixtures for high-precision numerical validation.
 
+TODO: add a Fixed Point comparison table mode for quiz-style ranking prompts, using columns like `n | (a) | (b) | (c) | (d)` for candidate formulas such as 21^(1/3).
+
 ## Engine Modes
 
 Legacy path:
