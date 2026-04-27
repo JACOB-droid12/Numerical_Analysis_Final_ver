@@ -34,9 +34,9 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByLabel('Quick Setup Bisection stop value').fill('6');
   await page.getByRole('button', { name: 'Run Table' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Bisection' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Bisection/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Method: Bisection')).toBeVisible();
-  await expect(page.getByText(/Final approximation/i)).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Graph' })).toBeVisible();
 
@@ -46,9 +46,9 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByLabel('Quick Setup Newton-Raphson stop value').fill('6');
   await page.getByRole('button', { name: 'Run Table' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Newton-Raphson/ })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
-  await expect(page.getByText(/Final approximation/i)).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Run method' }).click();
