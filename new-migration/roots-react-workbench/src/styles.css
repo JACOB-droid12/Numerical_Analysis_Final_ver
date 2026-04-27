@@ -3359,12 +3359,19 @@ body {
   .calculator-notebook:has(#quick-setup-heading) .parameter-grid,
   .quick-setup-run,
   .calculator-notebook:has(#quick-setup-heading) .run-row {
+    display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .quick-setup-methods,
+  .calculator-notebook:has(#quick-setup-heading) .method-list {
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .quick-setup-methods .method-tab,
   .calculator-notebook:has(#quick-setup-heading) .method-tab {
-    flex: 1 1 auto;
+    flex: initial;
     width: 100%;
     min-height: 38px;
   }
