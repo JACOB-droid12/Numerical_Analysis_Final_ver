@@ -55,10 +55,18 @@ function createRequestSnapshot(
   forms: Record<RootMethod, MethodFormState>,
   angleMode: AngleMode,
 ): RunRequestSnapshot {
+  return createMethodRequestSnapshot(method, forms[method], angleMode);
+}
+
+function createMethodRequestSnapshot(
+  method: RootMethod,
+  form: MethodFormState,
+  angleMode: AngleMode,
+): RunRequestSnapshot {
   return {
     method,
     angleMode,
-    values: { ...forms[method] },
+    values: { ...form },
   };
 }
 
@@ -220,16 +228,16 @@ export function useRootsWorkbench() {
     (method: RootMethod, values: MethodFormState) => {
       const config = METHOD_CONFIGS.find((entry) => entry.method === method) ?? METHOD_CONFIGS[0];
       const defaults = createDefaultFormState()[method];
-      const nextForms: Record<RootMethod, MethodFormState> = {
-        ...forms,
-        [method]: {
-          ...defaults,
-          ...values,
-        },
+      const nextMethodForm: MethodFormState = {
+        ...defaults,
+        ...values,
       };
 
       setActiveMethod(method);
-      setForms(nextForms);
+      setForms((current) => ({
+        ...current,
+        [method]: nextMethodForm,
+      }));
 
       if (engineStatus !== 'ready') {
         setWorkbenchStatus(LOADING_STATUS);
@@ -238,8 +246,8 @@ export function useRootsWorkbench() {
       }
 
       try {
-        const request = createRequestSnapshot(method, nextForms, angleMode);
-        const result = runSelectedRootMethod(method, nextForms[method], angleMode, engineMode);
+        const request = createMethodRequestSnapshot(method, nextMethodForm, angleMode);
+        const result = runSelectedRootMethod(method, nextMethodForm, angleMode, engineMode);
 
         if (isInvalidRun(result)) {
           setLastRun(null);
@@ -257,7 +265,7 @@ export function useRootsWorkbench() {
         setEvidenceExpanded(false);
       }
     },
-    [angleMode, engineMode, engineStatus, forms],
+    [angleMode, engineMode, engineStatus],
   );
 
   const setEngineMode = useCallback((mode: RootEngineMode) => {
