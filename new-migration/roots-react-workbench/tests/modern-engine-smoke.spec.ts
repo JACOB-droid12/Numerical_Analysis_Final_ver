@@ -26,6 +26,13 @@ async function runCurrentMethod(page: Page, label: string | RegExp) {
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
 }
 
+async function openClassroomTools(page: Page) {
+  const classroomCopy = page.getByText('Digits and Rule format displayed table and CSV values only.');
+  if (!(await classroomCopy.isVisible().catch(() => false))) {
+    await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
+  }
+}
+
 async function expectMethodResult(page: Page, methodLabel: string, expectedRoot?: number) {
   await expect(page.getByLabel('Calculator display')).toBeVisible();
   await expect(page.getByText(`Method: ${methodLabel}`)).toBeVisible();
@@ -62,6 +69,7 @@ test('runs Bisection on x^3 - x - 1', async ({ page }) => {
   await setField(page, 'root-bis-a', '1');
   await setField(page, 'root-bis-b', '2');
   await setIterations(page, 'root-bis-stop-value', '30');
+  await openClassroomTools(page);
 
   await expect(page.getByText('IVT bracket')).toBeVisible();
   await expect(page.getByText('Satisfied')).toBeVisible();
@@ -142,6 +150,7 @@ test('displays the Modern beta final root with selected rounded precision', asyn
 
 test('uses Computation settings as the only Modern beta precision display control', async ({ page }) => {
   await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
+  await openClassroomTools(page);
   await expect(page.getByText('Digits and Rule format displayed table and CSV values only.')).toBeVisible();
 
   await page.getByText('Computation settings').click();
@@ -167,7 +176,7 @@ test('shows a clear failure for a bad bracket without crashing', async ({ page }
 
   await page.getByRole('button', { name: 'Run bisection' }).click();
 
-  await expect(page.getByRole('alert')).toContainText(/opposite signs|interval/i);
+  await expect(page.locator('.status-text[role="alert"]')).toContainText(/opposite signs|interval/i);
   await expect(page.getByRole('heading', { name: 'Answer workstation' })).toBeVisible();
 });
 
