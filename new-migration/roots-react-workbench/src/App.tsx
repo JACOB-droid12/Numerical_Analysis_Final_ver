@@ -301,7 +301,7 @@ export default function App() {
                   <p>{activeConfig.shortLabel} method</p>
                 </div>
               </div>
-              <QuickSetupPanel onRun={runQuickSetup} />
+              <QuickSetupPanel disabled={status.kind === 'loading'} onRun={runQuickSetup} />
               <MethodForm
                 angleMode={angleMode}
                 config={activeConfig}

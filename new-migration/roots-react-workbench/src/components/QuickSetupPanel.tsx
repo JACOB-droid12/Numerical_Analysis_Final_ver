@@ -8,6 +8,7 @@ type QuickSetupMethod = Extract<RootMethod, 'bisection' | 'newton' | 'fixedPoint
 type NewtonDerivativeMode = 'auto' | 'provided';
 
 interface QuickSetupPanelProps {
+  disabled?: boolean;
   onRun: (method: RootMethod, values: MethodFormState) => void;
 }
 
@@ -61,7 +62,7 @@ function hasValue(value: string) {
   return value.trim().length > 0;
 }
 
-export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
+export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProps) {
   const [activeMethod, setActiveMethod] = useState<QuickSetupMethod>('bisection');
   const [fields, setFields] = useState<QuickSetupFields>(initialFields);
   const [stopKinds, setStopKinds] =
@@ -159,6 +160,10 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
   };
 
   const runQuickSetup = () => {
+    if (disabled) {
+      return;
+    }
+
     const values = buildRunValues();
 
     if (!values) {
@@ -389,7 +394,7 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
       ) : null}
 
       <div className="run-row">
-        <Button className="run-primary" disabled={!canRun} onClick={runQuickSetup}>
+        <Button className="run-primary" disabled={disabled || !canRun} onClick={runQuickSetup}>
           <Play aria-hidden="true" className="size-4" />
           Run Table
         </Button>
