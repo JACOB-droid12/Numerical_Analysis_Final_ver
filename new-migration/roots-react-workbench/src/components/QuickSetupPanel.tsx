@@ -305,7 +305,7 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
           </label>
           <div className="segmented-row">
             <span>Derivative</span>
-            <div className="segment" aria-label="Newton-Raphson derivative mode">
+            <div className="segment" role="group" aria-label="Newton-Raphson derivative mode">
               <button
                 type="button"
                 aria-pressed={newtonDerivativeMode === 'auto'}
