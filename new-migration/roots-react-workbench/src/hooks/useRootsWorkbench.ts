@@ -43,6 +43,10 @@ const PRESET_APPLIED_STATUS = (preset: MethodPreset): WorkbenchStatus => ({
   kind: 'idle',
   message: `${preset.label} loaded. Run the method to calculate the answer.`,
 });
+const QUICK_SETUP_STATUS = (methodLabel: string): WorkbenchStatus => ({
+  kind: 'ready',
+  message: `${methodLabel} Quick Setup table ready.`,
+});
 
 type EngineStatusKind = 'loading' | 'ready' | 'error';
 
@@ -212,6 +216,50 @@ export function useRootsWorkbench() {
     }
   }, [activeMethod, angleMode, engineMode, engineStatus, forms]);
 
+  const runQuickSetup = useCallback(
+    (method: RootMethod, values: MethodFormState) => {
+      const config = METHOD_CONFIGS.find((entry) => entry.method === method) ?? METHOD_CONFIGS[0];
+      const defaults = createDefaultFormState()[method];
+      const nextForms: Record<RootMethod, MethodFormState> = {
+        ...forms,
+        [method]: {
+          ...defaults,
+          ...values,
+        },
+      };
+
+      setActiveMethod(method);
+      setForms(nextForms);
+
+      if (engineStatus !== 'ready') {
+        setWorkbenchStatus(LOADING_STATUS);
+        setEvidenceExpanded(false);
+        return;
+      }
+
+      try {
+        const request = createRequestSnapshot(method, nextForms, angleMode);
+        const result = runSelectedRootMethod(method, nextForms[method], angleMode, engineMode);
+
+        if (isInvalidRun(result)) {
+          setLastRun(null);
+          setWorkbenchStatus({ kind: 'error', message: resultFailureMessage(result) });
+          setEvidenceExpanded(false);
+          return;
+        }
+
+        setLastRun({ result, request, ranAt: new Date().toISOString() });
+        setWorkbenchStatus(QUICK_SETUP_STATUS(config.label));
+        setEvidenceExpanded(true);
+      } catch (error) {
+        setLastRun(null);
+        setWorkbenchStatus({ kind: 'error', message: errorMessage(error) });
+        setEvidenceExpanded(false);
+      }
+    },
+    [angleMode, engineMode, engineStatus, forms],
+  );
+
   const setEngineMode = useCallback((mode: RootEngineMode) => {
     setEngineModeState(mode);
     setLastRun(null);
@@ -269,6 +317,7 @@ export function useRootsWorkbench() {
     evidenceExpanded,
     methodConfigs,
     applyPreset,
+    runQuickSetup,
     setEngineMode,
     setMethod,
     resetActiveMethod,
