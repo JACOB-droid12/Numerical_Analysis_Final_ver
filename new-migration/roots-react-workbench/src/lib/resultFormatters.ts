@@ -293,23 +293,23 @@ export function methodFormulaDisplay(method: RootMethod): MethodFormulaDisplay {
   const formulas: Record<RootMethod, MethodFormulaDisplay> = {
     bisection: {
       caption: 'Bisection midpoint formula:',
-      formula: 'c_n = (a_n + b_n) / 2',
+      formula: 'pₙ = aₙ + (bₙ − aₙ)/2',
     },
     falsePosition: {
       caption: 'False position interpolation formula:',
-      formula: 'c_n = (a_n f(b_n) - b_n f(a_n)) / (f(b_n) - f(a_n))',
+      formula: 'pₙ = (aₙf(bₙ) − bₙf(aₙ)) / (f(bₙ) − f(aₙ))',
     },
     newton: {
       caption: 'Newton-Raphson iteration formula:',
-      formula: "x_{n+1} = x_n - f(x_n) / f'(x_n)",
+      formula: 'pₙ₊₁ = pₙ − f(pₙ)/f′(pₙ)',
     },
     secant: {
       caption: 'Secant iteration formula:',
-      formula: 'x_{n+1} = x_n - f(x_n)(x_n - x_{n-1}) / (f(x_n) - f(x_{n-1}))',
+      formula: 'pₙ = pₙ₋₁ − f(pₙ₋₁)(pₙ₋₁ − pₙ₋₂)/(f(pₙ₋₁) − f(pₙ₋₂))',
     },
     fixedPoint: {
       caption: 'Fixed-point iteration formula:',
-      formula: 'x_{n+1} = g(x_n)',
+      formula: 'pₙ = g(pₙ₋₁)',
     },
   };
 
@@ -478,6 +478,50 @@ export function answerText(run: RootRunResult | null): string {
   ].join('\n');
 }
 
+function signFromRowValue(row: IterationRow, key: 'a' | 'b' | 'c'): string {
+  const exactSigns = isObjectLike(row.exactSigns) ? row.exactSigns : {};
+  const machineSigns = isObjectLike(row.machineSigns) ? row.machineSigns : {};
+  return formatSign(exactSigns[key] ?? machineSigns[key]);
+}
+
+export function bisectionSetupLines(run: RootRunResult | null): string[] {
+  if (!run || run.method !== 'bisection') return [];
+  const firstRow = run.rows?.[0];
+  if (!firstRow) return [];
+
+  const lower = firstRow.lower ?? firstRow.a;
+  const upper = firstRow.upper ?? firstRow.b;
+  const fLower = firstRow.fLower ?? firstRow.fa;
+  const fUpper = firstRow.fUpper ?? firstRow.fb;
+  const lowerSign = signFromRowValue(firstRow, 'a');
+  const upperSign = signFromRowValue(firstRow, 'b');
+  const hasOppositeSigns =
+    lowerSign !== '?' &&
+    upperSign !== '?' &&
+    lowerSign !== '0' &&
+    upperSign !== '0' &&
+    lowerSign !== upperSign;
+  const interval = `[${formatValue(lower)}, ${formatValue(upper)}]`;
+  const lines = [
+    `f(a) = ${formatValue(fLower)}`,
+    `sgn(f(a)) = ${lowerSign}`,
+    `f(b) = ${formatValue(fUpper)}`,
+    `sgn(f(b)) = ${upperSign}`,
+    `Bracket condition: sgn(f(a))sgn(f(b)) < 0${hasOppositeSigns ? ' is satisfied.' : ' is not satisfied.'}`,
+  ];
+
+  if (hasOppositeSigns) {
+    lines.push(
+      `Since f(a) and f(b) have opposite signs, the Intermediate Value Theorem guarantees a root in ${interval}.`,
+    );
+  }
+
+  lines.push('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
+  lines.push('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+
+  return lines;
+}
+
 export function solutionText(run: RootRunResult | null): string {
   if (!run) return '';
   const steps = solutionSteps(run);
@@ -525,6 +569,7 @@ export function solutionText(run: RootRunResult | null): string {
     `Stopping condition: ${stoppingText(run)}`,
     `Stopping result: ${stopReasonLabel(run.summary?.stopReason, run.method)}`,
     `Final residual: ${formatValue(run.summary?.residual, 18)}`,
+    ...(run.method === 'bisection' ? ['', 'Bisection setup:', ...bisectionSetupLines(run)] : []),
     '',
     'Steps:',
     ...steps.map((step, index) => `${index + 1}. ${step}`),
@@ -559,7 +604,8 @@ export function solutionSteps(run: RootRunResult): string[] {
   if (run.method === 'bisection') {
     return [
       `Apply Bisection to f(x) = ${expression}.`,
-      `Use the current bracket and selected sign decision basis.`,
+      'Use pₙ = aₙ + (bₙ − aₙ)/2 for each midpoint.',
+      'Choose the next bracket with the sign test sgn(f(aₙ))sgn(f(pₙ)) < 0.',
       run.stopping?.kind === 'epsilon'
         ? `Stop when the requested tolerance is met: epsilon = ${run.stopping.input}.`
         : `Run for n = ${run.stopping?.input ?? count} iterations.`,
@@ -583,9 +629,9 @@ export function solutionSteps(run: RootRunResult): string[] {
   if (run.method === 'newton') {
     return [
       `Apply Newton-Raphson to f(x) = ${expression}.`,
-      "Use x next = x - f(x) / f'(x).",
+      'Use pₙ₊₁ = pₙ − f(pₙ)/f′(pₙ).',
       run.stopping?.kind === 'epsilon'
-        ? `Stop when |x next - x| < epsilon = ${run.stopping.input}.`
+        ? `Stop when |pₙ₊₁ − pₙ| < epsilon = ${run.stopping.input}.`
         : `Run for n = ${run.stopping?.input ?? count} iterations.`,
       `The approximate root after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
       machine,
@@ -606,9 +652,9 @@ export function solutionSteps(run: RootRunResult): string[] {
 
   return [
     `Apply fixed-point iteration with g(x) = ${expression}.`,
-    'Use x next = g(x).',
+    'Use pₙ = g(pₙ₋₁).',
     run.stopping?.kind === 'epsilon'
-      ? `Stop when |x next - x| < epsilon = ${run.stopping.input}.`
+      ? `Stop when |pₙ − pₙ₋₁| < epsilon = ${run.stopping.input}.`
       : `Run for n = ${run.stopping?.input ?? count} iterations.`,
     `The approximate fixed point after ${count} iteration${count === 1 ? '' : 's'} is x ≈ ${approx}.`,
     machine,

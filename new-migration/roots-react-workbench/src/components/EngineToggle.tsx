@@ -6,14 +6,14 @@ interface EngineToggleProps {
 }
 
 const OPTIONS: Array<{ value: RootEngineMode; label: string }> = [
-  { value: 'legacy', label: 'Legacy' },
-  { value: 'modern', label: 'Modern beta' },
+  { value: 'legacy', label: 'Stable' },
+  { value: 'modern', label: 'Modern beta/testing' },
 ];
 
 export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
   const description = engineMode === 'modern'
-    ? 'Modern beta uses the new TypeScript + math.js engine. It is available for testing and comparison.'
-    : 'Legacy is the default engine used by the current app.';
+    ? 'Modern beta/testing uses the new TypeScript + math.js engine for experimental comparison.'
+    : 'Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.';
 
   return (
     <div className="engine-toggle-shell">
@@ -29,8 +29,7 @@ export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
               className={engineMode === option.value ? 'active' : ''}
               onClick={() => onChange(option.value)}
             >
-              {option.value === 'modern' ? 'Modern' : option.label}
-              {option.value === 'modern' ? <span className="beta-badge">beta</span> : null}
+              {option.label}
             </button>
           ))}
         </div>
@@ -38,7 +37,7 @@ export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
       <p className="engine-toggle-help">{description}</p>
       {engineMode === 'modern' ? (
         <p className="engine-beta-notice" role="status">
-          Modern beta is active.
+          Modern beta/testing is active.
         </p>
       ) : null}
     </div>

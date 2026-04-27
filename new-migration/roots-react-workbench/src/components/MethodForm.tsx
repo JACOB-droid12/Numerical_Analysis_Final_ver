@@ -8,12 +8,14 @@ import type {
   MethodFormState,
   RootMethod,
 } from '../types/roots';
+import type { RootEngineMode } from '../lib/rootEngineSelector';
 import { NotebookDisplay } from './NotebookDisplay';
 import { SymbolInsertBar } from './SymbolInsertBar';
 
 interface MethodFormProps {
   angleMode: AngleMode;
   config: MethodConfig;
+  engineMode: RootEngineMode;
   expressionError?: string;
   formState: MethodFormState;
   onChange: (method: RootMethod, fieldId: string, value: string) => void;
@@ -23,7 +25,7 @@ function isVisible(field: MethodFieldConfig, formState: MethodFormState) {
   return field.when ? field.when(formState) : true;
 }
 
-export function MethodForm({ angleMode, config, expressionError, formState, onChange }: MethodFormProps) {
+export function MethodForm({ angleMode, config, engineMode, expressionError, formState, onChange }: MethodFormProps) {
   const expressionRef = useRef<HTMLInputElement | null>(null);
   const [showSymbolTools, setShowSymbolTools] = useState(false);
 
@@ -283,6 +285,11 @@ export function MethodForm({ angleMode, config, expressionError, formState, onCh
           ) : null}
           {stopKindField ? renderField(stopKindField) : null}
           {stopValueField ? renderField(stopValueField) : null}
+          <p className="precision-note">
+            {engineMode === 'modern'
+              ? 'Modern beta/testing: Digits and Rule format the final root, table, and CSV only. Internal calculations use standard precision.'
+              : 'Stable engine: Digits and Rule affect method calculations.'}
+          </p>
           </div>
         </details>
       </div>

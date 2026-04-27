@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  bisectionSetupLines,
   compactConfidenceItems,
   confidenceStatus,
   formatPrecisionDisplayValue,
@@ -67,9 +68,37 @@ describe('result formatters', () => {
   });
 
   it('keeps method formulas method-specific', () => {
-    expect(methodFormulaDisplay('bisection').formula).toBe('c_n = (a_n + b_n) / 2');
+    expect(methodFormulaDisplay('bisection').formula).toBe('pₙ = aₙ + (bₙ − aₙ)/2');
+    expect(methodFormulaDisplay('newton').formula).toBe('pₙ₊₁ = pₙ − f(pₙ)/f′(pₙ)');
+    expect(methodFormulaDisplay('fixedPoint').formula).toBe('pₙ = g(pₙ₋₁)');
     expect(methodFormulaDisplay('secant').formula).not.toContain("f'(x_n)");
     expect(solutionSteps(run({ method: 'secant' })).join('\n')).not.toContain('Newton-Raphson');
+  });
+
+  it('builds professor-style bisection setup lines from the first row', () => {
+    const lines = bisectionSetupLines(run({
+      method: 'bisection',
+      rows: [{
+        iteration: 1,
+        a: 1,
+        b: 2,
+        c: 1.5,
+        fa: -1,
+        fb: 5,
+        fc: 0.875,
+        exactSigns: { a: -1, b: 1, c: 1 },
+        machineSigns: { a: -1, b: 1, c: 1 },
+      }],
+    }));
+
+    expect(lines).toContain('f(a) = -1');
+    expect(lines).toContain('sgn(f(a)) = -');
+    expect(lines).toContain('f(b) = 5');
+    expect(lines).toContain('sgn(f(b)) = +');
+    expect(lines).toContain('Bracket condition: sgn(f(a))sgn(f(b)) < 0 is satisfied.');
+    expect(lines).toContain('Since f(a) and f(b) have opposite signs, the Intermediate Value Theorem guarantees a root in [1, 2].');
+    expect(lines).toContain('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
+    expect(lines).toContain('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
   });
 
   it('summarizes stop reason, metric, and basis for confidence cards', () => {

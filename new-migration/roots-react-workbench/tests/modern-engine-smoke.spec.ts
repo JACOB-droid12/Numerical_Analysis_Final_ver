@@ -27,9 +27,18 @@ async function runCurrentMethod(page: Page, label: string | RegExp) {
 }
 
 async function openClassroomTools(page: Page) {
-  const classroomCopy = page.getByText('Digits and Rule format displayed table and CSV values only.');
+  const classroomCopy = page.getByText(
+    'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only.',
+  );
   if (!(await classroomCopy.isVisible().catch(() => false))) {
     await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
+  }
+}
+
+async function openAdvancedTesting(page: Page) {
+  const engineSelector = page.getByLabel('Root engine selector');
+  if (!(await engineSelector.isVisible().catch(() => false))) {
+    await page.locator('summary').filter({ hasText: 'Advanced/testing' }).click();
   }
 }
 
@@ -58,9 +67,14 @@ test('loads the workbench in modern engine mode without crashing', async ({ page
   await expect(page.getByLabel('Equation studio')).toBeVisible();
   await expect(page.getByLabel('Result console')).toBeVisible();
   await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Modern beta' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Modern beta uses the new TypeScript + math.js engine.')).toBeVisible();
-  await expect(page.getByText(/Modern beta is active/)).toBeVisible();
+  const toolbar = page.getByRole('navigation', { name: 'Application controls' });
+  await expect(toolbar.getByText('Modern beta/testing')).toHaveCount(0);
+  await openAdvancedTesting(page);
+  await expect(page.getByRole('button', { name: 'Modern beta/testing' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByText('Modern beta/testing uses the new TypeScript + math.js engine for experimental comparison.'),
+  ).toBeVisible();
+  await expect(page.getByText(/Modern beta\/testing is active/)).toBeVisible();
 });
 
 test('runs Bisection on x^3 - x - 1', async ({ page }) => {
@@ -151,9 +165,18 @@ test('displays the Modern beta final root with selected rounded precision', asyn
 test('uses Computation settings as the only Modern beta precision display control', async ({ page }) => {
   await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
   await openClassroomTools(page);
-  await expect(page.getByText('Digits and Rule format displayed table and CSV values only.')).toBeVisible();
+  await expect(
+    page.getByText(
+      'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only. Internal calculations use standard precision.',
+    ),
+  ).toBeVisible();
 
   await page.getByText('Computation settings').click();
+  await expect(
+    page.getByText(
+      'Modern beta/testing: Digits and Rule format the final root, table, and CSV only. Internal calculations use standard precision.',
+    ),
+  ).toBeVisible();
   await expect(page.getByLabel('Digit precision', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Round' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Chop' })).toBeVisible();
@@ -181,12 +204,13 @@ test('shows a clear failure for a bad bracket without crashing', async ({ page }
 });
 
 test('can switch from modern beta back to legacy and run after lazy loading legacy scripts', async ({ page }) => {
-  await expect(page.getByRole('button', { name: 'Modern beta' })).toHaveAttribute('aria-pressed', 'true');
+  await openAdvancedTesting(page);
+  await expect(page.getByRole('button', { name: 'Modern beta/testing' })).toHaveAttribute('aria-pressed', 'true');
 
-  await page.getByRole('button', { name: 'Legacy' }).click();
-  await expect(page.getByRole('button', { name: 'Legacy' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
-  await expect(page.getByText(/Modern beta is active/)).not.toBeVisible();
+  await page.getByRole('button', { name: 'Stable' }).click();
+  await expect(page.getByRole('button', { name: 'Stable' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.')).toBeVisible();
+  await expect(page.getByText(/Modern beta\/testing is active/)).not.toBeVisible();
 
   await selectMethod(page, 'Bisection');
   await setField(page, 'root-bis-expression', 'x^2 - 4');

@@ -54,7 +54,7 @@ export function NotebookDisplay({ angleMode, config, formState }: NotebookDispla
   const stopValue = displayValue(stopValueField, formState);
   const mode = displayValue(modeField, formState);
   const stop = stopLine(stopKind, stopValue);
-  const displayLabel = config.method === 'fixedPoint' ? 'x next' : config.expressionLabel;
+  const displayLabel = config.method === 'fixedPoint' ? 'p_n' : config.expressionLabel;
   const renderedEquation = useMemo(
     () => renderLatex(expressionToLatex(displayLabel, expression === '-' ? '' : expression)),
     [displayLabel, expression],

@@ -37,7 +37,7 @@ const ANGLE_MODE_CHANGED_STATUS: WorkbenchStatus = {
 };
 const ENGINE_CHANGED_STATUS = (engineMode: RootEngineMode): WorkbenchStatus => ({
   kind: 'idle',
-  message: `Engine switched to ${engineMode === 'modern' ? 'Modern beta' : 'Legacy'}. Run again to update the answer.`,
+  message: `Engine switched to ${engineMode === 'modern' ? 'Modern beta/testing' : 'Stable'}. Run again to update the answer.`,
 });
 const PRESET_APPLIED_STATUS = (preset: MethodPreset): WorkbenchStatus => ({
   kind: 'idle',

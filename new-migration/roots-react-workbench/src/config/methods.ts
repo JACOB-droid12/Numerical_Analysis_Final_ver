@@ -217,7 +217,7 @@ export const METHOD_CONFIGS: MethodConfig[] = [
     label: 'Fixed Point',
     shortLabel: 'Fixed Point',
     group: 'fixed-point',
-    summary: 'Enter g(x), then iterate x next = g(x).',
+    summary: 'Enter g(x), then iterate pₙ = g(pₙ₋₁).',
     details: 'Works when the iteration settles near a fixed point.',
     expressionLabel: 'g(x)',
     expressionFieldId: 'root-fpi-expression',

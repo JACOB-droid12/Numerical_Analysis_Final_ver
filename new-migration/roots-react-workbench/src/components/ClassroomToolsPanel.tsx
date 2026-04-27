@@ -122,8 +122,8 @@ export function ClassroomToolsPanel({
       <div className="classroom-tools-body">
         <p className="muted-copy text-sm">
           {engineMode === 'legacy'
-            ? 'Digits and Rule are applied during Legacy method calculations.'
-            : 'Digits and Rule format displayed table and CSV values only. Modern beta internal calculations use standard precision.'}
+            ? 'Stable engine: Digits and Rule affect method calculations.'
+            : 'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only. Internal calculations use standard precision.'}
           {' '}Approx. Error is based on successive approximations, not true error unless the exact root is known.
         </p>
 
@@ -151,7 +151,7 @@ export function ClassroomToolsPanel({
                     <dd>{formatPrecisionValue(bracketEvaluation.fUpper, precisionMode, digits)} ({signText(bracketEvaluation.upperSign)})</dd>
                   </div>
                   <div>
-                    <dt>f(a) · f(b) &lt; 0</dt>
+                    <dt>sgn(f(a))sgn(f(b)) &lt; 0</dt>
                     <dd>{bracketEvaluation.hasSignChange ? 'Yes' : 'No'}</dd>
                   </div>
                   <div>

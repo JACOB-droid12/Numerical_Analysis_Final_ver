@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
-import { ChevronDown, CircleHelp, Copy, RotateCcw, Search, X } from 'lucide-react';
+import { ChevronDown, CircleHelp, Copy, RotateCcw, X } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
@@ -11,10 +11,8 @@ import { EvidencePanel } from './components/EvidencePanel';
 import { HelpPopover } from './components/HelpPopover';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
-import { QuickCommandMenu } from './components/QuickCommandMenu';
 import { QuickSetupPanel } from './components/QuickSetupPanel';
 import { RunControls } from './components/RunControls';
-import { METHOD_PRESETS } from './config/methods';
 import { useCopyFeedback } from './hooks/useCopyFeedback';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 import { answerText } from './lib/resultFormatters';
@@ -55,14 +53,13 @@ function precisionDisplayFromComputationSettings(
 
 export default function App() {
   const fullWorkRegionId = useId();
-  const [openUtility, setOpenUtility] = useState<'help' | 'presets' | 'shortcuts' | 'more' | null>(null);
+  const [openUtility, setOpenUtility] = useState<'help' | 'shortcuts' | 'more' | null>(null);
   const { copyStatus, copyText } = useCopyFeedback();
   const {
     activeConfig,
     activeForm,
     activeMethod,
     angleMode,
-    applyPreset,
     displayConfig,
     displayRun,
     engineMode,
@@ -114,27 +111,7 @@ export default function App() {
           <h1 className="sr-only">Answer workstation</h1>
 
           <nav className="toolbar-actions" aria-label="Application controls">
-            <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
             <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
-            <div className="utility-control toolbar-search">
-              <button
-                type="button"
-                className="quick-command"
-                aria-expanded={openUtility === 'presets'}
-                onClick={() => setOpenUtility((current) => (current === 'presets' ? null : 'presets'))}
-              >
-                <Search aria-hidden="true" />
-                <span className="keycap">⌘K</span>
-                <span>Quick Setup</span>
-              </button>
-              {openUtility === 'presets' ? (
-                <QuickCommandMenu
-                  presets={METHOD_PRESETS}
-                  onApply={applyPreset}
-                  onClose={() => setOpenUtility(null)}
-                />
-              ) : null}
-            </div>
             <div className="toolbar-icon-group">
               <div className="utility-control">
                 <button
@@ -203,9 +180,6 @@ export default function App() {
                     <div className="action-list">
                       <button type="button" onClick={() => setOpenUtility('help')}>
                         Open method help
-                      </button>
-                      <button type="button" onClick={() => setOpenUtility('presets')}>
-                        Load preset
                       </button>
                       <button type="button" onClick={() => setOpenUtility('shortcuts')}>
                         Keyboard basics
@@ -283,11 +257,20 @@ export default function App() {
             methods={methodConfigs}
             onSelect={setMethod}
           />
-          <div className="rail-secondary" aria-label="Planned workspace tools">
-            <span className="rail-secondary-item">History soon</span>
-            <span className="rail-secondary-item">Saved soon</span>
-            <span className="rail-secondary-item">Settings soon</span>
-          </div>
+          <details className="rail-quick-setup">
+            <summary>
+              <span>Quick Setup</span>
+              <small>Manual table</small>
+            </summary>
+            <QuickSetupPanel disabled={status.kind === 'loading'} onRun={runQuickSetup} />
+          </details>
+          <details className="rail-advanced-testing" aria-label="Advanced testing tools">
+            <summary>
+              <span>Advanced/testing</span>
+              <small>{engineMode === 'modern' ? 'Modern beta/testing' : 'Stable'}</small>
+            </summary>
+            <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
+          </details>
           <p className="system-ready sr-only"><span /> Engine ready</p>
         </aside>
 
@@ -301,10 +284,10 @@ export default function App() {
                   <p>{activeConfig.shortLabel} method</p>
                 </div>
               </div>
-              <QuickSetupPanel disabled={status.kind === 'loading'} onRun={runQuickSetup} />
               <MethodForm
                 angleMode={angleMode}
                 config={activeConfig}
+                engineMode={engineMode}
                 expressionError={expressionError}
                 formState={activeForm}
                 onChange={updateField}
@@ -373,7 +356,7 @@ export default function App() {
         <footer className="workbench-statusbar">
           <span><span className="status-dot" /> Ready</span>
           <span>Last run: {formatLastRun(displayRun.ranAt)}</span>
-          <span>Engine: {engineMode === 'modern' ? 'Modern beta' : 'Legacy'} · Angle: {angleMode.toUpperCase()} · Precision: current settings</span>
+          <span>Mode: {engineMode === 'modern' ? 'Modern beta/testing' : 'Stable'} · Angle: {angleMode.toUpperCase()} · Precision: current settings</span>
         </footer>
       </section>
     </main>

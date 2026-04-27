@@ -1,7 +1,12 @@
 import { useMemo } from 'react';
 
 import { useCopyFeedback } from '../hooks/useCopyFeedback';
-import { methodFormulaDisplay, solutionSteps as buildSolutionSteps, solutionText } from '../lib/resultFormatters';
+import {
+  bisectionSetupLines,
+  methodFormulaDisplay,
+  solutionSteps as buildSolutionSteps,
+  solutionText,
+} from '../lib/resultFormatters';
 import type { RootRunResult } from '../types/roots';
 import { PanelActionButton } from './ui/PanelActionButton';
 
@@ -13,6 +18,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
   const { copyStatus, copyText } = useCopyFeedback();
   const steps = useMemo(() => buildSolutionSteps(run), [run]);
   const formulaDisplay = useMemo(() => methodFormulaDisplay(run.method), [run.method]);
+  const bisectionSetup = useMemo(() => bisectionSetupLines(run), [run]);
   const copyPayload = useMemo(() => solutionText(run), [run]);
   const copyDisabled = !copyPayload;
 
@@ -52,6 +58,25 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
               : 'Copy steps'}
         </PanelActionButton>
       </div>
+
+      {bisectionSetup.length ? (
+        <section className="lecture-setup-block" aria-label="Bisection setup">
+          <h3>Professor-style setup</h3>
+          <dl className="lecture-setup-list">
+            {bisectionSetup.map((line) => {
+              const [label, ...rest] = line.split(': ');
+              const value = rest.join(': ');
+
+              return (
+                <div key={line}>
+                  <dt>{value ? label : 'Check'}</dt>
+                  <dd>{value || line}</dd>
+                </div>
+              );
+            })}
+          </dl>
+        </section>
+      ) : null}
 
       <ol className="solution-list">
         {steps.map((step, index) => (

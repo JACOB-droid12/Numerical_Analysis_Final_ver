@@ -197,6 +197,59 @@ a:focus-visible {
   box-shadow: inset 0 0 0 1px rgba(31, 111, 235, 0.14);
 }
 
+.rail-quick-setup,
+.rail-advanced-testing {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.rail-quick-setup summary,
+.rail-advanced-testing summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  padding: 0 var(--space-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.rail-quick-setup summary::-webkit-details-marker,
+.rail-advanced-testing summary::-webkit-details-marker {
+  display: none;
+}
+
+.rail-quick-setup summary:hover,
+.rail-advanced-testing summary:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-raised);
+}
+
+.rail-quick-setup summary span,
+.rail-advanced-testing summary span {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.rail-quick-setup summary small,
+.rail-advanced-testing summary small {
+  color: var(--green);
+  font-size: 0.68rem;
+  font-weight: 740;
+  text-transform: uppercase;
+}
+
+.rail-quick-setup[open] summary,
+.rail-advanced-testing[open] summary {
+  border-color: rgba(22, 133, 95, 0.24);
+  background: rgba(22, 133, 95, 0.08);
+}
+
 .method-glyph {
   color: var(--action-blue);
   font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
@@ -890,6 +943,13 @@ a:focus-visible {
   gap: 6px;
 }
 
+.precision-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .field-control {
   width: 100%;
   min-height: 40px;
@@ -1510,6 +1570,54 @@ a:focus-visible {
   font-size: 1rem;
   font-weight: 620;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.lecture-setup-block {
+  display: grid;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  padding: var(--space-md);
+}
+
+.lecture-setup-block h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 720;
+}
+
+.lecture-setup-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.lecture-setup-list div {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.36fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.lecture-setup-list dt,
+.lecture-setup-list dd {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.lecture-setup-list dt {
+  color: var(--muted);
+  font-weight: 680;
+}
+
+.lecture-setup-list dd {
+  color: var(--ink);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
   overflow-wrap: anywhere;
 }
 
@@ -2476,6 +2584,73 @@ body {
   justify-self: start;
 }
 
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) {
+  gap: 10px;
+  margin-top: var(--space-sm);
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .expression-label-row {
+  display: grid;
+  gap: 2px;
+  align-items: start;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .math-label {
+  font-size: 0.86rem;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .section-kicker {
+  font-size: 0.68rem;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .muted-copy {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.32;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .method-list,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .field-stack,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .parameter-grid,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .run-row {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .method-tab {
+  min-height: 32px;
+  padding: 6px 8px;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .field-row,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .segmented-row {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .field-row span,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .segmented-row span {
+  font-size: 0.72rem;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .field-control,
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .segment {
+  min-height: 32px;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .run-row {
+  margin-top: 0;
+}
+
+.rail-quick-setup .calculator-notebook:has(#quick-setup-heading) .run-primary {
+  width: 100%;
+  min-height: 36px;
+}
+
 .notebook-topline {
   display: none;
 }
@@ -3109,6 +3284,52 @@ body {
 .angle-segments span.active {
   background: linear-gradient(180deg, #3b3f3e, #222625);
   color: #fff;
+}
+
+.rail-advanced-testing {
+  margin-top: auto;
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(70, 64, 54, 0.12);
+}
+
+.rail-advanced-testing .engine-toggle-shell {
+  gap: 8px;
+  margin-top: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid rgba(70, 64, 54, 0.12);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.rail-advanced-testing .engine-toggle {
+  display: grid;
+  gap: 8px;
+  min-height: 0;
+  white-space: normal;
+}
+
+.rail-advanced-testing .engine-toggle-options {
+  width: 100%;
+}
+
+.rail-advanced-testing .engine-toggle button {
+  flex: 1 1 0;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 0.76rem;
+}
+
+.rail-advanced-testing .engine-toggle-help,
+.rail-advanced-testing .engine-beta-notice {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  text-align: left;
 }
 
 .beta-badge {
