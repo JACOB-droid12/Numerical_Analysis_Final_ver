@@ -220,7 +220,7 @@ export function MethodForm({ angleMode, config, expressionError, formState, onCh
       ) : null}
 
       <div className="parameter-grid">
-        <div className="field-stack">
+        <div className="field-stack parameter-fields">
           {detailFields.map(renderField)}
         </div>
         <details className="precision-stack">

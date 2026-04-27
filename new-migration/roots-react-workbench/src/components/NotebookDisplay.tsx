@@ -69,7 +69,7 @@ export function NotebookDisplay({ angleMode, config, formState }: NotebookDispla
       </div>
 
       <div className="notebook-screen">
-        <div>
+        <div className="notebook-expression-row">
           <span className="result-label">Input</span>
           <div
             className="notebook-equation"
@@ -78,7 +78,7 @@ export function NotebookDisplay({ angleMode, config, formState }: NotebookDispla
           />
         </div>
         <div className="calculator-status-line" aria-label="Current calculator settings">
-          <span>k={displayValue(digitsField, formState)}</span>
+          <span>Precision k={displayValue(digitsField, formState)}</span>
           <span>{stop}</span>
         </div>
       </div>

@@ -271,6 +271,10 @@ export default function App() {
         <aside className="method-rail" aria-label="Root method picker">
           <div className="rail-head">
             <span className="brand-mark" aria-hidden="true">√</span>
+            <div className="brand-lockup">
+              <strong>Roots</strong>
+              <span>Workbench</span>
+            </div>
           </div>
           <MethodPicker
             activeMethod={activeMethod}

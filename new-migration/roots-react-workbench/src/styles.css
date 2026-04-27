@@ -978,6 +978,10 @@ a:focus-visible {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface-muted), transparent 32%);
+  transition:
+    background-color 200ms var(--ease-out-quart),
+    border-color 200ms var(--ease-out-quart),
+    box-shadow 200ms var(--ease-out-quart);
 }
 
 .classroom-tools summary {
@@ -1011,15 +1015,25 @@ a:focus-visible {
   font-weight: 700;
   grid-column: 2;
   grid-row: 1 / span 2;
+  transition:
+    background-color 180ms var(--ease-out-quart),
+    border-color 180ms var(--ease-out-quart),
+    color 180ms var(--ease-out-quart),
+    transform 180ms var(--ease-out-quart);
 }
 
 .classroom-tools[open] summary::after {
   content: "−";
+  border-color: rgba(30, 126, 85, 0.18);
+  background: rgba(30, 126, 85, 0.1);
+  color: var(--green-strong);
+  transform: rotate(180deg);
 }
 
 .classroom-tools-body {
   display: grid;
   gap: var(--space-md);
+  animation: control-confirm 200ms var(--ease-out-quint) both;
 }
 
 .classroom-grid {
@@ -1856,6 +1870,8 @@ a:focus-visible {
   --glass-border: rgba(255, 255, 255, 0.72);
   --shadow-surface: 0 18px 50px -34px rgba(42, 35, 26, 0.42), 0 1px 0 rgba(255, 255, 255, 0.72) inset;
   --shadow-glass: 0 24px 70px -42px rgba(31, 25, 17, 0.48), 0 1px 0 rgba(255, 255, 255, 0.78) inset, 0 -1px 0 rgba(81, 70, 52, 0.08) inset;
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
   --font-body: "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-display: "SF Pro Display", Inter, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-math: "New York", "Iowan Old Style", "Times New Roman", ui-serif, Georgia, serif;
@@ -2098,17 +2114,41 @@ body {
 }
 
 .rail-head {
-  justify-content: center;
-  padding: 10px 8px 2px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 12px 6px;
 }
 
 .rail-head .brand-mark {
-  width: 45px;
-  height: 45px;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: 2.45rem;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(30, 126, 85, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  color: var(--green-strong);
+  font-size: 2rem;
+}
+
+.brand-lockup {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  color: var(--ink);
+  line-height: 1.05;
+}
+
+.brand-lockup strong {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 760;
+}
+
+.brand-lockup span {
+  color: var(--green-strong);
+  font-size: 0.72rem;
+  font-weight: 640;
+  text-transform: uppercase;
 }
 
 .rail-title {
@@ -2333,14 +2373,15 @@ body {
 }
 
 .notebook-screen {
-  display: block;
+  display: grid;
+  gap: 10px;
   min-height: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   color: var(--ink);
-  padding: 12px 18px 8px;
+  padding: 16px 18px 14px;
 }
 
 .notebook-screen .result-label {
@@ -2350,7 +2391,7 @@ body {
 .notebook-equation {
   justify-content: center;
   min-height: 48px;
-  margin: 2px 0 8px;
+  margin: 0;
   color: var(--ink);
   font-family: var(--font-math);
   font-size: clamp(2.1rem, 3.2vw, 2.95rem);
@@ -2364,6 +2405,7 @@ body {
   margin-left: 10px;
   border-radius: 999px;
   background: rgba(30, 126, 85, 0.52);
+  animation: notebook-caret-pulse 1.15s steps(2, jump-none) infinite;
   content: "";
 }
 
@@ -2380,15 +2422,59 @@ body {
   font-family: var(--font-math);
 }
 
+@keyframes control-confirm {
+  0% {
+    opacity: 0.74;
+    transform: translateY(5px) scale(0.985);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes notebook-caret-pulse {
+  0%,
+  42% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  50%,
+  92% {
+    opacity: 0.28;
+    transform: scaleY(0.86);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 .calculator-status-line,
 .notebook-tape {
   display: flex;
-  justify-content: flex-start;
-  gap: 14px;
-  padding: 0 18px 8px;
+  justify-content: center;
+  gap: 8px;
+  justify-self: center;
+  padding: 6px 10px;
+  border: 1px solid rgba(70, 64, 54, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
   color: var(--muted);
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.76rem;
+  font-weight: 620;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.calculator-status-line span + span::before {
+  margin-right: 8px;
+  color: color-mix(in srgb, var(--quiet), transparent 8%);
+  content: "·";
 }
 
 .notebook-tape {
@@ -2422,9 +2508,48 @@ body {
   font-family: var(--font-math);
 }
 
+.symbol-bar {
+  animation: control-confirm 180ms var(--ease-out-quint) both;
+}
+
+.symbol-chip,
+.disclosure-button,
+.panel-action-button,
+.toolbar-icon-button,
+.run-primary,
+.method-tab,
+.engine-toggle button,
+.angle-segments span {
+  transition:
+    background-color 180ms var(--ease-out-quart),
+    border-color 180ms var(--ease-out-quart),
+    box-shadow 180ms var(--ease-out-quart),
+    color 180ms var(--ease-out-quart),
+    opacity 180ms var(--ease-out-quart),
+    transform 180ms var(--ease-out-quart);
+}
+
+.symbol-chip:hover,
+.disclosure-button:hover,
+.panel-action-button:hover,
+.toolbar-icon-button:hover,
+.method-tab:hover {
+  transform: translateY(-1px);
+}
+
+.symbol-chip:active,
+.disclosure-button:active,
+.panel-action-button:active,
+.toolbar-icon-button:active,
+.run-primary:active,
+.method-tab:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .parameter-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
-  gap: 14px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 12px;
 }
 
 .field-stack {
@@ -2432,11 +2557,22 @@ body {
   gap: 10px;
 }
 
+.parameter-fields {
+  grid-template-columns: repeat(4, minmax(138px, 1fr));
+  align-items: start;
+  gap: 14px 12px;
+}
+
+.parameter-fields .field-row:has(select) {
+  grid-column: span 2;
+  max-width: 260px;
+}
+
 .field-row,
 .precision-stack .field-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 5px;
+  gap: 6px;
 }
 
 .field-row span,
@@ -2454,6 +2590,16 @@ body {
   padding: 0.52rem 4.8rem 0.52rem 0.72rem;
 }
 
+.parameter-fields .field-control {
+  min-height: 42px;
+  padding-inline: 0.8rem;
+  text-overflow: clip;
+}
+
+.parameter-fields .field-control::placeholder {
+  font-size: 0.86rem;
+}
+
 .input-status-icons {
   right: 12px;
   gap: 6px;
@@ -2466,15 +2612,26 @@ body {
 
 .precision-stack {
   padding: 11px;
+  transition:
+    background-color 200ms var(--ease-out-quart),
+    border-color 200ms var(--ease-out-quart),
+    box-shadow 200ms var(--ease-out-quart);
 }
 
 .precision-stack summary {
   gap: 2px;
 }
 
+.precision-stack[open] {
+  border-color: rgba(30, 126, 85, 0.2);
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68), 0 18px 38px -34px rgba(30, 126, 85, 0.46);
+}
+
 .precision-fields {
   grid-template-columns: 1fr;
   gap: 9px;
+  animation: control-confirm 190ms var(--ease-out-quint) both;
 }
 
 .segmented-row {
@@ -2504,6 +2661,11 @@ body {
   white-space: nowrap;
 }
 
+.run-primary:not(:disabled):hover {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 22px 38px -25px rgba(23, 105, 73, 0.86) !important;
+  transform: translateY(-1px);
+}
+
 .run-row .status-text {
   grid-column: auto;
   font-size: 0.78rem;
@@ -2526,6 +2688,7 @@ body {
   gap: 0;
   overflow: hidden;
   padding: 0;
+  animation: control-confirm 230ms var(--ease-out-quint) both;
 }
 
 .answer-panel header {
