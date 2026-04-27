@@ -20,7 +20,9 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
 
   await expect(page.getByRole('heading', { name: 'Quick Setup' })).toBeVisible();
   await expect(
-    page.getByText('Quick Setup is calculator-style. It does not parse full problem statements.'),
+    page.getByText('Quick Setup is calculator-style. It does not parse full problem statements.', {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.getByRole('textbox', { name: /paste/i })).toHaveCount(0);
   await expect(page.getByText(/paste.*question/i)).toHaveCount(0);
