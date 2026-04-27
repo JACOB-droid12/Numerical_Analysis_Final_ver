@@ -2360,6 +2360,122 @@ body {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 18px 46px -34px rgba(0, 0, 0, 0.42);
 }
 
+.quick-setup-panel,
+.calculator-notebook:has(#quick-setup-heading) {
+  gap: 12px;
+  padding: 14px;
+  border-color: rgba(255, 255, 255, 0.64);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 252, 246, 0.3)),
+    rgba(255, 253, 248, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 18px 42px -34px rgba(42, 35, 26, 0.48);
+}
+
+.quick-setup-head,
+.calculator-notebook:has(#quick-setup-heading) .expression-label-row {
+  align-items: center;
+  min-height: 28px;
+}
+
+.quick-setup-panel .muted-copy,
+.calculator-notebook:has(#quick-setup-heading) .muted-copy {
+  max-width: 58ch;
+  margin: -3px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.quick-setup-methods,
+.calculator-notebook:has(#quick-setup-heading) .method-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.quick-setup-methods::before,
+.calculator-notebook:has(#quick-setup-heading) .method-list::before {
+  display: none;
+}
+
+.quick-setup-methods .method-tab,
+.calculator-notebook:has(#quick-setup-heading) .method-tab {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 36px;
+  padding: 7px 10px;
+  border-color: rgba(70, 64, 54, 0.14);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  text-align: center;
+}
+
+.quick-setup-methods .method-tab:hover,
+.calculator-notebook:has(#quick-setup-heading) .method-tab:hover {
+  border-color: rgba(47, 115, 214, 0.26);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.quick-setup-methods .method-tab[aria-pressed="true"],
+.calculator-notebook:has(#quick-setup-heading) .method-tab[aria-pressed="true"] {
+  border-color: rgba(47, 115, 214, 0.38);
+  background: rgba(47, 115, 214, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64), 0 12px 24px -20px rgba(33, 89, 173, 0.52);
+}
+
+.quick-setup-methods .method-tab[aria-pressed="true"] .method-name,
+.calculator-notebook:has(#quick-setup-heading) .method-tab[aria-pressed="true"] .method-name {
+  color: var(--action-blue-strong);
+}
+
+.quick-setup-fields,
+.calculator-notebook:has(#quick-setup-heading) .field-stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-setup-inline,
+.calculator-notebook:has(#quick-setup-heading) .parameter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-setup-panel .field-row,
+.calculator-notebook:has(#quick-setup-heading) .field-row,
+.quick-setup-panel .segmented-row,
+.calculator-notebook:has(#quick-setup-heading) .segmented-row {
+  gap: 5px;
+}
+
+.quick-setup-panel .field-control,
+.calculator-notebook:has(#quick-setup-heading) .field-control {
+  min-height: 36px;
+  padding: 0.48rem 0.65rem;
+}
+
+.quick-setup-panel .segment,
+.calculator-notebook:has(#quick-setup-heading) .segment {
+  min-height: 36px;
+}
+
+.quick-setup-run,
+.calculator-notebook:has(#quick-setup-heading) .run-row {
+  display: grid;
+  grid-template-columns: minmax(168px, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.quick-setup-run .run-primary,
+.calculator-notebook:has(#quick-setup-heading) .run-primary {
+  justify-self: start;
+}
+
 .notebook-topline {
   display: none;
 }
@@ -3223,6 +3339,34 @@ body {
 
   .precision-stack {
     width: 100%;
+  }
+
+  .quick-setup-panel,
+  .calculator-notebook:has(#quick-setup-heading) {
+    padding: 12px;
+  }
+
+  .quick-setup-head,
+  .calculator-notebook:has(#quick-setup-heading) .expression-label-row {
+    align-items: flex-start;
+  }
+
+  .quick-setup-methods,
+  .calculator-notebook:has(#quick-setup-heading) .method-list,
+  .quick-setup-fields,
+  .calculator-notebook:has(#quick-setup-heading) .field-stack,
+  .quick-setup-inline,
+  .calculator-notebook:has(#quick-setup-heading) .parameter-grid,
+  .quick-setup-run,
+  .calculator-notebook:has(#quick-setup-heading) .run-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-setup-methods .method-tab,
+  .calculator-notebook:has(#quick-setup-heading) .method-tab {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 38px;
   }
 
   .run-row {
