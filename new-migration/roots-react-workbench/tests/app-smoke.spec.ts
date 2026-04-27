@@ -18,9 +18,36 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
   await page.getByRole('button', { name: 'Close help' }).click();
 
-  await page.getByRole('button', { name: 'Quick Command' }).click();
-  await expect(page.getByRole('heading', { name: 'Load a preset' })).toBeVisible();
-  await page.getByRole('button', { name: 'Close presets' }).click();
+  await expect(page.getByRole('heading', { name: 'Quick Setup' })).toBeVisible();
+  await expect(
+    page.getByText('Quick Setup is calculator-style. It does not parse full problem statements.'),
+  ).toBeVisible();
+  await expect(page.getByRole('textbox', { name: /paste/i })).toHaveCount(0);
+  await expect(page.getByText(/paste.*question/i)).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Bisection quick setup' }).click();
+  await page.getByLabel('Quick Setup Bisection f(x)').fill('x^3 - x - 1');
+  await page.getByLabel('Quick Setup Bisection a').fill('1');
+  await page.getByLabel('Quick Setup Bisection b').fill('2');
+  await page.getByLabel('Quick Setup Bisection stop value').fill('6');
+  await page.getByRole('button', { name: 'Run Table' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Bisection' })).toBeVisible();
+  await expect(page.getByText('Method: Bisection')).toBeVisible();
+  await expect(page.getByText(/Final approximation/i)).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Graph' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Newton-Raphson quick setup' }).click();
+  await page.getByLabel('Quick Setup Newton-Raphson f(x)').fill('x^3 - x - 1');
+  await page.getByLabel('Quick Setup Newton-Raphson x0').fill('1.5');
+  await page.getByLabel('Quick Setup Newton-Raphson stop value').fill('6');
+  await page.getByRole('button', { name: 'Run Table' }).click();
+
+  await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
+  await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
+  await expect(page.getByText(/Final approximation/i)).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Run method' }).click();
   await expect(page.getByLabel('Calculator display')).toBeVisible();
