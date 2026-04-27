@@ -7,6 +7,7 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Engine ready')).toBeVisible();
   const toolbar = page.getByRole('navigation', { name: 'Application controls' });
   await expect(toolbar.getByText('Quick Setup')).toHaveCount(0);
+  await expect(toolbar.getByRole('button', { name: /Load preset/ })).toBeVisible();
   await expect(toolbar.getByText('Stable')).toHaveCount(0);
   await expect(toolbar.getByText('Modern beta/testing')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Stable' })).not.toBeVisible();
@@ -25,6 +26,11 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByRole('button', { name: 'Help' }).click();
   await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();
   await page.getByRole('button', { name: 'Close help' }).click();
+
+  await toolbar.getByRole('button', { name: /Load preset/ }).click();
+  await expect(page.getByLabel('Method presets')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Load preset' })).toBeVisible();
+  await page.getByRole('button', { name: 'Close presets' }).click();
 
   await expect(page.locator('summary').filter({ hasText: 'Quick Setup' })).toBeVisible();
   await page.locator('summary').filter({ hasText: 'Quick Setup' }).click();

@@ -11,8 +11,10 @@ import { EvidencePanel } from './components/EvidencePanel';
 import { HelpPopover } from './components/HelpPopover';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
+import { QuickCommandMenu } from './components/QuickCommandMenu';
 import { QuickSetupPanel } from './components/QuickSetupPanel';
 import { RunControls } from './components/RunControls';
+import { METHOD_PRESETS } from './config/methods';
 import { useCopyFeedback } from './hooks/useCopyFeedback';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 import { answerText } from './lib/resultFormatters';
@@ -53,13 +55,14 @@ function precisionDisplayFromComputationSettings(
 
 export default function App() {
   const fullWorkRegionId = useId();
-  const [openUtility, setOpenUtility] = useState<'help' | 'shortcuts' | 'more' | null>(null);
+  const [openUtility, setOpenUtility] = useState<'help' | 'presets' | 'shortcuts' | 'more' | null>(null);
   const { copyStatus, copyText } = useCopyFeedback();
   const {
     activeConfig,
     activeForm,
     activeMethod,
     angleMode,
+    applyPreset,
     displayConfig,
     displayRun,
     engineMode,
@@ -112,6 +115,24 @@ export default function App() {
 
           <nav className="toolbar-actions" aria-label="Application controls">
             <AngleToggle angleMode={angleMode} onToggle={toggleAngleMode} />
+            <div className="utility-control toolbar-search">
+              <button
+                type="button"
+                className="quick-command"
+                aria-expanded={openUtility === 'presets'}
+                onClick={() => setOpenUtility((current) => (current === 'presets' ? null : 'presets'))}
+              >
+                <span className="keycap">⌘K</span>
+                <span>Load preset</span>
+              </button>
+              {openUtility === 'presets' ? (
+                <QuickCommandMenu
+                  presets={METHOD_PRESETS}
+                  onApply={applyPreset}
+                  onClose={() => setOpenUtility(null)}
+                />
+              ) : null}
+            </div>
             <div className="toolbar-icon-group">
               <div className="utility-control">
                 <button
@@ -180,6 +201,9 @@ export default function App() {
                     <div className="action-list">
                       <button type="button" onClick={() => setOpenUtility('help')}>
                         Open method help
+                      </button>
+                      <button type="button" onClick={() => setOpenUtility('presets')}>
+                        Load preset
                       </button>
                       <button type="button" onClick={() => setOpenUtility('shortcuts')}>
                         Keyboard basics

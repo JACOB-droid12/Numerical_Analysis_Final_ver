@@ -11,11 +11,11 @@ interface QuickCommandMenuProps {
 
 export function QuickCommandMenu({ presets, onApply, onClose }: QuickCommandMenuProps) {
   return (
-    <section className="utility-popover preset-popover" aria-label="Quick Setup presets">
+    <section className="utility-popover preset-popover" aria-label="Method presets">
       <header className="utility-popover-head">
         <div>
-          <p className="section-kicker">Quick Setup</p>
-          <h2>Load a manual starter</h2>
+          <p className="section-kicker">Presets</p>
+          <h2>Load preset</h2>
         </div>
         <button type="button" className="popover-close-button" onClick={onClose} aria-label="Close presets">
           <X aria-hidden="true" />
