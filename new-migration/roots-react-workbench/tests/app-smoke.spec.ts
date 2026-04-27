@@ -34,7 +34,11 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByLabel('Quick Setup Bisection stop value').fill('6');
   await page.getByRole('button', { name: 'Run Table' }).click();
 
-  await expect(page.getByRole('button', { name: /Bisection/ })).toHaveAttribute('aria-pressed', 'true');
+  const methodPicker = page.getByLabel('Root method picker');
+  await expect(methodPicker.getByRole('button', { name: 'Bisection', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await expect(page.getByText('Method: Bisection')).toBeVisible();
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
@@ -46,7 +50,10 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByLabel('Quick Setup Newton-Raphson stop value').fill('6');
   await page.getByRole('button', { name: 'Run Table' }).click();
 
-  await expect(page.getByRole('button', { name: /Newton-Raphson/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(methodPicker.getByRole('button', { name: 'Newton-Raphson', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
@@ -56,7 +63,7 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByText('Method: Newton-Raphson')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Bisection', exact: true }).click();
+  await methodPicker.getByRole('button', { name: 'Bisection', exact: true }).click();
   await expect(page.getByText('Bracket signs')).toBeVisible();
   await expect(page.getByText('Bisection helper')).toBeVisible();
   await page.getByRole('button', { name: 'Run bisection' }).click();
@@ -77,7 +84,10 @@ test('switches from default legacy to modern beta and back without losing form v
   await expect(page.getByText('Modern beta uses the new TypeScript + math.js engine.')).toBeVisible();
   await expect(page.getByText(/Modern beta is active/)).toBeVisible();
 
-  await page.getByRole('button', { name: 'Bisection', exact: true }).click();
+  await page
+    .getByLabel('Root method picker')
+    .getByRole('button', { name: 'Bisection', exact: true })
+    .click();
   await page.locator('[name="root-bis-expression"]').fill('x^3 - x - 1');
   await page.locator('[name="root-bis-a"]').fill('1');
   await page.locator('[name="root-bis-b"]').fill('2');

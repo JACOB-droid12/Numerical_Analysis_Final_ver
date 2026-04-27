@@ -29,8 +29,11 @@ async function setField(page: Page, name: string, value: string) {
   await page.locator(`[name="${name}"]`).fill(value);
 }
 
-async function selectMethod(page: Page, label: string | RegExp) {
-  await page.getByRole('button', { name: label }).click();
+async function selectMethod(page: Page, label: string) {
+  await page
+    .getByLabel('Root method picker')
+    .getByRole('button', { name: label, exact: true })
+    .click();
 }
 
 async function setIterations(page: Page, stopValueField: string, iterations: string) {
@@ -150,7 +153,7 @@ const scenarios: Scenario[] = [
     name: 'Bisection normal case',
     expectedRoot: 1.324717957,
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'x^3 - x - 1');
       await setField(page, 'root-bis-a', '1');
       await setField(page, 'root-bis-b', '2');
@@ -162,7 +165,7 @@ const scenarios: Scenario[] = [
     name: 'Bisection log semantics use natural log',
     expectedRoot: Math.E,
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'log(x) - 1');
       await setField(page, 'root-bis-a', '2');
       await setField(page, 'root-bis-b', '4');
@@ -174,7 +177,7 @@ const scenarios: Scenario[] = [
     name: 'Bisection natural log domain-safe root',
     expectedRoot: Math.E,
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'ln(x) - 1');
       await setField(page, 'root-bis-a', '2');
       await setField(page, 'root-bis-b', '4');
@@ -185,7 +188,7 @@ const scenarios: Scenario[] = [
   {
     name: 'Bisection non-finite rejection',
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', '1 / (x - 1)');
       await setField(page, 'root-bis-a', '0');
       await setField(page, 'root-bis-b', '2');
@@ -195,7 +198,7 @@ const scenarios: Scenario[] = [
   {
     name: 'Bisection complex rejection',
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'sqrt(x)');
       await setField(page, 'root-bis-a', '-1');
       await setField(page, 'root-bis-b', '1');
@@ -207,7 +210,7 @@ const scenarios: Scenario[] = [
     expectedRoot: 90,
     run: async (page) => {
       await setDegreeMode(page);
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'cos(x)');
       await setField(page, 'root-bis-a', '0');
       await setField(page, 'root-bis-b', '180');
@@ -220,7 +223,7 @@ const scenarios: Scenario[] = [
     expectedRoot: 1000,
     rootPrecision: 3,
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'x^2 - 1000000');
       await setField(page, 'root-bis-a', '0');
       await setField(page, 'root-bis-b', '2000');
@@ -233,7 +236,7 @@ const scenarios: Scenario[] = [
     expectedRoot: 0.000001,
     rootTolerance: 1e-8,
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'x - 0.000001');
       await setField(page, 'root-bis-a', '0');
       await setField(page, 'root-bis-b', '0.000002');
@@ -245,7 +248,7 @@ const scenarios: Scenario[] = [
     name: 'Fixed Point divergence safe stop',
     allowSafeStop: true,
     run: async (page) => {
-      await selectMethod(page, /Fixed Point/);
+      await selectMethod(page, 'Fixed Point');
       await setField(page, 'root-fpi-expression', '2*x');
       await setField(page, 'root-fpi-x0', '1');
       await setIterations(page, 'root-fpi-stop-value', '20');
@@ -256,7 +259,7 @@ const scenarios: Scenario[] = [
     name: 'Fixed Point cycle safe stop',
     allowSafeStop: true,
     run: async (page) => {
-      await selectMethod(page, /Fixed Point/);
+      await selectMethod(page, 'Fixed Point');
       await setField(page, 'root-fpi-expression', '-x');
       await setField(page, 'root-fpi-x0', '1');
       await setIterations(page, 'root-fpi-stop-value', '20');
@@ -287,7 +290,7 @@ const scenarios: Scenario[] = [
     name: 'False Position normal case',
     expectedRoot: 2,
     run: async (page) => {
-      await selectMethod(page, /False Position/);
+      await selectMethod(page, 'False Position');
       await setField(page, 'root-fp-expression', 'x^2 - 4');
       await setField(page, 'root-fp-a', '0');
       await setField(page, 'root-fp-b', '3');
@@ -299,7 +302,7 @@ const scenarios: Scenario[] = [
     name: 'Secant normal case',
     expectedRoot: 1.324717957,
     run: async (page) => {
-      await selectMethod(page, /Secant/);
+      await selectMethod(page, 'Secant');
       await setField(page, 'root-secant-expression', 'x^3 - x - 1');
       await setField(page, 'root-secant-x0', '1');
       await setField(page, 'root-secant-x1', '2');
@@ -310,7 +313,7 @@ const scenarios: Scenario[] = [
     name: 'Fixed Point normal case',
     expectedRoot: 0.739085133,
     run: async (page) => {
-      await selectMethod(page, /Fixed Point/);
+      await selectMethod(page, 'Fixed Point');
       await setField(page, 'root-fpi-expression', 'cos(x)');
       await setField(page, 'root-fpi-x0', '1');
       await setField(page, 'root-fpi-target-expression', 'x - cos(x)');
@@ -341,7 +344,7 @@ const scenarios: Scenario[] = [
   {
     name: 'Bisection bad bracket failure',
     run: async (page) => {
-      await selectMethod(page, /Bisection/);
+      await selectMethod(page, 'Bisection');
       await setField(page, 'root-bis-expression', 'x^2 + 1');
       await setField(page, 'root-bis-a', '-1');
       await setField(page, 'root-bis-b', '1');

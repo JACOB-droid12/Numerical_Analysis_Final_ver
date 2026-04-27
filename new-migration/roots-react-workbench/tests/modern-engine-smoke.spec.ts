@@ -14,8 +14,11 @@ async function setIterations(page: Page, stopValueField: string, iterations: str
   await setField(page, stopValueField, iterations);
 }
 
-async function selectMethod(page: Page, label: string | RegExp) {
-  await page.getByRole('button', { name: label }).click();
+async function selectMethod(page: Page, label: string) {
+  await page
+    .getByLabel('Root method picker')
+    .getByRole('button', { name: label, exact: true })
+    .click();
 }
 
 async function runCurrentMethod(page: Page, label: string | RegExp) {
@@ -54,7 +57,7 @@ test('loads the workbench in modern engine mode without crashing', async ({ page
 });
 
 test('runs Bisection on x^3 - x - 1', async ({ page }) => {
-  await selectMethod(page, /Bisection/);
+  await selectMethod(page, 'Bisection');
   await setField(page, 'root-bis-expression', 'x^3 - x - 1');
   await setField(page, 'root-bis-a', '1');
   await setField(page, 'root-bis-b', '2');
@@ -73,7 +76,7 @@ test('runs Bisection on x^3 - x - 1', async ({ page }) => {
 });
 
 test('runs False Position on x^2 - 4', async ({ page }) => {
-  await selectMethod(page, /False Position/);
+  await selectMethod(page, 'False Position');
   await setField(page, 'root-fp-expression', 'x^2 - 4');
   await setField(page, 'root-fp-a', '0');
   await setField(page, 'root-fp-b', '3');
@@ -84,7 +87,7 @@ test('runs False Position on x^2 - 4', async ({ page }) => {
 });
 
 test('runs Secant on x^3 - x - 1', async ({ page }) => {
-  await selectMethod(page, /Secant/);
+  await selectMethod(page, 'Secant');
   await setField(page, 'root-secant-expression', 'x^3 - x - 1');
   await setField(page, 'root-secant-x0', '1');
   await setField(page, 'root-secant-x1', '2');
@@ -94,7 +97,7 @@ test('runs Secant on x^3 - x - 1', async ({ page }) => {
 });
 
 test('runs Fixed Point on cos(x)', async ({ page }) => {
-  await selectMethod(page, /Fixed Point/);
+  await selectMethod(page, 'Fixed Point');
   await setField(page, 'root-fpi-expression', 'cos(x)');
   await setField(page, 'root-fpi-x0', '1');
   await setField(page, 'root-fpi-target-expression', 'x - cos(x)');
@@ -157,7 +160,7 @@ test('uses Computation settings as the only Modern beta precision display contro
 });
 
 test('shows a clear failure for a bad bracket without crashing', async ({ page }) => {
-  await selectMethod(page, /Bisection/);
+  await selectMethod(page, 'Bisection');
   await setField(page, 'root-bis-expression', 'x^2 + 1');
   await setField(page, 'root-bis-a', '-1');
   await setField(page, 'root-bis-b', '1');
@@ -176,7 +179,7 @@ test('can switch from modern beta back to legacy and run after lazy loading lega
   await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
   await expect(page.getByText(/Modern beta is active/)).not.toBeVisible();
 
-  await selectMethod(page, /Bisection/);
+  await selectMethod(page, 'Bisection');
   await setField(page, 'root-bis-expression', 'x^2 - 4');
   await setField(page, 'root-bis-a', '0');
   await setField(page, 'root-bis-b', '3');
