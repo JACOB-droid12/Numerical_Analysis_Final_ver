@@ -175,11 +175,11 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
         <desc id={descId}>{graphSummary}</desc>
         <defs>
           <linearGradient id={lineGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
-            <stop offset="0%" stopColor="#1f6feb" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#16855f" stopOpacity="0.92" />
+            <stop offset="0%" stopColor="var(--action-blue)" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="var(--green)" stopOpacity="0.92" />
           </linearGradient>
         </defs>
-        <rect x="0" y="0" width={width} height={height} rx="12" fill="#fcfcf8" />
+        <rect x="0" y="0" width={width} height={height} rx="12" fill="var(--surface)" />
         {Array.from({ length: 8 }, (_, index) => (
           <line
             key={`grid-y-${index}`}
@@ -187,7 +187,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
             y1={padY + (index * (height - padY * 2)) / 7}
             x2={width - padX}
             y2={padY + (index * (height - padY * 2)) / 7}
-            stroke="#e0e4dd"
+            stroke="var(--line)"
             strokeWidth="1"
           />
         ))}
@@ -198,7 +198,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
             y1={padY}
             x2={padX + (index * (width - padX * 2)) / 8}
             y2={height - padY}
-            stroke="#e0e4dd"
+            stroke="var(--line)"
             strokeWidth="1"
           />
         ))}
@@ -207,7 +207,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y1={height - padY}
           x2={width - padX}
           y2={height - padY}
-          stroke="#c9d0c6"
+          stroke="var(--line-strong)"
           strokeWidth="1"
         />
         <line
@@ -215,7 +215,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y1={padY}
           x2={padX}
           y2={height - padY}
-          stroke="#c9d0c6"
+          stroke="var(--line-strong)"
           strokeWidth="1"
         />
         <text
@@ -223,7 +223,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y={height - 5}
           textAnchor="middle"
           fontSize="11"
-          fill="#5c6658"
+          fill="var(--muted)"
         >
           Iteration
         </text>
@@ -232,7 +232,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           y={height / 2}
           textAnchor="middle"
           fontSize="11"
-          fill="#5c6658"
+          fill="var(--muted)"
           transform={`rotate(-90 12 ${height / 2})`}
         >
           Root estimate
@@ -244,7 +244,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
             cx={toSvgX(point.x)}
             cy={toSvgY(point.y)}
             r={index === points.length - 1 ? '5' : '3.5'}
-            fill={index === points.length - 1 ? '#16855f' : '#1f6feb'}
+            fill={index === points.length - 1 ? 'var(--green)' : 'var(--action-blue)'}
           />
         ))}
       </svg>

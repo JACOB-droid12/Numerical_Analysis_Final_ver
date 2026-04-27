@@ -471,6 +471,58 @@ a:focus-visible {
   line-height: 1.3;
 }
 
+.shortcut-list,
+.action-list {
+  display: grid;
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.shortcut-list div {
+  display: grid;
+  grid-template-columns: minmax(76px, max-content) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.shortcut-list dt,
+.shortcut-list dd {
+  min-width: 0;
+  margin: 0;
+}
+
+.shortcut-list dd {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.action-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  padding: 0 var(--space-md);
+  font-size: 0.86rem;
+  font-weight: 650;
+  text-align: left;
+}
+
+.action-list button:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-muted);
+}
+
+.action-list button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
 .console-grid {
   display: grid;
   grid-template-columns: minmax(420px, 1fr) minmax(360px, 480px);
@@ -553,6 +605,16 @@ a:focus-visible {
 
 .input-status-icons--empty {
   color: var(--muted);
+}
+
+.input-status-icons--error {
+  color: var(--red);
+}
+
+.expression-input--error,
+.field-control[aria-invalid="true"] {
+  border-color: color-mix(in srgb, var(--red), var(--line) 18%);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--red), transparent 86%);
 }
 
 .symbol-bar {
@@ -916,6 +978,48 @@ a:focus-visible {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface-muted), transparent 32%);
+}
+
+.classroom-tools summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.classroom-tools summary .muted-copy {
+  grid-column: 1;
+}
+
+.classroom-tools summary::-webkit-details-marker {
+  display: none;
+}
+
+.classroom-tools summary::after {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.classroom-tools[open] summary::after {
+  content: "−";
+}
+
+.classroom-tools-body {
+  display: grid;
+  gap: var(--space-md);
 }
 
 .classroom-grid {
@@ -1806,8 +1910,8 @@ body {
 .result-console,
 .evidence-panel,
 .utility-popover {
-  -webkit-backdrop-filter: blur(28px) saturate(1.42);
-  backdrop-filter: blur(28px) saturate(1.42);
+  -webkit-backdrop-filter: blur(16px) saturate(1.22);
+  backdrop-filter: blur(16px) saturate(1.22);
 }
 
 .window-toolbar {
@@ -2662,7 +2766,6 @@ body {
   gap: 6px;
   min-height: 36px;
   border: 0;
-  border-left: 1px solid rgba(70, 64, 54, 0.12);
   border-radius: 0;
   background: transparent;
   color: var(--ink);
@@ -2886,10 +2989,25 @@ body {
   }
 
   .field-stack,
+  .parameter-grid,
   .precision-fields,
   .classroom-facts div,
   .run-row {
     grid-template-columns: 1fr;
+  }
+
+  .parameter-grid {
+    gap: var(--space-lg);
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .precision-stack {
+    width: 100%;
   }
 
   .run-row {
@@ -2929,5 +3047,47 @@ body {
   .evidence-tabs {
     justify-content: flex-start;
     gap: var(--space-lg);
+  }
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  .toolbar-icon-button,
+  .popover-close-button,
+  .symbol-chip,
+  .disclosure-button,
+  .panel-action-button,
+  .panel-action-button--compact,
+  .evidence-tabs button,
+  .stepper button,
+  .segment button,
+  .run-primary,
+  .action-list button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .panel-action-button--compact,
+  .evidence-tabs button,
+  .action-list button {
+    padding-inline: var(--space-lg);
+  }
+
+  .symbol-bar,
+  .evidence-tabs,
+  .toolbar-icon-group {
+    gap: var(--space-md);
+  }
+}
+
+@media (pointer: coarse), (max-width: 760px), (prefers-reduced-transparency: reduce) {
+  .window-toolbar,
+  .workbench-statusbar,
+  .method-rail,
+  .equation-studio,
+  .result-console,
+  .evidence-panel,
+  .utility-popover {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

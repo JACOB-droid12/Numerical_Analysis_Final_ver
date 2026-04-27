@@ -113,18 +113,21 @@ export function ClassroomToolsPanel({
   }, [digits, precisionMode]);
 
   return (
-    <section className="classroom-tools" aria-label="Classroom project helpers">
-      <div>
-        <h3 className="section-kicker">Classroom tools</h3>
-        <p className="muted-copy mt-1 text-sm">
+    <details className="classroom-tools" aria-label="Classroom project helpers">
+      <summary>
+        <span className="section-kicker">Classroom tools</span>
+        <span className="muted-copy">Precision preview and method checks</span>
+      </summary>
+
+      <div className="classroom-tools-body">
+        <p className="muted-copy text-sm">
           {engineMode === 'legacy'
             ? 'Digits and Rule are applied during Legacy method calculations.'
             : 'Digits and Rule format displayed table and CSV values only. Modern beta internal calculations use standard precision.'}
           {' '}Approx. Error is based on successive approximations, not true error unless the exact root is known.
         </p>
-      </div>
 
-      <div className="classroom-grid">
+        <div className="classroom-grid">
         <article className="classroom-card">
           <h4>Precision preview</h4>
           <p className="classroom-result">π preview: <span>{piPreview}</span></p>
@@ -167,6 +170,8 @@ export function ClassroomToolsPanel({
               <label className="field-row">
                 <span>Desired ε</span>
                 <input
+                  id="bisection-helper-epsilon"
+                  name="bisection-helper-epsilon"
                   className="field-control numeric-value"
                   value={epsilonInput}
                   onChange={(event) => setEpsilonInput(event.target.value)}
@@ -178,6 +183,8 @@ export function ClassroomToolsPanel({
               <label className="field-row">
                 <span>Iterations N</span>
                 <input
+                  id="bisection-helper-iterations"
+                  name="bisection-helper-iterations"
                   className="field-control numeric-value"
                   type="number"
                   min="0"
@@ -192,7 +199,8 @@ export function ClassroomToolsPanel({
             ) : null}
           </>
         ) : null}
+        </div>
       </div>
-    </section>
+    </details>
   );
 }

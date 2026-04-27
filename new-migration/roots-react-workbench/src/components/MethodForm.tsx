@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Keyboard, SlidersHorizontal } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Keyboard, SlidersHorizontal } from 'lucide-react';
 
 import type {
   AngleMode,
@@ -14,6 +14,7 @@ import { SymbolInsertBar } from './SymbolInsertBar';
 interface MethodFormProps {
   angleMode: AngleMode;
   config: MethodConfig;
+  expressionError?: string;
   formState: MethodFormState;
   onChange: (method: RootMethod, fieldId: string, value: string) => void;
 }
@@ -22,7 +23,7 @@ function isVisible(field: MethodFieldConfig, formState: MethodFormState) {
   return field.when ? field.when(formState) : true;
 }
 
-export function MethodForm({ angleMode, config, formState, onChange }: MethodFormProps) {
+export function MethodForm({ angleMode, config, expressionError, formState, onChange }: MethodFormProps) {
   const expressionRef = useRef<HTMLInputElement | null>(null);
   const [showSymbolTools, setShowSymbolTools] = useState(false);
 
@@ -101,10 +102,13 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
       const fieldDomId = `roots-${config.method}-${field.id}`;
       const isExpressionField = field.id === config.expressionFieldId;
       const hasExpressionValue = isExpressionField ? value.trim().length > 0 : false;
+      const hasExpressionError = isExpressionField && Boolean(expressionError);
+      const expressionStatusId = `${fieldDomId}-status`;
       const commonClassName = [
         'field-control numeric-value',
         isExpressionField ? 'expression-input' : '',
         isExpressionField && !hasExpressionValue ? 'expression-input--empty' : '',
+        hasExpressionError ? 'expression-input--error' : '',
       ].filter(Boolean).join(' ');
       const expressionAriaLabel =
         isExpressionField ? `${config.shortLabel} ${config.expressionLabel}` : undefined;
@@ -143,6 +147,8 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
               type={field.kind === 'number' ? 'number' : 'text'}
               inputMode={field.kind === 'number' ? 'decimal' : undefined}
               aria-label={expressionAriaLabel}
+              aria-describedby={isExpressionField ? expressionStatusId : undefined}
+              aria-invalid={hasExpressionError || undefined}
               value={value}
               placeholder={field.placeholder}
               onChange={(event) => onChange(config.method, field.id, event.target.value)}
@@ -151,17 +157,30 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
           )}
           {isExpressionField ? (
             <span
-              className={`input-status-icons ${hasExpressionValue ? 'input-status-icons--ready' : 'input-status-icons--empty'}`}
+              id={expressionStatusId}
+              className={[
+                'input-status-icons',
+                hasExpressionError
+                  ? 'input-status-icons--error'
+                  : hasExpressionValue
+                    ? 'input-status-icons--ready'
+                    : 'input-status-icons--empty',
+              ].join(' ')}
               aria-live="polite"
+              role={hasExpressionError ? 'alert' : undefined}
             >
-              <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
-              <span>{hasExpressionValue ? 'Entered' : 'Empty'}</span>
+              {hasExpressionError ? (
+                <AlertCircle size={18} strokeWidth={1.8} aria-hidden="true" />
+              ) : (
+                <CheckCircle2 size={18} strokeWidth={1.8} aria-hidden="true" />
+              )}
+              <span>{hasExpressionError ? 'Check expression' : hasExpressionValue ? 'Entered' : 'Empty'}</span>
             </span>
           ) : null}
         </label>
       );
     },
-    [config.method, config.expressionFieldId, config.expressionLabel, config.shortLabel, formState, onChange],
+    [config.method, config.expressionFieldId, config.expressionLabel, config.shortLabel, expressionError, formState, onChange],
   );
 
   const digitsField = precisionFields.find((field) => field.id.endsWith('-k'));
@@ -221,6 +240,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
               <div className="stepper" aria-label="Digit precision">
                 <button
                   type="button"
+                  aria-label="Decrease digit precision"
                   onClick={() => onChange(config.method, digitsField.id, String(Math.max(1, Number(formState[digitsField.id] ?? digitsField.defaultValue ?? 6) - 1)))}
                 >
                   −
@@ -230,6 +250,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
                 </span>
                 <button
                   type="button"
+                  aria-label="Increase digit precision"
                   onClick={() => onChange(config.method, digitsField.id, String(Number(formState[digitsField.id] ?? digitsField.defaultValue ?? 6) + 1))}
                 >
                   +
@@ -240,9 +261,10 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
           {modeField ? (
             <div className="segmented-row">
               <span>Rule</span>
-              <div className="segment">
+              <div className="segment" role="group" aria-label="Precision display rule">
                 <button
                   type="button"
+                  aria-pressed={(formState[modeField.id] ?? modeField.defaultValue) === 'round'}
                   className={(formState[modeField.id] ?? modeField.defaultValue) === 'round' ? 'active' : ''}
                   onClick={() => onChange(config.method, modeField.id, 'round')}
                 >
@@ -250,6 +272,7 @@ export function MethodForm({ angleMode, config, formState, onChange }: MethodFor
                 </button>
                 <button
                   type="button"
+                  aria-pressed={(formState[modeField.id] ?? modeField.defaultValue) === 'chop'}
                   className={(formState[modeField.id] ?? modeField.defaultValue) === 'chop' ? 'active' : ''}
                   onClick={() => onChange(config.method, modeField.id, 'chop')}
                 >

@@ -197,6 +197,12 @@ export function isInvalidRun(result: RootRunResult): boolean {
 export function resultFailureMessage(result: RootRunResult): string {
   const detail = result.summary?.stopDetail?.trim();
   if (detail) {
+    if (
+      result.summary?.stopReason === 'invalid-input' &&
+      /expression|syntax|parse|unexpected|end of/i.test(detail)
+    ) {
+      return `Check the expression: ${detail}`;
+    }
     return detail;
   }
 
@@ -214,7 +220,11 @@ export function resultFailureMessage(result: RootRunResult): string {
 }
 
 export function errorMessage(error: unknown): string {
-  return error instanceof Error
-    ? error.message
-    : 'The root calculation could not finish.';
+  if (!(error instanceof Error)) {
+    return 'The root calculation could not finish.';
+  }
+
+  return /expression|syntax|parse|unexpected|end of/i.test(error.message)
+    ? `Check the expression: ${error.message}`
+    : error.message;
 }

@@ -1,5 +1,5 @@
-import { useId, useMemo, useState } from 'react';
-import { ChevronDown, CircleHelp, Copy, Keyboard, RotateCcw, Search } from 'lucide-react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { ChevronDown, CircleHelp, Copy, RotateCcw, Search, X } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
 import { AnswerPanel } from './components/AnswerPanel';
@@ -14,6 +14,7 @@ import { MethodPicker } from './components/MethodPicker';
 import { QuickCommandMenu } from './components/QuickCommandMenu';
 import { RunControls } from './components/RunControls';
 import { METHOD_PRESETS } from './config/methods';
+import { useCopyFeedback } from './hooks/useCopyFeedback';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 import { answerText } from './lib/resultFormatters';
 import type { MethodFormState, PrecisionDisplayConfig, RootMethod } from './types/roots';
@@ -53,7 +54,8 @@ function precisionDisplayFromComputationSettings(
 
 export default function App() {
   const fullWorkRegionId = useId();
-  const [openUtility, setOpenUtility] = useState<'help' | 'presets' | null>(null);
+  const [openUtility, setOpenUtility] = useState<'help' | 'presets' | 'shortcuts' | 'more' | null>(null);
+  const { copyStatus, copyText } = useCopyFeedback();
   const {
     activeConfig,
     activeForm,
@@ -78,6 +80,7 @@ export default function App() {
   const hasRun = displayedRun !== null;
   const expressionValue = activeForm[activeConfig.expressionFieldId]?.trim() ?? '';
   const expressionReady = expressionValue.length > 0;
+  const expressionError = status.kind === 'error' && expressionReady ? status.message : undefined;
   const copyPayload = answerText(displayedRun);
   const precisionDisplay = useMemo(
     () => precisionDisplayFromComputationSettings(activeMethod, activeForm),
@@ -85,13 +88,22 @@ export default function App() {
   );
 
   const copyActiveAnswer = async () => {
-    if (!copyPayload || !navigator.clipboard?.writeText) return;
-    try {
-      await navigator.clipboard.writeText(copyPayload);
-    } catch {
-      // The answer panel keeps its own copy feedback; this toolbar action is best-effort.
-    }
+    if (!copyPayload) return;
+    await copyText(copyPayload);
   };
+
+  useEffect(() => {
+    if (!openUtility) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenUtility(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openUtility]);
 
   return (
     <main className="app-shell">
@@ -136,13 +148,17 @@ export default function App() {
                   <HelpPopover config={activeConfig} onClose={() => setOpenUtility(null)} />
                 ) : null}
               </div>
-              <button type="button" className="toolbar-icon-button" aria-label="Shortcuts">
-                <Keyboard aria-hidden="true" />
-              </button>
               <button
                 type="button"
                 className="toolbar-icon-button"
-                aria-label="Copy answer"
+                aria-label={
+                  copyStatus === 'success'
+                    ? 'Answer copied'
+                    : copyStatus === 'error'
+                      ? 'Copy answer failed'
+                      : 'Copy answer'
+                }
+                aria-live="polite"
                 disabled={!copyPayload}
                 onClick={copyActiveAnswer}
               >
@@ -156,9 +172,97 @@ export default function App() {
               >
                 <RotateCcw aria-hidden="true" />
               </button>
-              <button type="button" className="toolbar-icon-button" aria-label="More actions">
-                <ChevronDown aria-hidden="true" />
-              </button>
+              <div className="utility-control">
+                <button
+                  type="button"
+                  className="toolbar-icon-button"
+                  aria-expanded={openUtility === 'more'}
+                  aria-label="More actions"
+                  onClick={() => setOpenUtility((current) => (current === 'more' ? null : 'more'))}
+                >
+                  <ChevronDown aria-hidden="true" />
+                </button>
+                {openUtility === 'more' ? (
+                  <section className="utility-popover more-actions-popover" aria-label="More actions">
+                    <header className="utility-popover-head">
+                      <div>
+                        <p className="section-kicker">Actions</p>
+                        <h2>Workbench tools</h2>
+                      </div>
+                      <button
+                        type="button"
+                        className="popover-close-button"
+                        onClick={() => setOpenUtility(null)}
+                        aria-label="Close actions"
+                      >
+                        <X aria-hidden="true" />
+                      </button>
+                    </header>
+                    <div className="action-list">
+                      <button type="button" onClick={() => setOpenUtility('help')}>
+                        Open method help
+                      </button>
+                      <button type="button" onClick={() => setOpenUtility('presets')}>
+                        Load preset
+                      </button>
+                      <button type="button" onClick={() => setOpenUtility('shortcuts')}>
+                        Keyboard basics
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!copyPayload}
+                        onClick={async () => {
+                          await copyActiveAnswer();
+                          setOpenUtility(null);
+                        }}
+                      >
+                        Copy current answer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetActiveMethod();
+                          setOpenUtility(null);
+                        }}
+                      >
+                        Reset active method
+                      </button>
+                    </div>
+                  </section>
+                ) : null}
+                {openUtility === 'shortcuts' ? (
+                  <section className="utility-popover shortcuts-popover" aria-label="Keyboard shortcuts">
+                    <header className="utility-popover-head">
+                      <div>
+                        <p className="section-kicker">Shortcuts</p>
+                        <h2>Keyboard basics</h2>
+                      </div>
+                      <button
+                        type="button"
+                        className="popover-close-button"
+                        onClick={() => setOpenUtility(null)}
+                        aria-label="Close shortcuts"
+                      >
+                        <X aria-hidden="true" />
+                      </button>
+                    </header>
+                    <dl className="shortcut-list">
+                      <div>
+                        <dt><span className="keycap">Tab</span></dt>
+                        <dd>Move to the next control</dd>
+                      </div>
+                      <div>
+                        <dt><span className="keycap">Enter</span></dt>
+                        <dd>Use the focused control</dd>
+                      </div>
+                      <div>
+                        <dt><span className="keycap">Esc</span></dt>
+                        <dd>Close an open panel</dd>
+                      </div>
+                    </dl>
+                  </section>
+                ) : null}
+              </div>
             </div>
           </nav>
         </header>
@@ -173,10 +277,10 @@ export default function App() {
             methods={methodConfigs}
             onSelect={setMethod}
           />
-          <div className="rail-secondary" aria-label="Secondary navigation">
-            <span className="rail-secondary-item">History</span>
-            <span className="rail-secondary-item">Saved</span>
-            <span className="rail-secondary-item">Settings</span>
+          <div className="rail-secondary" aria-label="Planned workspace tools">
+            <span className="rail-secondary-item">History soon</span>
+            <span className="rail-secondary-item">Saved soon</span>
+            <span className="rail-secondary-item">Settings soon</span>
           </div>
           <p className="system-ready sr-only"><span /> Engine ready</p>
         </aside>
@@ -194,6 +298,7 @@ export default function App() {
               <MethodForm
                 angleMode={angleMode}
                 config={activeConfig}
+                expressionError={expressionError}
                 formState={activeForm}
                 onChange={updateField}
               />

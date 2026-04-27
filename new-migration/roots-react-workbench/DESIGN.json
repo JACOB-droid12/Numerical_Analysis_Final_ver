@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-27T15:08:18.0370687+08:00",
+  "title": "Design System: Roots Workbench Glass Console",
+  "extensions": {
+    "colorMeta": {
+      "canvas-warm": {
+        "role": "neutral",
+        "displayName": "Warm Canvas",
+        "canonical": "#f3eee6",
+        "tonalRamp": ["#2a251f", "#4b4238", "#706454", "#978a78", "#bdb3a5", "#ddd7cf", "#f3eee6", "#fbf8f2"]
+      },
+      "surface-glass": {
+        "role": "neutral",
+        "displayName": "Glass Surface",
+        "canonical": "rgba(255, 253, 248, 0.72)",
+        "tonalRamp": ["#2a2926", "#4d4b47", "#747169", "#9e9a90", "#c6c1b6", "#e6e1d6", "#fffdf8", "#fffffb"]
+      },
+      "action-blue": {
+        "role": "primary",
+        "displayName": "Utility Blue",
+        "canonical": "#2f73d6",
+        "tonalRamp": ["#0d2445", "#173c70", "#2159ad", "#2f73d6", "#6799e5", "#a0c0f0", "#d5e5fa", "#eef5ff"]
+      },
+      "graph-green": {
+        "role": "primary",
+        "displayName": "Computation Green",
+        "canonical": "#1e7e55",
+        "tonalRamp": ["#0b2419", "#113f2b", "#176c49", "#1e7e55", "#48a77e", "#88c8aa", "#c7e6d6", "#eef8f2"]
+      },
+      "graph-orange": {
+        "role": "secondary",
+        "displayName": "Graph Orange",
+        "canonical": "#b86a13",
+        "tonalRamp": ["#351b05", "#613209", "#8d4e0f", "#b86a13", "#d8913d", "#e8bb7d", "#f5dfbd", "#fff4e2"]
+      },
+      "error-red": {
+        "role": "tertiary",
+        "displayName": "Error Red",
+        "canonical": "#c3423f",
+        "tonalRamp": ["#3a0d0c", "#651a18", "#982d2a", "#c3423f", "#d97875", "#e9aaa8", "#f6d8d7", "#fff1f0"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Major workbench titles only." },
+      "headline": { "displayName": "Headline", "purpose": "Equation Studio and Result workflow headings." },
+      "title": { "displayName": "Title", "purpose": "Method labels, panel headings, and compact section titles." },
+      "body": { "displayName": "Body", "purpose": "Short helper text, diagnostics, and classroom notes." },
+      "label": { "displayName": "Label", "purpose": "Field labels, toolbar text, tabs, and metadata." },
+      "mono": { "displayName": "Mono Evidence", "purpose": "Expressions, tolerances, roots, and iteration values." }
+    },
+    "shadows": [
+      {
+        "name": "glass-window-lift",
+        "value": "0 30px 90px -44px rgba(0, 0, 0, 0.72)",
+        "purpose": "Outer workbench window only."
+      },
+      {
+        "name": "glass-surface-lift",
+        "value": "0 22px 68px -42px rgba(52, 44, 34, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.74)",
+        "purpose": "Primary translucent work surfaces."
+      },
+      {
+        "name": "focus-glow",
+        "value": "0 0 0 4px rgba(47, 115, 214, 0.14)",
+        "purpose": "Keyboard focus and active input selection."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state-standard",
+        "value": "160ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Hover, focus, selected, and active state changes."
+      }
+    ],
+    "breakpoints": [
+      { "name": "wide", "value": "1280px" },
+      { "name": "tablet", "value": "1080px" },
+      { "name": "mobile", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Run Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The solve action. Use for the active calculation command only.",
+      "html": "<button class=\"ds-btn-run\">Run Method</button>",
+      "css": ".ds-btn-run { min-height: 36px; border: 1px solid rgba(30, 126, 85, 0.22); border-radius: 9px; background: linear-gradient(180deg, #268b62, #176f4d); color: #fffdf8; padding: 0 20px; font: 650 0.86rem Inter, system-ui, sans-serif; box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 18px 32px -24px rgba(23,105,73,0.78); transition: background 160ms cubic-bezier(0.2,0.8,0.2,1), transform 160ms cubic-bezier(0.2,0.8,0.2,1); } .ds-btn-run:hover { background: linear-gradient(180deg, #2d996d, #176c49); } .ds-btn-run:focus-visible { outline: 2px solid #2f73d6; outline-offset: 2px; } .ds-btn-run:active { transform: scale(0.99); }"
+    },
+    {
+      "name": "Panel Action Button",
+      "kind": "button",
+      "refersTo": "panel-action",
+      "description": "Compact copy, export, and panel-level actions.",
+      "html": "<button class=\"ds-panel-action\">Copy</button>",
+      "css": ".ds-panel-action { display: grid; place-items: center; min-width: 40px; min-height: 40px; border: 1px solid rgba(70,64,54,0.12); border-radius: 10px; background: rgba(255,255,255,0.36); color: #171817; padding: 0 12px; font: 650 0.75rem Inter, system-ui, sans-serif; transition: background 160ms cubic-bezier(0.2,0.8,0.2,1), border-color 160ms cubic-bezier(0.2,0.8,0.2,1); } .ds-panel-action:hover { border-color: rgba(70,64,54,0.22); background: rgba(255,255,255,0.62); } .ds-panel-action:focus-visible { outline: 2px solid #2f73d6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Expression Field",
+      "kind": "input",
+      "refersTo": "expression-input",
+      "description": "Primary formula entry with mono math styling and inline readiness status.",
+      "html": "<input class=\"ds-expression\" value=\"x^3 - x - 2\" aria-label=\"Equation\" />",
+      "css": ".ds-expression { width: 100%; min-height: 34px; border: 1px solid rgba(70,64,54,0.16); border-radius: 9px; background: rgba(255,255,255,0.34); color: #171817; padding: 8px 72px 8px 12px; font: 520 0.92rem 'JetBrains Mono', Consolas, monospace; box-shadow: inset 0 1px 0 rgba(255,255,255,0.64); } .ds-expression:focus-visible { border-color: #2f73d6; outline: 2px solid #2f73d6; outline-offset: 2px; box-shadow: 0 0 0 4px rgba(47,115,214,0.14); }"
+    },
+    {
+      "name": "Method Rail Item",
+      "kind": "nav",
+      "description": "One selectable root-finding method in the left rail.",
+      "html": "<button class=\"ds-method active\"><span>f</span><strong>Bisection</strong></button>",
+      "css": ".ds-method { display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: center; min-height: 50px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #171817; padding: 9px 12px; text-align: left; font: 650 0.96rem Inter, system-ui, sans-serif; } .ds-method span { color: #171817; font-family: 'JetBrains Mono', Consolas, monospace; } .ds-method:hover { border-color: rgba(255,255,255,0.52); background: rgba(255,255,255,0.34); } .ds-method.active { border-color: rgba(30,126,85,0.1); background: rgba(30,126,85,0.14); color: #176c49; } .ds-method:focus-visible { outline: 2px solid #2f73d6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Result Console",
+      "kind": "custom",
+      "description": "The primary answer surface for final root estimate, stopping status, and computation metadata.",
+      "html": "<section class=\"ds-result\"><p>Calculator output</p><strong>x ≈ 1.52138</strong><small>Current · Bisection</small></section>",
+      "css": ".ds-result { display: grid; gap: 8px; border: 1px solid rgba(255,255,255,0.62); border-radius: 14px; background: rgba(255,253,248,0.48); color: #171817; padding: 18px; box-shadow: 0 22px 68px -42px rgba(52,44,34,0.62), inset 0 1px 0 rgba(255,255,255,0.74); } .ds-result p { margin: 0; font: 650 0.78rem Inter, system-ui, sans-serif; } .ds-result strong { color: #176c49; font: 400 3rem 'JetBrains Mono', Consolas, monospace; } .ds-result small { color: #64645e; font: 560 0.8rem Inter, system-ui, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Glass Calculator Desk",
+    "overview": "Roots Workbench should feel like a polished Mac-style answer workstation for numerical analysis. The visual shell frames the app as a focused calculator desk: a dark desktop surround, a translucent work window, a compact method rail, and a Result Console that acts as the trusted answer surface.",
+    "keyCharacteristics": [
+      "Mac-like glass workbench shell with a dark outer desk.",
+      "Light, warm calculator surfaces with restrained green and blue action states.",
+      "Compact toolbar and method rail for fast classroom repetition.",
+      "Large math display and root result as the primary visual anchors.",
+      "Tables and graphs treated as evidence surfaces, not decorative widgets."
+    ],
+    "rules": [
+      {
+        "name": "The Workbench Color Rule",
+        "body": "Green belongs to computation, blue belongs to utility, orange belongs to comparison, and red belongs to failure. Do not use these colors as decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Glass Has A Job Rule",
+        "body": "Translucent material is allowed only on the shell, toolbars, major panels, and popovers. It must make layers easier to understand.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numeric Evidence Rule",
+        "body": "Anything the user compares numerically must use mono, math typography, or tabular numerals.",
+        "section": "typography"
+      },
+      {
+        "name": "The Earned Material Rule",
+        "body": "Blur, shine, and shadow are reserved for structure and state. If a surface does not create hierarchy or feedback, keep it flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do make the shell feel like a focused Mac-style calculator desk.",
+      "Do use glass material on major layers when it clarifies hierarchy.",
+      "Do keep the Result Console visually dominant after a run.",
+      "Do use Computation Green for solving and convergence, and Utility Blue for focus and commands.",
+      "Do keep formulas, graph evidence, and iteration tables clearer than any atmospheric effect.",
+      "Do keep touch targets practical on mobile, even when desktop controls are compact."
+    ],
+    "donts": [
+      "Don't make the interface look like a generic corporate dashboard.",
+      "Don't use purple-blue AI gradients, neon calculator skins, worksheet PDF styling, or plain wireframe styling.",
+      "Don't use glass blur as loose decoration. It must define shell, layer, or state.",
+      "Don't use side-stripe borders greater than 1px as decorative accents.",
+      "Don't use gradient text.",
+      "Don't let traffic-light chrome, background gradients, or glass highlights compete with formulas or results."
+    ]
+  }
+}
