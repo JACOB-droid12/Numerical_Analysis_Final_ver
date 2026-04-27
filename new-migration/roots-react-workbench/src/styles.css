@@ -2375,6 +2375,7 @@ body {
 .notebook-screen {
   display: grid;
   gap: 10px;
+  position: relative;
   min-height: 0;
   border: 0;
   border-radius: 0;
@@ -2456,23 +2457,23 @@ body {
 .calculator-status-line,
 .notebook-tape {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  justify-self: center;
-  padding: 6px 10px;
-  border: 1px solid rgba(70, 64, 54, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.34);
-  color: var(--muted);
-  font-family: var(--font-body);
-  font-size: 0.76rem;
-  font-weight: 620;
+  justify-content: flex-end;
+  gap: 7px;
+  justify-self: end;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--muted), transparent 8%);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 560;
   line-height: 1;
   white-space: nowrap;
 }
 
 .calculator-status-line span + span::before {
-  margin-right: 8px;
+  margin-right: 7px;
   color: color-mix(in srgb, var(--quiet), transparent 8%);
   content: "·";
 }
@@ -2598,6 +2599,51 @@ body {
 
 .parameter-fields .field-control::placeholder {
   font-size: 0.86rem;
+}
+
+.advanced-fields-section {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.28fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 8px;
+  padding: 16px 0 0;
+  border-top: 1px solid rgba(70, 64, 54, 0.12);
+}
+
+.advanced-fields-header {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.advanced-fields-header .muted-copy {
+  max-width: 20ch;
+  margin: 0;
+  color: color-mix(in srgb, var(--muted), transparent 4%);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.advanced-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 14px 12px;
+  min-width: 0;
+}
+
+.advanced-fields-grid .field-row {
+  min-width: 0;
+}
+
+.advanced-fields-grid textarea.field-control {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.advanced-fields-grid .field-row:has(textarea) {
+  grid-row: span 3;
+  align-content: start;
 }
 
 .input-status-icons {
@@ -3154,6 +3200,8 @@ body {
   .field-stack,
   .parameter-grid,
   .precision-fields,
+  .advanced-fields-section,
+  .advanced-fields-grid,
   .classroom-facts div,
   .run-row {
     grid-template-columns: 1fr;
@@ -3167,6 +3215,10 @@ body {
     grid-template-columns: 1fr;
     align-items: stretch;
     gap: 6px;
+  }
+
+  .advanced-fields-header .muted-copy {
+    max-width: none;
   }
 
   .precision-stack {

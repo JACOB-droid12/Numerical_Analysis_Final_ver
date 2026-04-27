@@ -288,15 +288,15 @@ export function MethodForm({ angleMode, config, expressionError, formState, onCh
       </div>
 
       {advancedFields.length ? (
-        <div className="field-stack border-t hairline pt-4">
-          <div>
+        <section className="advanced-fields-section">
+          <div className="advanced-fields-header">
             <h3 className="section-kicker">
               Advanced
             </h3>
             <p className="mt-1 text-sm muted-copy">Optional controls for this method.</p>
           </div>
-          <div className="field-stack">{advancedFields.map(renderField)}</div>
-        </div>
+          <div className="advanced-fields-grid">{advancedFields.map(renderField)}</div>
+        </section>
       ) : null}
     </section>
   );
