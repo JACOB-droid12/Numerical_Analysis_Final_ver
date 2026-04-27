@@ -127,6 +127,35 @@ test('runs Newton-Raphson with a provided derivative', async ({ page }) => {
   await expectMethodResult(page, 'Newton-Raphson', 2);
 });
 
+test('displays the Modern beta final root with selected rounded precision', async ({ page }) => {
+  await setField(page, 'root-newton-expression', 'x^2 - 2');
+  await setField(page, 'root-newton-df', '2*x');
+  await setField(page, 'root-newton-x0', '1');
+  await setIterations(page, 'root-newton-stop-value', '8');
+
+  await runCurrentMethod(page, 'Run method');
+  await expect(page.locator('.answer-hero-major .answer-root')).toHaveText('1.4142136');
+});
+
+test('uses Computation settings as the only Modern beta precision display control', async ({ page }) => {
+  await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
+  await expect(page.getByText('Digits and Rule format displayed table and CSV values only.')).toBeVisible();
+
+  await page.getByText('Computation settings').click();
+  await expect(page.getByLabel('Digit precision', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Round' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Chop' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Chop' }).click();
+  await setField(page, 'root-newton-expression', 'x^2 - 2');
+  await setField(page, 'root-newton-df', '2*x');
+  await setField(page, 'root-newton-x0', '1');
+  await setField(page, 'root-newton-stop-value', '8');
+
+  await runCurrentMethod(page, 'Run method');
+  await expect(page.locator('.answer-hero-major .answer-root')).toHaveText('1.4142135');
+});
+
 test('shows a clear failure for a bad bracket without crashing', async ({ page }) => {
   await selectMethod(page, /Bisection/);
   await setField(page, 'root-bis-expression', 'x^2 + 1');

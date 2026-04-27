@@ -535,7 +535,7 @@ export function solutionText(run: RootRunResult | null): string {
   ].join('\n');
 }
 
-function formatModernTableValue(value: unknown, precisionDisplay?: PrecisionDisplayConfig): string {
+export function formatPrecisionDisplayValue(value: unknown, precisionDisplay?: PrecisionDisplayConfig): string {
   if (!precisionDisplay || precisionDisplay.mode === 'standard') {
     return formatValue(value);
   }
@@ -667,50 +667,50 @@ export function tableValuesForRow(
     if (method === 'bisection') {
       return [
         String(row.iteration),
-        formatModernTableValue(row.lower ?? row.a, precisionDisplay),
-        formatModernTableValue(row.upper ?? row.b, precisionDisplay),
-        formatModernTableValue(row.midpoint ?? row.c, precisionDisplay),
-        formatModernTableValue(row.fMidpoint ?? row.fc, precisionDisplay),
-        formatModernTableValue(row.error, precisionDisplay),
+        formatPrecisionDisplayValue(row.lower ?? row.a, precisionDisplay),
+        formatPrecisionDisplayValue(row.upper ?? row.b, precisionDisplay),
+        formatPrecisionDisplayValue(row.midpoint ?? row.c, precisionDisplay),
+        formatPrecisionDisplayValue(row.fMidpoint ?? row.fc, precisionDisplay),
+        formatPrecisionDisplayValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'falsePosition') {
       return [
         String(row.iteration),
-        formatModernTableValue(row.lower ?? row.a, precisionDisplay),
-        formatModernTableValue(row.upper ?? row.b, precisionDisplay),
-        formatModernTableValue(row.point ?? row.c, precisionDisplay),
-        formatModernTableValue(row.fPoint ?? row.fc, precisionDisplay),
-        formatModernTableValue(row.error, precisionDisplay),
+        formatPrecisionDisplayValue(row.lower ?? row.a, precisionDisplay),
+        formatPrecisionDisplayValue(row.upper ?? row.b, precisionDisplay),
+        formatPrecisionDisplayValue(row.point ?? row.c, precisionDisplay),
+        formatPrecisionDisplayValue(row.fPoint ?? row.fc, precisionDisplay),
+        formatPrecisionDisplayValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'secant') {
       return [
         String(row.iteration),
-        formatModernTableValue(row.xPrevious ?? row.xPrev, precisionDisplay),
-        formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
-        formatModernTableValue(row.xNext, precisionDisplay),
-        formatModernTableValue(row.fNext, precisionDisplay),
-        formatModernTableValue(row.error, precisionDisplay),
+        formatPrecisionDisplayValue(row.xPrevious ?? row.xPrev, precisionDisplay),
+        formatPrecisionDisplayValue(row.xCurrent ?? row.xn, precisionDisplay),
+        formatPrecisionDisplayValue(row.xNext, precisionDisplay),
+        formatPrecisionDisplayValue(row.fNext, precisionDisplay),
+        formatPrecisionDisplayValue(row.error, precisionDisplay),
       ];
     }
     if (method === 'newton') {
       return [
         String(row.iteration),
-        formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
-        formatModernTableValue(row.fCurrent ?? row.fxn, precisionDisplay),
-        formatModernTableValue(row.derivativeCurrent ?? row.dfxn, precisionDisplay),
-        formatModernTableValue(newtonCorrection(row), precisionDisplay),
-        formatModernTableValue(row.xNext, precisionDisplay),
-        formatModernTableValue(row.error, precisionDisplay),
+        formatPrecisionDisplayValue(row.xCurrent ?? row.xn, precisionDisplay),
+        formatPrecisionDisplayValue(row.fCurrent ?? row.fxn, precisionDisplay),
+        formatPrecisionDisplayValue(row.derivativeCurrent ?? row.dfxn, precisionDisplay),
+        formatPrecisionDisplayValue(newtonCorrection(row), precisionDisplay),
+        formatPrecisionDisplayValue(row.xNext, precisionDisplay),
+        formatPrecisionDisplayValue(row.error, precisionDisplay),
       ];
     }
     return [
       String(row.iteration),
-      formatModernTableValue(row.xCurrent ?? row.xn, precisionDisplay),
-      formatModernTableValue(row.xNext ?? row.gxn, precisionDisplay),
-      formatModernTableValue(row.error, precisionDisplay),
-      formatModernTableValue(row.residual, precisionDisplay),
+      formatPrecisionDisplayValue(row.xCurrent ?? row.xn, precisionDisplay),
+      formatPrecisionDisplayValue(row.xNext ?? row.gxn, precisionDisplay),
+      formatPrecisionDisplayValue(row.error, precisionDisplay),
+      formatPrecisionDisplayValue(row.residual, precisionDisplay),
     ];
   }
 

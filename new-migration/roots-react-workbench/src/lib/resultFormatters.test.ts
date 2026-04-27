@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   compactConfidenceItems,
   confidenceStatus,
+  formatPrecisionDisplayValue,
   formatValue,
   methodFormulaDisplay,
   solutionSteps,
@@ -132,5 +133,13 @@ describe('result formatters', () => {
       { mode: 'chop', digits: 5 },
     );
     expect(legacyValues[1]).toBe('3.1415926535');
+  });
+
+  it('formats final modern root display with selected significant-digit precision', () => {
+    const sqrtTwo = 1.4142135623730951;
+
+    expect(formatPrecisionDisplayValue(sqrtTwo, { mode: 'round', digits: 8 })).toBe('1.4142136');
+    expect(formatPrecisionDisplayValue(sqrtTwo, { mode: 'chop', digits: 8 })).toBe('1.4142135');
+    expect(formatPrecisionDisplayValue(sqrtTwo, { mode: 'standard', digits: 8 })).toBe('1.41421356237');
   });
 });

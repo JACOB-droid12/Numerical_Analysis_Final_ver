@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { ChevronDown, CircleHelp, Copy, Keyboard, RotateCcw, Search } from 'lucide-react';
 
 import { AngleToggle } from './components/AngleToggle';
@@ -16,7 +16,7 @@ import { RunControls } from './components/RunControls';
 import { METHOD_PRESETS } from './config/methods';
 import { useRootsWorkbench } from './hooks/useRootsWorkbench';
 import { answerText } from './lib/resultFormatters';
-import type { PrecisionDisplayConfig } from './types/roots';
+import type { MethodFormState, PrecisionDisplayConfig, RootMethod } from './types/roots';
 
 function formatLastRun(timestamp: string | null) {
   if (!timestamp) return 'Not run yet';
@@ -29,13 +29,31 @@ function formatLastRun(timestamp: string | null) {
   }).format(date);
 }
 
+const METHOD_FIELD_PREFIX: Record<RootMethod, string> = {
+  bisection: 'root-bis',
+  falsePosition: 'root-fp',
+  fixedPoint: 'root-fpi',
+  newton: 'root-newton',
+  secant: 'root-secant',
+};
+
+function precisionDisplayFromComputationSettings(
+  method: RootMethod,
+  formState: MethodFormState,
+): PrecisionDisplayConfig {
+  const prefix = METHOD_FIELD_PREFIX[method];
+  const digits = Number(formState[`${prefix}-k`] ?? 8);
+  const mode = formState[`${prefix}-mode`] === 'chop' ? 'chop' : 'round';
+
+  return {
+    mode,
+    digits: Number.isInteger(digits) && digits > 0 ? digits : 8,
+  };
+}
+
 export default function App() {
   const fullWorkRegionId = useId();
   const [openUtility, setOpenUtility] = useState<'help' | 'presets' | null>(null);
-  const [precisionDisplay, setPrecisionDisplay] = useState<PrecisionDisplayConfig>({
-    mode: 'standard',
-    digits: 5,
-  });
   const {
     activeConfig,
     activeForm,
@@ -61,6 +79,10 @@ export default function App() {
   const expressionValue = activeForm[activeConfig.expressionFieldId]?.trim() ?? '';
   const expressionReady = expressionValue.length > 0;
   const copyPayload = answerText(displayedRun);
+  const precisionDisplay = useMemo(
+    () => precisionDisplayFromComputationSettings(activeMethod, activeForm),
+    [activeForm, activeMethod],
+  );
 
   const copyActiveAnswer = async () => {
     if (!copyPayload || !navigator.clipboard?.writeText) return;
@@ -177,10 +199,10 @@ export default function App() {
               />
               <ClassroomToolsPanel
                 angleMode={angleMode}
+                engineMode={engineMode}
                 formState={activeForm}
                 method={activeMethod}
                 precisionDisplay={precisionDisplay}
-                onPrecisionDisplayChange={setPrecisionDisplay}
               />
               <RunControls
                 disabled={status.kind === 'loading' || !expressionReady}
@@ -207,6 +229,7 @@ export default function App() {
                   <AnswerPanel
                     run={displayedRun}
                     freshness={displayRun.freshness}
+                    precisionDisplay={precisionDisplay}
                     runTimestamp={displayRun.ranAt}
                     staleReason={displayRun.staleReason}
                   />

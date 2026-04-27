@@ -10,7 +10,8 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Legacy is the default engine used by the current app.')).toBeVisible();
   await expect(page.getByText('Modern beta is active.')).not.toBeVisible();
   await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
-  await expect(page.getByText('Precision / Machine Arithmetic')).toBeVisible();
+  await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
+  await expect(page.getByText('Digits and Rule are applied during Legacy method calculations.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Help' }).click();
   await expect(page.getByRole('heading', { name: 'Newton-Raphson' })).toBeVisible();

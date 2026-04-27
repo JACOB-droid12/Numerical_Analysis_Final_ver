@@ -7,14 +7,15 @@ import {
 } from '../lib/classroom/bisectionHelpers';
 import { chopToSignificantDigits, roundToSignificantDigits } from '../lib/machineArithmetic/decimalMachine';
 import { formatValue } from '../lib/resultFormatters';
+import type { RootEngineMode } from '../lib/rootEngineSelector';
 import type { AngleMode, MethodFormState, PrecisionDisplayConfig, PrecisionDisplayMode, RootMethod } from '../types/roots';
 
 interface ClassroomToolsPanelProps {
   angleMode: AngleMode;
+  engineMode: RootEngineMode;
   formState: MethodFormState;
   method: RootMethod;
   precisionDisplay: PrecisionDisplayConfig;
-  onPrecisionDisplayChange: (config: PrecisionDisplayConfig) => void;
 }
 
 function bracketFieldIds(method: RootMethod) {
@@ -59,14 +60,13 @@ function precisionModeLabel(mode: PrecisionDisplayMode) {
 
 export function ClassroomToolsPanel({
   angleMode,
+  engineMode,
   formState,
   method,
   precisionDisplay,
-  onPrecisionDisplayChange,
 }: ClassroomToolsPanelProps) {
   const [epsilonInput, setEpsilonInput] = useState('0.01');
   const [iterationInput, setIterationInput] = useState('7');
-  const [digitsInput, setDigitsInput] = useState(String(precisionDisplay.digits));
 
   const bracketFields = bracketFieldIds(method);
   const expression = bracketFields ? formState[bracketFields.expression] ?? '' : '';
@@ -75,7 +75,7 @@ export function ClassroomToolsPanel({
   const epsilon = Number(epsilonInput);
   const iterations = Number(iterationInput);
   const precisionMode = precisionDisplay.mode;
-  const digits = Number(digitsInput);
+  const digits = precisionDisplay.digits;
   const showBisectionHelper = method === 'bisection';
 
   const bracketEvaluation = useMemo(
@@ -112,61 +112,24 @@ export function ClassroomToolsPanel({
     return '3.141592653589793238462643383279';
   }, [digits, precisionMode]);
 
-  const updatePrecisionMode = (mode: PrecisionDisplayMode) => {
-    onPrecisionDisplayChange({
-      mode,
-      digits: Number.isInteger(digits) && digits > 0 ? digits : precisionDisplay.digits,
-    });
-  };
-
-  const updateDigits = (value: string) => {
-    setDigitsInput(value);
-    const nextDigits = Number(value);
-    if (Number.isInteger(nextDigits) && nextDigits > 0) {
-      onPrecisionDisplayChange({ mode: precisionMode, digits: nextDigits });
-    }
-  };
-
   return (
     <section className="classroom-tools" aria-label="Classroom project helpers">
       <div>
         <h3 className="section-kicker">Classroom tools</h3>
         <p className="muted-copy mt-1 text-sm">
-          Standard mode uses normal JavaScript/math.js arithmetic. Chopping and rounding simulate decimal
-          machine arithmetic for classroom display only. Root-method calculations still use their normal
-          arithmetic. Approx. Error is based on successive approximations, not true error unless the exact
-          root is known.
+          {engineMode === 'legacy'
+            ? 'Digits and Rule are applied during Legacy method calculations.'
+            : 'Digits and Rule format displayed table and CSV values only. Modern beta internal calculations use standard precision.'}
+          {' '}Approx. Error is based on successive approximations, not true error unless the exact root is known.
         </p>
       </div>
 
       <div className="classroom-grid">
         <article className="classroom-card">
-          <h4>Precision / Machine Arithmetic</h4>
-          <div className="segment classroom-segment" aria-label="Machine arithmetic mode">
-            {(['standard', 'chop', 'round'] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                className={precisionMode === mode ? 'active' : ''}
-                onClick={() => updatePrecisionMode(mode)}
-              >
-                {mode === 'standard' ? 'Standard' : mode === 'chop' ? 'Chopping' : 'Rounding'}
-              </button>
-            ))}
-          </div>
-          <label className="field-row mt-3">
-            <span>Significant digits</span>
-            <input
-              className="field-control numeric-value"
-              type="number"
-              min="1"
-              value={digitsInput}
-              onChange={(event) => updateDigits(event.target.value)}
-            />
-          </label>
+          <h4>Precision preview</h4>
           <p className="classroom-result">π preview: <span>{piPreview}</span></p>
           <p className="classroom-result">
-            Helper values shown in: <span>{precisionModeLabel(precisionMode)}</span>
+            Current display: <span>{digits} digits · {precisionModeLabel(precisionMode)}</span>
           </p>
         </article>
 

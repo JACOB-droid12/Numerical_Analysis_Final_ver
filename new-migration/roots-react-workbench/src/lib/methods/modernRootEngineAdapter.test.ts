@@ -330,6 +330,18 @@ describe('modern root engine UI adapter', () => {
     expect(run.summary?.approximation).toBeTypeOf('number');
   });
 
+  it('keeps raw modern Newton root unchanged for display precision formatting', () => {
+    const run = runModernRootMethodForUi({
+      method: 'newton-raphson',
+      expression: 'x^2 - 2',
+      derivativeExpression: '2*x',
+      x0: 1,
+      tolerance: 1e-12,
+    });
+
+    expect(run.summary?.approximation).toBeCloseTo(Math.SQRT2, 11);
+  });
+
   it('leaves legacy table and CSV headers unchanged', () => {
     const legacyRun: RootRunResult = {
       method: 'bisection',

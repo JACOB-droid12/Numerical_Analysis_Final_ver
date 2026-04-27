@@ -3,16 +3,18 @@ import { Check, Copy, X } from 'lucide-react';
 
 import {
   answerText,
+  formatPrecisionDisplayValue,
   formatValue,
   methodLabel,
   stopReasonLabel,
   stoppingText,
 } from '../lib/resultFormatters';
-import type { RootRunResult, RunFreshness } from '../types/roots';
+import type { PrecisionDisplayConfig, RootRunResult, RunFreshness } from '../types/roots';
 
 interface AnswerPanelProps {
   run: RootRunResult | null;
   freshness?: RunFreshness;
+  precisionDisplay?: PrecisionDisplayConfig;
   runTimestamp?: string | null;
   staleReason?: string | null;
 }
@@ -37,7 +39,15 @@ function numericApproximation(value: unknown): number | null {
   return null;
 }
 
-function formatRootValue(value: unknown): string {
+function formatRootValue(
+  value: unknown,
+  run: RootRunResult,
+  precisionDisplay?: PrecisionDisplayConfig,
+): string {
+  if (run.engine === 'modern' && precisionDisplay?.mode !== 'standard') {
+    return formatPrecisionDisplayValue(value, precisionDisplay);
+  }
+
   const numeric = numericApproximation(value);
   if (numeric != null) {
     return numeric.toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
@@ -92,6 +102,7 @@ function formatRunTime(timestamp: string | null | undefined): string {
 export function AnswerPanel({
   run,
   freshness = 'current',
+  precisionDisplay,
   runTimestamp = null,
   staleReason = null,
 }: AnswerPanelProps) {
@@ -121,7 +132,7 @@ export function AnswerPanel({
   }
 
   const summary = run.summary;
-  const approximation = formatRootValue(summary?.approximation);
+  const approximation = formatRootValue(summary?.approximation, run, precisionDisplay);
   const copyDisabled = !copyPayload;
   const stopResult = stopReasonLabel(summary?.stopReason, run.method);
   const stopping = stoppingText(run);
