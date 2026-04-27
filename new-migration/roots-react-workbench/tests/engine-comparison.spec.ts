@@ -60,7 +60,18 @@ async function captureUiResult(page: Page): Promise<UiResult> {
     };
   }
 
-  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
+  const rootLabel = page.getByText('Approximate root', { exact: true });
+  try {
+    await expect(rootLabel).toBeVisible({ timeout: 5000 });
+  } catch {
+    const statusText = page.locator('.status-text').last();
+    const message = await statusText.innerText().catch(async () => page.locator('body').innerText());
+    return {
+      status: 'failure',
+      message,
+    };
+  }
+
   const method = await page.locator('.meta-row').getByText(/^Method:/).innerText();
   const stopReason = await page
     .locator('article')
