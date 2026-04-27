@@ -1,4 +1,9 @@
 import { evaluateExpression, type AngleMode } from '../math/evaluator';
+import {
+  applyCalculationPrecision,
+  createPrecisionPolicy,
+  type PrecisionPolicy,
+} from './precisionPolicy';
 
 export type FalsePositionInput = {
   expression: string;
@@ -7,7 +12,14 @@ export type FalsePositionInput = {
   tolerance?: number;
   maxIterations?: number;
   angleMode?: AngleMode;
+  precisionPolicy?: PrecisionPolicy;
+  decisionBasis?: FalsePositionDecisionBasis;
+  signDisplay?: FalsePositionSignDisplay;
 };
+
+export type FalsePositionDecisionBasis = 'exact' | 'machine';
+export type FalsePositionSignDisplay = 'both' | 'exact' | 'machine';
+export type FalsePositionSign = -1 | 0 | 1;
 
 export type FalsePositionApproximation = {
   iteration: number;
@@ -18,6 +30,11 @@ export type FalsePositionApproximation = {
   fUpper: number;
   fPoint: number;
   error?: number;
+  exactSigns?: { a: FalsePositionSign; b: FalsePositionSign; c: FalsePositionSign };
+  machineSigns?: { a: FalsePositionSign; b: FalsePositionSign; c: FalsePositionSign };
+  decision?: 'left' | 'right';
+  decisionBasis?: FalsePositionDecisionBasis;
+  note?: string;
 };
 
 export type FalsePositionResult =
@@ -58,6 +75,15 @@ const STAGNATION_WINDOW = 25;
 
 function isApproximatelyZero(value: number): boolean {
   return Math.abs(value) <= ZERO_TOLERANCE;
+}
+
+function sign(value: number): FalsePositionSign {
+  if (isApproximatelyZero(value)) return 0;
+  return value < 0 ? -1 : 1;
+}
+
+function applyFalsePositionPrecision(value: number, policy: PrecisionPolicy): number {
+  return applyCalculationPrecision(value, policy);
 }
 
 function mapEvaluationFailure(
@@ -149,6 +175,8 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
     tolerance = DEFAULT_TOLERANCE,
     maxIterations = DEFAULT_MAX_ITERATIONS,
     angleMode = 'rad',
+    precisionPolicy = createPrecisionPolicy(),
+    decisionBasis = 'machine',
   } = input;
 
   if (
@@ -168,19 +196,29 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
     };
   }
 
-  let left = lower;
-  let right = upper;
-  let fLeftResult = evaluateReal(expression, left, angleMode);
-  if (!fLeftResult.ok) {
-    return fLeftResult;
+  let left = applyFalsePositionPrecision(lower, precisionPolicy);
+  let right = applyFalsePositionPrecision(upper, precisionPolicy);
+  if (!Number.isFinite(left) || !Number.isFinite(right) || left >= right) {
+    return {
+      ok: false,
+      reason: 'invalid-interval',
+      message: 'False Position requires a valid precision-applied interval with lower < upper.',
+    };
   }
-  let fLeft = fLeftResult.value;
 
-  let fRightResult = evaluateReal(expression, right, angleMode);
-  if (!fRightResult.ok) {
-    return fRightResult;
+  const exactLeftResult = evaluateReal(expression, left, angleMode);
+  if (!exactLeftResult.ok) {
+    return exactLeftResult;
   }
-  let fRight = fRightResult.value;
+  let exactLeft = exactLeftResult.value;
+  let fLeft = applyFalsePositionPrecision(exactLeft, precisionPolicy);
+
+  const exactRightResult = evaluateReal(expression, right, angleMode);
+  if (!exactRightResult.ok) {
+    return exactRightResult;
+  }
+  let exactRight = exactRightResult.value;
+  let fRight = applyFalsePositionPrecision(exactRight, precisionPolicy);
 
   if (isApproximatelyZero(fLeft)) {
     return {
@@ -202,7 +240,9 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
     };
   }
 
-  if (Math.sign(fLeft) === Math.sign(fRight)) {
+  const startingLeftSign = decisionBasis === 'exact' ? sign(exactLeft) : sign(fLeft);
+  const startingRightSign = decisionBasis === 'exact' ? sign(exactRight) : sign(fRight);
+  if (startingLeftSign === startingRightSign) {
     return {
       ok: false,
       reason: 'invalid-starting-interval',
@@ -217,7 +257,17 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
   let retainedCount = 0;
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
-    const denominator = fLeft - fRight;
+    if (left >= right && approximations.length > 0) {
+      return {
+        ok: true,
+        root: point,
+        iterations: approximations.length,
+        approximations,
+        stopReason: 'stagnation-detected',
+      };
+    }
+
+    const denominator = applyFalsePositionPrecision(fRight - fLeft, precisionPolicy);
     if (Math.abs(denominator) <= DENOMINATOR_TOLERANCE) {
       return {
         ok: false,
@@ -226,7 +276,11 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
       };
     }
 
-    point = right - (fRight * (left - right)) / denominator;
+    const width = applyFalsePositionPrecision(right - left, precisionPolicy);
+    const numerator = applyFalsePositionPrecision(fRight * width, precisionPolicy);
+    const correction = applyFalsePositionPrecision(numerator / denominator, precisionPolicy);
+    const rawPoint = right - correction;
+    point = applyFalsePositionPrecision(rawPoint, precisionPolicy);
     if (!Number.isFinite(point)) {
       return {
         ok: false,
@@ -235,13 +289,36 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
       };
     }
 
+    const exactPointResult = evaluateReal(expression, rawPoint, angleMode);
+    if (!exactPointResult.ok) {
+      return exactPointResult;
+    }
+
     const fPointResult = evaluateReal(expression, point, angleMode);
     if (!fPointResult.ok) {
       return fPointResult;
     }
 
-    const fPoint = fPointResult.value;
-    const error = previousPoint == null ? undefined : Math.abs(point - previousPoint);
+    const fPoint = applyFalsePositionPrecision(fPointResult.value, precisionPolicy);
+    const error = previousPoint == null
+      ? undefined
+      : applyFalsePositionPrecision(Math.abs(point - previousPoint), precisionPolicy);
+    const exactSigns = {
+      a: sign(exactLeft),
+      b: sign(exactRight),
+      c: sign(exactPointResult.value),
+    };
+    const machineSigns = {
+      a: sign(fLeft),
+      b: sign(fRight),
+      c: sign(fPoint),
+    };
+    const selectedSigns = decisionBasis === 'exact' ? exactSigns : machineSigns;
+    const decision = selectedSigns.a * selectedSigns.c < 0 ? 'left' : 'right';
+    const signsDisagree =
+      exactSigns.a !== machineSigns.a ||
+      exactSigns.b !== machineSigns.b ||
+      exactSigns.c !== machineSigns.c;
 
     approximations.push({
       iteration,
@@ -252,6 +329,13 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
       fUpper: fRight,
       fPoint,
       ...(error == null ? {} : { error }),
+      exactSigns,
+      machineSigns,
+      decision,
+      decisionBasis,
+      note: signsDisagree
+        ? 'Exact and machine sign values disagree; decision used the configured basis.'
+        : '',
     });
 
     if (isApproximatelyZero(fPoint)) {
@@ -284,8 +368,7 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
       };
     }
 
-    const replaceLeft = Math.sign(fLeft) === Math.sign(fPoint);
-    const retainedThisIteration = replaceLeft ? 'right' : 'left';
+    const retainedThisIteration = decision === 'left' ? 'right' : 'left';
     if (retainedSide === retainedThisIteration) {
       retainedCount += 1;
     } else {
@@ -303,17 +386,17 @@ export function runFalsePosition(input: FalsePositionInput): FalsePositionResult
       };
     }
 
-    if (replaceLeft) {
+    if (decision === 'right') {
       left = point;
       fLeft = fPoint;
+      exactLeft = exactPointResult.value;
     } else {
       right = point;
       fRight = fPoint;
+      exactRight = exactPointResult.value;
     }
 
     previousPoint = point;
-    fLeftResult = { ok: true, value: fLeft };
-    fRightResult = { ok: true, value: fRight };
   }
 
   return {

@@ -20,6 +20,18 @@ function bisectionFields(overrides: MethodFormState = {}): MethodFormState {
   };
 }
 
+function falsePositionFields(overrides: MethodFormState = {}): MethodFormState {
+  return {
+    ...createDefaultFormState().falsePosition,
+    'root-fp-expression': 'x^2 - 4',
+    'root-fp-a': '0',
+    'root-fp-b': '3',
+    'root-fp-stop-kind': 'epsilon',
+    'root-fp-stop-value': '1e-10',
+    ...overrides,
+  };
+}
+
 function newtonFields(overrides: MethodFormState = {}): MethodFormState {
   return {
     ...createDefaultFormState().newton,
@@ -28,6 +40,17 @@ function newtonFields(overrides: MethodFormState = {}): MethodFormState {
     'root-newton-x0': '3',
     'root-newton-stop-kind': 'epsilon',
     'root-newton-stop-value': '1e-10',
+    ...overrides,
+  };
+}
+
+function fixedPointFields(overrides: MethodFormState = {}): MethodFormState {
+  return {
+    ...createDefaultFormState().fixedPoint,
+    'root-fpi-expression': 'cos(x)',
+    'root-fpi-x0': '1',
+    'root-fpi-stop-kind': 'epsilon',
+    'root-fpi-stop-value': '1e-8',
     ...overrides,
   };
 }
@@ -141,6 +164,41 @@ describe('root engine selector', () => {
     });
   });
 
+  it('converts modern bisection parity controls from form state', () => {
+    const input = modernInputFromForm('bisection', bisectionFields({
+      'root-bis-scan-enabled': 'yes',
+      'root-bis-scan-min': '-10',
+      'root-bis-scan-max': '10',
+      'root-bis-scan-steps': '20',
+      'root-bis-tolerance-type': 'relative',
+      'root-bis-decision-basis': 'exact',
+    }), 'rad');
+
+    expect(input).toMatchObject({
+      method: 'bisection',
+      toleranceType: 'relative',
+      decisionBasis: 'exact',
+      scan: {
+        min: -10,
+        max: 10,
+        steps: 20,
+      },
+    });
+  });
+
+  it('converts modern false-position sign controls from form state', () => {
+    const input = modernInputFromForm('falsePosition', falsePositionFields({
+      'root-fp-decision-basis': 'exact',
+      'root-fp-sign-display': 'machine',
+    }), 'rad');
+
+    expect(input).toMatchObject({
+      method: 'false-position',
+      decisionBasis: 'exact',
+      signDisplay: 'machine',
+    });
+  });
+
   it('maps Newton auto derivative to numeric mode for modern input', () => {
     const input = modernInputFromForm('newton', newtonFields(), 'rad');
 
@@ -155,6 +213,22 @@ describe('root engine selector', () => {
     expect('derivativeExpression' in input && input.derivativeExpression).toBeFalsy();
   });
 
+  it('maps Newton interval midpoint start to modern input when x0 is blank', () => {
+    const input = modernInputFromForm('newton', newtonFields({
+      'root-newton-x0': '',
+      'root-newton-a': '1',
+      'root-newton-b': '4',
+      'root-newton-initial-strategy': 'midpoint',
+    }), 'rad');
+
+    expect(input).toMatchObject({
+      method: 'newton-raphson',
+      x0: undefined,
+      interval: { lower: 1, upper: 4 },
+      initialStrategy: 'midpoint',
+    });
+  });
+
   it('keeps provided Newton derivative expressions in provided mode', () => {
     const input = modernInputFromForm(
       'newton',
@@ -166,6 +240,23 @@ describe('root engine selector', () => {
       method: 'newton-raphson',
       derivativeExpression: '2*x',
       derivativeMode: 'provided',
+    });
+  });
+
+  it('converts modern fixed-point advanced controls from form state', () => {
+    const input = modernInputFromForm('fixedPoint', fixedPointFields({
+      'root-fpi-seeds': '0, 0.5; 2',
+      'root-fpi-batch-expressions': 'sqrt(x + 1)\n\n2*x',
+      'root-fpi-scan-min': '-1',
+      'root-fpi-scan-max': '1',
+      'root-fpi-scan-steps': '4',
+    }), 'rad');
+
+    expect(input).toMatchObject({
+      method: 'fixed-point',
+      extraSeeds: [0, 0.5, 2],
+      batchExpressions: ['sqrt(x + 1)', '2*x'],
+      seedScan: { min: -1, max: 1, steps: 4 },
     });
   });
 

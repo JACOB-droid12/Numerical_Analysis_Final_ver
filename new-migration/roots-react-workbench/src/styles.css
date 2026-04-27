@@ -1171,6 +1171,43 @@ a:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.fixed-point-comparison {
+  grid-column: 1 / -1;
+}
+
+.comparison-controls,
+.comparison-formulas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-sm);
+}
+
+.comparison-run {
+  justify-self: start;
+}
+
+.comparison-output {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.comparison-table-shell {
+  max-height: 360px;
+}
+
+.comparison-table {
+  min-width: 520px;
+}
+
+.comparison-status-list {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.comparison-status-list div {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
 .status-text {
   grid-column: 1 / -1;
   margin: 0;

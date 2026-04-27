@@ -62,6 +62,75 @@ describe('math.js-backed isolated fixed point', () => {
     expect(result.root).toBeCloseTo(0.739085133, 9);
     expect(result.stopReason).toMatch(/exact-fixed-point|tolerance-satisfied/);
     expect(result.approximations.length).toBeGreaterThan(0);
+    expect(result.batch).toBeUndefined();
+  });
+
+  it('runs the same fixed-point formula from extra seeds without changing single-run rows', () => {
+    const result = expectSuccessful(runFixedPoint({
+      expression: 'cos(x)',
+      x0: 1,
+      extraSeeds: [0, 2],
+      tolerance: 1e-8,
+      maxIterations: 100,
+    }));
+
+    expect(result.batch?.entries.map((entry) => entry.x0)).toEqual([1, 0, 2]);
+    expect(result.batch?.entries.every((entry) => entry.gExpression === 'cos(x)')).toBe(true);
+    expect(result.batch?.entries.every((entry) => entry.status === 'converged')).toBe(true);
+    expect(result.approximations).toEqual(result.batch?.entries[0].result.ok
+      ? result.batch.entries[0].result.approximations
+      : []);
+  });
+
+  it('rejects invalid extra seed values instead of silently ignoring them', () => {
+    const result = runFixedPoint({
+      expression: 'cos(x)',
+      x0: 1,
+      extraSeeds: [Number.NaN],
+      tolerance: 1e-8,
+      maxIterations: 100,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected invalid extra seed to fail.');
+    }
+    expect(result.reason).toBe('invalid-starting-value');
+  });
+
+  it('runs batch g(x) expressions from the shared primary seed and ignores empty formulas', () => {
+    const result = expectSuccessful(runFixedPoint({
+      expression: 'cos(x)',
+      batchExpressions: ['sqrt(x + 1)', '', '2*x'],
+      x0: 1,
+      targetExpression: 'x - cos(x)',
+      tolerance: 1e-8,
+      maxIterations: 80,
+    }));
+
+    expect(result.batch?.entries.map((entry) => entry.gExpression)).toEqual([
+      'cos(x)',
+      'sqrt(x + 1)',
+      '2*x',
+    ]);
+    expect(result.batch?.entries.map((entry) => entry.status)).toContain('diverged');
+    expect(result.batch?.entries[0].targetResidual).toBeTypeOf('number');
+  });
+
+  it('adds deterministic seed-scan candidates to the fixed-point batch', () => {
+    const result = expectSuccessful(runFixedPoint({
+      expression: 'cos(x)',
+      x0: 1,
+      seedScan: { min: 0, max: 1, steps: 2 },
+      tolerance: 1e-8,
+      maxIterations: 100,
+    }));
+
+    expect(result.batch?.scan).toMatchObject({
+      range: { min: 0, max: 1, steps: 2 },
+      seeds: [0, 0.5],
+    });
+    expect(result.batch?.entries.map((entry) => entry.x0)).toEqual([0.5, 1, 0]);
   });
 
   it('solves sqrt(x + 1) from x0 = 1 and records target residuals', () => {

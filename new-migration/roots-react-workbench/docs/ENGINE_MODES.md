@@ -73,7 +73,11 @@ Modern beta currently supports:
 - Newton-Raphson with a provided derivative
 - Newton-Raphson with numeric derivative when the UI derivative field is `auto`
 
-Numeric Newton derivatives use central difference through the shared evaluator. Symbolic differentiation is deferred.
+Numeric Newton derivatives use central difference through the shared evaluator. Modern Newton supports explicit `x0` and interval-derived starts, including interval midpoint and the existing endpoint/best-of-three strategies. Symbolic differentiation is deferred; `auto` maps to numeric central difference in Modern beta.
+
+Modern Bisection includes the current P0 parity surface for bracket scanning, absolute/relative/residual/interval tolerance modes, and configurable exact versus machine sign-decision basis. Modern False Position supports the visible sign-display and exact versus machine decision-basis controls, including sign-disagreement notes, while keeping its existing table columns unchanged. Legacy remains the default until the remaining Modern P0 gaps are closed across the full method set.
+
+Modern Fixed Point supports the single-formula iteration path, the manual Fixed Point Comparison UI, and the advanced visible controls for extra seeds, batch `g(x)` formulas, and seed scan. Extra seeds and batch formulas are exposed as ranked workflow candidates; empty batch formulas are ignored. Seed scan adds deterministic sampled seeds to that same candidate ranking, and the best-ranked candidate supplies the main Modern Fixed Point table, matching the Legacy candidate-selection workflow rather than silently hiding the alternatives.
 
 ## Known Differences
 
@@ -92,6 +96,28 @@ Expected differences between Legacy and Modern beta:
 - Fixed-point divergence or cycle cases can differ as hard failures versus safe stopped results; compare these as safety behavior rather than identical success/failure status.
 
 These differences should be documented and tested rather than hidden.
+
+## Calculation Precision Policy
+
+Legacy bracket methods use stepwise machine arithmetic through the Legacy expression-evaluation path. In strict Legacy mode, the selected digits and round/chop rule can affect intermediate expression operations, not only the method-level endpoint or iteration values.
+
+Modern beta has an explicit precision policy surface:
+
+- `standard`: no machine simulation; current high-precision Modern internals are preserved.
+- `display-only`: visible final/table/CSV formatting only; method internals are preserved.
+- `calculation-level`: optional Modern method-boundary machine simulation for methods that have been wired to it.
+
+Modern calculation-level precision is currently boundary-level method precision. It applies round/chop at selected method operation boundaries and after whole-expression evaluation. It does not yet reproduce full Legacy stepwise expression behavior unless that is explicitly implemented in the Modern evaluator or a method later.
+
+This distinction is visible in False Position for `x^2 - 4` on `[0, 3]` with `k=5` and five fixed iterations: Legacy chopping finishes at `1.9987`, while Modern boundary-level calculation precision finishes at `1.9988`. Bisection's current characterization case matches the Legacy final approximation because its sign-only bracket updates are less sensitive to the expression-magnitude mismatch.
+
+Modern False Position decision controls select whether exact whole-expression signs or Modern boundary-level machine signs drive the `sgn(f(a_n))sgn(f(p_n)) < 0` bracket decision. Strict stepwise Legacy machine arithmetic remains the fallback when exact Legacy round/chop parity is required.
+
+Modern Newton does not yet port Legacy calculation-level machine arithmetic. Strict Legacy Newton machine-arithmetic behavior, including symbolic auto-derivative behavior where Legacy can generate it, remains a Legacy fallback requirement for now.
+
+Modern Fixed Point calculation-level machine arithmetic is also not ported yet. Use Legacy mode for strict round/chop Fixed Point iterate storage and exact Legacy stepwise arithmetic behavior.
+
+Use Stable/Legacy mode whenever strict Legacy machine-arithmetic compatibility is required.
 
 ## Testing Commands
 

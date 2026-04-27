@@ -119,6 +119,26 @@ describe('modern root engine UI adapter', () => {
     expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
 
+  it('preserves selected false-position decision controls in the UI result', () => {
+    const run = expectUiSuccess(runModernRootMethodForUi({
+      method: 'false-position',
+      expression: 'x - 1.234575',
+      lower: 1.2345,
+      upper: 1.2346,
+      maxIterations: 2,
+      decisionBasis: 'exact',
+      signDisplay: 'machine',
+    }));
+
+    expect(run.method).toBe('falsePosition');
+    expect(run.decisionBasis).toBe('exact');
+    expect(run.signDisplay).toBe('machine');
+    expect(run.rows?.[0]).toHaveProperty('exactSigns');
+    expect(run.rows?.[0]).toHaveProperty('machineSigns');
+    expect(run.rows?.[0]).toHaveProperty('decision');
+    expect(tableHeadersForRun(run)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error']);
+  });
+
   it('converts secant results into UI-compatible shape', () => {
     const run = expectUiSuccess(runModernRootMethodForUi({
       method: 'secant',
@@ -157,6 +177,33 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('xn');
     expect(run.rows?.[0]).toHaveProperty('gxn');
     expect(run.rows?.[0]).toHaveProperty('gValue');
+    expect(tableHeadersForRun(run)).toEqual([
+      'n',
+      'pₙ₋₁',
+      'pₙ = g(pₙ₋₁)',
+      'Approx. Error',
+      'Residual',
+    ]);
+  });
+
+  it('exposes modern fixed-point advanced-control candidates through workflow helpers', () => {
+    const run = expectUiSuccess(runModernRootMethodForUi({
+      method: 'fixed-point',
+      expression: 'cos(x)',
+      x0: 1,
+      extraSeeds: [0],
+      batchExpressions: ['sqrt(x + 1)', ''],
+      seedScan: { min: 0, max: 1, steps: 2 },
+      targetExpression: 'x - cos(x)',
+      tolerance: 1e-8,
+      maxIterations: 100,
+    }));
+
+    const batch = run.helpers?.fixedPointBatch;
+    expect(batch?.entries.length).toBeGreaterThanOrEqual(4);
+    expect(batch?.entries.some((entry) => entry.x0 === 0)).toBe(true);
+    expect(batch?.entries.some((entry) => entry.gExpression === 'sqrt(x + 1)')).toBe(true);
+    expect(batch?.note).toMatch(/ranking/i);
     expect(tableHeadersForRun(run)).toEqual([
       'n',
       'pₙ₋₁',

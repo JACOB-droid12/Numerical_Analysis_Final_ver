@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 import { runFalsePosition, type FalsePositionResult } from './falsePosition';
+import { createPrecisionPolicy } from './precisionPolicy';
 
 type LegacyWindow = {
   MathEngine: Record<string, any>;
@@ -159,6 +160,176 @@ describe('math.js-backed isolated false position', () => {
     expect(result.stopReason).toBe('max-iterations');
     expect(result.iterations).toBe(3);
     expect(result.approximations).toHaveLength(3);
+  });
+
+  it('keeps standard precision false-position behavior unchanged', () => {
+    const defaultResult = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+    }));
+
+    const standardResult = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+      precisionPolicy: createPrecisionPolicy({ mode: 'standard', digits: 5, rule: 'round' }),
+    }));
+
+    expect(standardResult.root).toBe(defaultResult.root);
+    expect(standardResult.approximations).toEqual(defaultResult.approximations);
+  });
+
+  it('keeps display-only precision false-position internals unchanged', () => {
+    const defaultResult = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+    }));
+
+    const displayOnlyResult = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+      precisionPolicy: createPrecisionPolicy({ mode: 'display-only', digits: 5, rule: 'chop' }),
+    }));
+
+    expect(displayOnlyResult.root).toBe(defaultResult.root);
+    expect(displayOnlyResult.approximations).toEqual(defaultResult.approximations);
+  });
+
+  it('uses calculation-level rounding for false-position operation boundaries', () => {
+    const result = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+      precisionPolicy: createPrecisionPolicy({ mode: 'calculation-level', digits: 5, rule: 'round' }),
+    }));
+
+    expect(result.stopReason).toBe('max-iterations');
+    expect(result.root).toBeCloseTo(1.9987, 12);
+    expect(result.approximations.map((row) => row.point)).toEqual([
+      1.3333,
+      1.8461,
+      1.9682,
+      1.9936,
+      1.9987,
+    ]);
+    expect(result.approximations.map((row) => row.fPoint)).toEqual([
+      -2.2223,
+      -0.59191,
+      -0.12619,
+      -0.025559,
+      -0.0051983,
+    ]);
+  });
+
+  it('uses calculation-level chopping for false-position operation boundaries', () => {
+    const result = expectSuccessful(runFalsePosition({
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      tolerance: 1e-16,
+      maxIterations: 5,
+      precisionPolicy: createPrecisionPolicy({ mode: 'calculation-level', digits: 5, rule: 'chop' }),
+    }));
+
+    expect(result.stopReason).toBe('max-iterations');
+    // Legacy stepwise expression chopping gives 1.9987 for this case; Modern currently
+    // applies calculation precision at method boundaries after whole-expression evaluation.
+    expect(result.root).not.toBeCloseTo(1.9987, 12);
+    expect(result.root).toBeCloseTo(1.9988, 12);
+    expect(result.approximations.map((row) => row.point)).toEqual([
+      1.3334,
+      1.8462,
+      1.9683,
+      1.9937,
+      1.9988,
+    ]);
+    expect(result.approximations.map((row) => row.fPoint)).toEqual([
+      -2.222,
+      -0.59154,
+      -0.12579,
+      -0.02516,
+      -0.0047985,
+    ]);
+  });
+
+  it('uses precision-applied values for calculation-level sign decisions', () => {
+    const result = expectSuccessful(runFalsePosition({
+      expression: 'x - 1.234575',
+      lower: 1.2345,
+      upper: 1.2346,
+      tolerance: 1e-16,
+      maxIterations: 2,
+      precisionPolicy: createPrecisionPolicy({ mode: 'calculation-level', digits: 5, rule: 'round' }),
+    }));
+
+    expect(result.approximations).toHaveLength(2);
+    expect(result.approximations[0]).toMatchObject({
+      lower: 1.2345,
+      upper: 1.2346,
+      point: 1.2346,
+    });
+    expect(result.approximations[0].fPoint).toBeGreaterThan(0);
+    expect(result.approximations[0].decisionBasis).toBe('machine');
+    expect(result.approximations[0].decision).toBe('left');
+    expect(result.approximations[0].machineSigns).toMatchObject({ a: -1, c: 1 });
+    expect(result.approximations[1]).toMatchObject({
+      lower: 1.2345,
+      upper: 1.2346,
+    });
+  });
+
+  it('can use exact signs for false-position decisions while retaining machine rows', () => {
+    const result = expectSuccessful(runFalsePosition({
+      expression: 'x - 1.234575',
+      lower: 1.2345,
+      upper: 1.2346,
+      tolerance: 1e-16,
+      maxIterations: 2,
+      decisionBasis: 'exact',
+      precisionPolicy: createPrecisionPolicy({ mode: 'calculation-level', digits: 5, rule: 'round' }),
+    }));
+
+    expect(result.approximations[0]).toMatchObject({
+      lower: 1.2345,
+      upper: 1.2346,
+      point: 1.2346,
+      decisionBasis: 'exact',
+      decision: 'right',
+      exactSigns: { a: -1, c: 0 },
+      machineSigns: { a: -1, c: 1 },
+    });
+    expect(result.approximations[0].note).toMatch(/disagree/i);
+    expect(result.stopReason).toBe('stagnation-detected');
+    expect(result.approximations).toHaveLength(1);
+  });
+
+  it('keeps invalid bracket behavior safe with calculation-level precision', () => {
+    const result = runFalsePosition({
+      expression: 'x^2 + 1',
+      lower: -1,
+      upper: 1,
+      maxIterations: 10,
+      precisionPolicy: createPrecisionPolicy({ mode: 'calculation-level', digits: 5, rule: 'round' }),
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected invalid bracket to fail.');
+    }
+    expect(result.reason).toBe('invalid-starting-interval');
   });
 
   it('supports degree-mode expressions through the evaluator wrapper', () => {

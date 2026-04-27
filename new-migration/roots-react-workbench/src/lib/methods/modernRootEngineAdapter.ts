@@ -81,6 +81,26 @@ function derivativeForInput(input?: ModernRootEngineInput): string | undefined {
   return input?.method === 'newton-raphson' ? input.derivativeExpression : undefined;
 }
 
+function decisionBasisForInput(input?: ModernRootEngineInput): RootRunResult['decisionBasis'] {
+  if (input?.method === 'bisection') {
+    return input.decisionBasis ?? 'machine';
+  }
+
+  return input?.method === 'false-position' ? input.decisionBasis ?? 'machine' : null;
+}
+
+function signDisplayForInput(input?: ModernRootEngineInput): RootRunResult['signDisplay'] {
+  if (input?.method === 'bisection') {
+    return 'both';
+  }
+
+  if (input?.method === 'false-position') {
+    return input.signDisplay ?? 'both';
+  }
+
+  return null;
+}
+
 function stoppingFor(
   result: ModernRootEngineResult,
   input?: ModernRootEngineInput,
@@ -143,13 +163,13 @@ function bisectionRows(result: ModernRootEngineResult): IterationRow[] {
     fa: row.fLower,
     fb: row.fUpper,
     fc: row.fMidpoint,
-    exactSigns: { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fMidpoint) },
-    machineSigns: { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fMidpoint) },
-    decision: bracketDecision(row.fLower, row.fMidpoint),
+    exactSigns: row.exactSigns ?? { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fMidpoint) },
+    machineSigns: row.machineSigns ?? { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fMidpoint) },
+    decision: row.decision ?? bracketDecision(row.fLower, row.fMidpoint),
     width: Math.abs(row.upper - row.lower),
-    bound: Math.abs(row.upper - row.lower) / 2,
+    bound: row.bound ?? Math.abs(row.upper - row.lower) / 2,
     error: row.error ?? null,
-    note: '',
+    note: row.note ?? '',
   }));
 }
 
@@ -170,15 +190,15 @@ function falsePositionRows(result: ModernRootEngineResult): IterationRow[] {
     fa: row.fLower,
     fb: row.fUpper,
     fc: row.fPoint,
-    exactSigns: { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fPoint) },
-    machineSigns: { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fPoint) },
-    decision: bracketDecision(row.fLower, row.fPoint),
+    exactSigns: row.exactSigns ?? { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fPoint) },
+    machineSigns: row.machineSigns ?? { a: sign(row.fLower), b: sign(row.fUpper), c: sign(row.fPoint) },
+    decision: row.decision ?? bracketDecision(row.fLower, row.fPoint),
     width: Math.abs(row.upper - row.lower),
     bound: null,
     error: row.error ?? null,
-    note: result.ok && result.stopReason === 'stagnation-detected'
+    note: row.note || (result.ok && result.stopReason === 'stagnation-detected'
       ? 'Retained endpoint or repeated interpolation progress was detected.'
-      : '',
+      : ''),
   }));
 }
 
@@ -226,10 +246,12 @@ function newtonRows(result: ModernRootEngineResult): IterationRow[] {
     xCurrent: row.xCurrent,
     fCurrent: row.fCurrent,
     derivativeCurrent: row.derivativeCurrent,
+    correction: row.correction,
     fNext: row.fNext,
     xn: row.xCurrent,
     fxn: row.fCurrent,
     dfxn: row.derivativeCurrent,
+    fxOverDfx: row.correction,
     xNext: row.xNext,
     error: row.error ?? null,
     note: row.fNext == null ? 'Method stopped before evaluating f(x next).' : '',
@@ -298,8 +320,105 @@ function failureSummary(
   };
 }
 
-function helpersFor(input?: ModernRootEngineInput): RootRunResult['helpers'] {
+function bisectionScanHelper(
+  result: ModernRootEngineResult,
+): RootRunResult['helpers'] {
+  if (result.method !== 'bisection') return undefined;
+
+  const details = result.details as BisectionResult | undefined;
+  const scan = details && 'scan' in details ? details.scan : undefined;
+  if (!scan) return undefined;
+
+  return {
+    bracketScan: {
+      range: scan.range,
+      candidates: scan.candidates.map((candidate) => ({
+        kind: candidate.kind,
+        a: candidate.lower,
+        b: candidate.upper,
+        fa: candidate.fLower,
+        fb: candidate.fUpper,
+        note: candidate.note,
+      })),
+      solutions: [],
+      warnings: scan.warnings,
+      note: scan.note,
+    },
+  };
+}
+
+function fixedPointBatchHelper(
+  result: ModernRootEngineResult,
+): RootRunResult['helpers'] {
+  if (result.method !== 'fixed-point') return undefined;
+
+  const details = result.details as FixedPointResult | undefined;
+  const batch = details && 'batch' in details ? details.batch : undefined;
+  if (!batch) return undefined;
+
+  return {
+    fixedPointBatch: {
+      entries: batch.entries.map((entry) => ({
+        rank: entry.rank,
+        gExpression: entry.gExpression,
+        canonical: entry.canonical,
+        x0: entry.x0,
+        approximation: entry.approximation,
+        iterations: entry.iterations,
+        stopReason: entry.stopReason,
+        status: entry.status,
+        error: entry.error,
+        residual: entry.residual,
+        targetResidual: entry.targetResidual,
+        targetResidualAbs: entry.targetResidualAbs,
+        observedRate: entry.observedRate,
+        warnings: entry.warnings,
+      })),
+      note: batch.scan
+        ? `${batch.note} Seed scan sampled ${batch.scan.seeds.length} additional seed(s) in [${batch.scan.range.min}, ${batch.scan.range.max}].`
+        : batch.note,
+    },
+  };
+}
+
+function helpersFor(
+  result: ModernRootEngineResult,
+  input?: ModernRootEngineInput,
+): RootRunResult['helpers'] {
+  const scanHelper = bisectionScanHelper(result);
+  if (scanHelper) return scanHelper;
+
+  const fixedPointHelper = fixedPointBatchHelper(result);
+  if (fixedPointHelper) return fixedPointHelper;
+
   if (input?.method !== 'newton-raphson') return undefined;
+
+  const details = result.details as NewtonRaphsonResult | undefined;
+  if (details?.ok) {
+    return {
+      derivative: {
+        expression: details.derivative.derivativeExpression ?? details.derivative.canonical,
+        canonical: details.derivative.canonical,
+        source: details.derivative.source,
+        note: details.derivative.note,
+      },
+      newtonInitial: {
+        strategy: details.initial.strategy,
+        x0: details.initial.x0,
+        interval: details.initial.interval
+          ? { a: details.initial.interval.lower, b: details.initial.interval.upper }
+          : undefined,
+        candidates: details.initial.candidates.map((candidate) => ({
+          label: candidate.label,
+          x: candidate.x,
+          fx: candidate.fx ?? null,
+          absFx: candidate.absFx ?? Number.POSITIVE_INFINITY,
+          note: candidate.note,
+        })),
+        note: details.initial.note,
+      },
+    };
+  }
 
   if (input.derivativeMode === 'numeric') {
     return {
@@ -343,11 +462,11 @@ export function modernRootResultToUiResult(
     stopping: stoppingFor(modernResult, input),
     summary: modernResult.ok ? successSummary(modernResult, rows) : failureSummary(modernResult),
     initial: null,
-    decisionBasis: method === 'bisection' || method === 'falsePosition' ? 'machine' : null,
-    signDisplay: method === 'bisection' || method === 'falsePosition' ? 'both' : null,
+    decisionBasis: decisionBasisForInput(input),
+    signDisplay: signDisplayForInput(input),
     rows,
     warnings: [],
-    helpers: helpersFor(input),
+    helpers: helpersFor(modernResult, input),
   };
 }
 

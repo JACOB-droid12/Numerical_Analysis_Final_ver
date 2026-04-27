@@ -7,6 +7,15 @@ export type FixedPointInput = {
   maxIterations?: number;
   angleMode?: AngleMode;
   targetExpression?: string;
+  extraSeeds?: number[];
+  batchExpressions?: string[];
+  seedScan?: FixedPointSeedScanInput;
+};
+
+export type FixedPointSeedScanInput = {
+  min: number;
+  max: number;
+  steps: number;
 };
 
 export type FixedPointApproximation = {
@@ -26,6 +35,41 @@ export type FixedPointFailureApproximation = Omit<
   gValue?: number;
 };
 
+export type FixedPointBatchStatus =
+  | 'converged'
+  | 'slow'
+  | 'diverged'
+  | 'undefined'
+  | 'cycle-detected'
+  | 'max-iterations';
+
+export type FixedPointBatchEntry = {
+  rank: number;
+  gExpression: string;
+  canonical: string;
+  x0: number;
+  approximation: number | null;
+  iterations: number;
+  stopReason: string;
+  status: FixedPointBatchStatus;
+  error: number | null;
+  residual: number | null;
+  targetResidual: number | null;
+  targetResidualAbs: number | null;
+  observedRate: number | null;
+  warnings: Array<{ code: string; message: string }>;
+  result: FixedPointResult;
+};
+
+export type FixedPointBatchResult = {
+  entries: FixedPointBatchEntry[];
+  scan?: {
+    range: FixedPointSeedScanInput;
+    seeds: number[];
+  };
+  note: string;
+};
+
 export type FixedPointResult =
   | {
       ok: true;
@@ -37,6 +81,7 @@ export type FixedPointResult =
         | 'tolerance-satisfied'
         | 'residual-tolerance-satisfied'
         | 'max-iterations';
+      batch?: FixedPointBatchResult;
     }
   | {
       ok: false;
@@ -51,6 +96,7 @@ export type FixedPointResult =
         | 'unknown-error';
       message: string;
       approximations?: FixedPointFailureApproximation[];
+      batch?: FixedPointBatchResult;
     };
 
 type FixedPointFailure = Extract<FixedPointResult, { ok: false }>;
@@ -164,7 +210,236 @@ function findCycle(
   });
 }
 
-export function runFixedPoint(input: FixedPointInput): FixedPointResult {
+function splitBatchExpressions(expression: string, batchExpressions?: string[]): string[] {
+  const formulas: string[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of [expression, ...(batchExpressions ?? [])]) {
+    const trimmed = candidate.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    formulas.push(trimmed);
+  }
+
+  return formulas;
+}
+
+function addUniqueSeed(seeds: number[], seen: Set<number>, value: number): boolean {
+  if (!Number.isFinite(value) || seen.has(value)) return false;
+  seen.add(value);
+  seeds.push(value);
+  return true;
+}
+
+function scanSeedsFor(scan?: FixedPointSeedScanInput): { seeds: number[]; scan?: FixedPointBatchResult['scan'] } {
+  if (
+    !scan ||
+    !Number.isFinite(scan.min) ||
+    !Number.isFinite(scan.max) ||
+    scan.min >= scan.max ||
+    !Number.isInteger(scan.steps) ||
+    scan.steps < 1
+  ) {
+    return { seeds: [] };
+  }
+
+  const seeds: number[] = [];
+  for (let index = 0; index <= scan.steps; index += 1) {
+    seeds.push(scan.min + ((scan.max - scan.min) * index) / scan.steps);
+  }
+
+  return {
+    seeds,
+    scan: {
+      range: scan,
+      seeds: [],
+    },
+  };
+}
+
+function lastError(result: FixedPointResult): number | null {
+  const rows = 'approximations' in result ? result.approximations : undefined;
+  const last = rows?.[rows.length - 1];
+  return typeof last?.error === 'number' && Number.isFinite(last.error) ? last.error : null;
+}
+
+function lastResidual(result: FixedPointResult): number | null {
+  const rows = 'approximations' in result ? result.approximations : undefined;
+  const last = rows?.[rows.length - 1];
+  return typeof last?.residual === 'number' && Number.isFinite(last.residual) ? last.residual : null;
+}
+
+function approximationFor(result: FixedPointResult): number | null {
+  if (result.ok) return Number.isFinite(result.root) ? result.root : null;
+
+  const rows = result.approximations;
+  const last = rows?.[rows.length - 1];
+  const candidate = last?.xNext ?? last?.xCurrent;
+  return typeof candidate === 'number' && Number.isFinite(candidate) ? candidate : null;
+}
+
+function observedRate(result: FixedPointResult): number | null {
+  const rows = 'approximations' in result ? result.approximations : undefined;
+  const errors = rows
+    ?.map((row) => row.error)
+    .filter((error): error is number => typeof error === 'number' && Number.isFinite(error) && error > 0);
+  if (!errors || errors.length < 2) return null;
+  return errors[errors.length - 1] / errors[errors.length - 2];
+}
+
+function statusFor(result: FixedPointResult, targetResidualAbs: number | null, tolerance: number): FixedPointBatchStatus {
+  if (!result.ok) {
+    if (result.reason === 'divergence-detected') return 'diverged';
+    if (result.reason === 'cycle-detected') return 'cycle-detected';
+    return 'undefined';
+  }
+
+  if (result.stopReason === 'max-iterations') return 'max-iterations';
+  if (targetResidualAbs != null && targetResidualAbs > tolerance) return 'slow';
+  return 'converged';
+}
+
+function statusScore(status: FixedPointBatchStatus): number {
+  switch (status) {
+    case 'converged':
+      return 0;
+    case 'slow':
+      return 1000;
+    case 'max-iterations':
+      return 2000;
+    case 'cycle-detected':
+      return 3000;
+    case 'undefined':
+      return 4000;
+    case 'diverged':
+      return 5000;
+    default:
+      return 9000;
+  }
+}
+
+function buildFixedPointBatch(
+  input: FixedPointInput,
+  tolerance: number,
+  maxIterations: number,
+  angleMode: AngleMode,
+): FixedPointBatchResult | null {
+  const formulas = splitBatchExpressions(input.expression, input.batchExpressions);
+  const seeds: number[] = [];
+  const seenSeeds = new Set<number>();
+  addUniqueSeed(seeds, seenSeeds, input.x0);
+  for (const seed of input.extraSeeds ?? []) {
+    addUniqueSeed(seeds, seenSeeds, seed);
+  }
+
+  const scanned = scanSeedsFor(input.seedScan);
+  for (const seed of scanned.seeds) {
+    if (addUniqueSeed(seeds, seenSeeds, seed)) {
+      scanned.scan?.seeds.push(seed);
+    }
+  }
+
+  const hasAdvancedControls =
+    formulas.length > 1 ||
+    seeds.length > 1 ||
+    (scanned.scan?.seeds.length ?? 0) > 0;
+  if (!hasAdvancedControls) return null;
+
+  const unranked = formulas.flatMap((formula, formulaIndex) => seeds.map((seed, seedIndex) => {
+    const result = runFixedPointSingle({
+      expression: formula,
+      x0: seed,
+      tolerance,
+      maxIterations,
+      angleMode,
+      targetExpression: input.targetExpression,
+    });
+    const targetResidual = lastResidual(result);
+    const targetResidualAbs = targetResidual == null ? null : Math.abs(targetResidual);
+    const status = statusFor(result, targetResidualAbs, tolerance);
+
+    return {
+      rank: 0,
+      gExpression: formula,
+      canonical: formula,
+      x0: seed,
+      approximation: approximationFor(result),
+      iterations: result.ok ? result.iterations : result.approximations?.length ?? 0,
+      stopReason: result.ok ? result.stopReason : result.reason,
+      status,
+      error: lastError(result),
+      residual: targetResidual,
+      targetResidual,
+      targetResidualAbs,
+      observedRate: observedRate(result),
+      warnings: [] as Array<{ code: string; message: string }>,
+      result,
+      formulaIndex,
+      seedIndex,
+    };
+  }));
+
+  const ranked = unranked
+    .slice()
+    .sort((left, right) => {
+      const statusDelta = statusScore(left.status) - statusScore(right.status);
+      if (statusDelta !== 0) return statusDelta;
+      const iterationDelta = left.iterations - right.iterations;
+      if (iterationDelta !== 0) return iterationDelta;
+      const metricDelta = (left.targetResidualAbs ?? left.error ?? Number.POSITIVE_INFINITY)
+        - (right.targetResidualAbs ?? right.error ?? Number.POSITIVE_INFINITY);
+      if (metricDelta !== 0) return metricDelta;
+      const formulaDelta = left.formulaIndex - right.formulaIndex;
+      if (formulaDelta !== 0) return formulaDelta;
+      return left.seedIndex - right.seedIndex;
+    })
+    .map((entry, index) => {
+      const { formulaIndex: _formulaIndex, seedIndex: _seedIndex, ...publicEntry } = entry;
+      return {
+        ...publicEntry,
+        rank: index + 1,
+      };
+    });
+
+  return {
+    entries: ranked,
+    ...(scanned.scan == null ? {} : { scan: scanned.scan }),
+    note: input.targetExpression?.trim()
+      ? 'Modern ranking uses Fixed Point candidate status, iterations, and target residual. The best-ranked candidate supplies the main table.'
+      : 'Modern ranking uses Fixed Point candidate status, iterations, and successive-approximation error. The best-ranked candidate supplies the main table.',
+  };
+}
+
+function validateAdvancedFixedPointInput(input: FixedPointInput): FixedPointFailure | null {
+  if (input.extraSeeds?.some((seed) => !Number.isFinite(seed))) {
+    return {
+      ok: false,
+      reason: 'invalid-starting-value',
+      message: 'Fixed Point extra seeds must be finite numeric values.',
+    };
+  }
+
+  if (
+    input.seedScan &&
+    (
+      !Number.isFinite(input.seedScan.min) ||
+      !Number.isFinite(input.seedScan.max) ||
+      input.seedScan.min >= input.seedScan.max ||
+      !Number.isInteger(input.seedScan.steps) ||
+      input.seedScan.steps < 1
+    )
+  ) {
+    return {
+      ok: false,
+      reason: 'invalid-starting-value',
+      message: 'Fixed Point seed scan requires finite min < max and steps >= 1.',
+    };
+  }
+
+  return null;
+}
+
+function runFixedPointSingle(input: FixedPointInput): FixedPointResult {
   const {
     expression,
     x0,
@@ -291,4 +566,24 @@ export function runFixedPoint(input: FixedPointInput): FixedPointResult {
     approximations,
     stopReason: 'max-iterations',
   };
+}
+
+export function runFixedPoint(input: FixedPointInput): FixedPointResult {
+  const advancedFailure = validateAdvancedFixedPointInput(input);
+  if (advancedFailure) {
+    return advancedFailure;
+  }
+
+  const tolerance = input.tolerance ?? DEFAULT_TOLERANCE;
+  const maxIterations = input.maxIterations ?? DEFAULT_MAX_ITERATIONS;
+  const angleMode = input.angleMode ?? 'rad';
+  const batch = buildFixedPointBatch(input, tolerance, maxIterations, angleMode);
+  if (!batch) {
+    return runFixedPointSingle(input);
+  }
+
+  const best = batch.entries[0]?.result ?? runFixedPointSingle(input);
+  return best.ok
+    ? { ...best, batch }
+    : { ...best, batch };
 }

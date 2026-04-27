@@ -82,6 +82,7 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await methodPicker.getByRole('button', { name: 'Bisection', exact: true }).click();
   await expect(page.getByText('Bracket signs')).toBeVisible();
   await expect(page.getByText('Bisection helper')).toBeVisible();
+  await expect(page.getByText('Fixed Point Comparison')).not.toBeVisible();
   await page.getByRole('button', { name: 'Run bisection' }).click();
 
   await expect(page.getByText('Method: Bisection')).toBeVisible();
@@ -96,6 +97,48 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(solutionPanel).toContainText('Intermediate Value Theorem guarantees a root in [1, 2]');
   await expect(solutionPanel).toContainText('sgn(f(aₙ))sgn(f(pₙ)) < 0');
   await expect(solutionPanel).not.toContainText('Newton-Raphson iteration formula:');
+});
+
+test('compares manually entered fixed-point formulas in classroom tools', async ({ page }) => {
+  await page.goto('/');
+
+  const methodPicker = page.getByLabel('Root method picker');
+  await methodPicker.getByRole('button', { name: 'Fixed Point', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
+
+  const panel = page.getByLabel('Fixed Point Comparison tool');
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText('This tool compares manually entered fixed-point formulas. It does not parse full problem statements.');
+  await expect(page.getByRole('textbox', { name: /paste/i })).toHaveCount(0);
+  await expect(page.getByText(/problem parser|Professor Problem Solver|OCR|PDF import/i)).toHaveCount(0);
+
+  await page.getByLabel('Fixed Point Comparison p0').fill('1');
+  await page.getByLabel('Fixed Point Comparison tolerance').fill('1e-8');
+  await page.getByLabel('Fixed Point Comparison max iterations').fill('120');
+  await page.getByLabel('Fixed Point Comparison target value').fill('2.7589241763811208');
+  await page.getByLabel('Formula (a) g(x)').fill('(20*x + 21 / x^2) / 21');
+  await page.getByLabel('Formula (b) g(x)').fill('x - (x^3 - 21) / (3*x^2)');
+  await page.getByLabel('Formula (c) g(x)').fill('x - (x^3 - 21*x) / (x^2 - 21)');
+  await page.getByLabel('Formula (d) g(x)').fill('sqrt(21 / x)');
+  await page.getByRole('button', { name: 'Compare formulas' }).click();
+
+  await expect(panel.getByRole('columnheader', { name: 'n', exact: true })).toBeVisible();
+  await expect(panel.getByRole('columnheader', { name: '(a)', exact: true })).toBeVisible();
+  await expect(panel.getByRole('columnheader', { name: '(b)', exact: true })).toBeVisible();
+  await expect(panel.getByText('Ranking: (b), (d), (a), (c)')).toBeVisible();
+  await expect(panel.getByText('(b): converged')).toBeVisible();
+  await expect(panel.getByText('(c): slow')).toBeVisible();
+
+  await page.getByLabel('Formula (c) g(x)').fill('');
+  await page.getByRole('button', { name: 'Compare formulas' }).click();
+  await expect(panel.getByRole('columnheader', { name: '(c)', exact: true })).toHaveCount(0);
+  await expect(panel.getByText('Ranking: (b), (d), (a)')).toBeVisible();
+
+  await page.locator('[name="root-fpi-expression"]').fill('cos(x)');
+  await page.locator('[name="root-fpi-x0"]').fill('1');
+  await page.getByRole('button', { name: 'Run fixed-point iteration' }).click();
+  await expect(page.getByText('Method: Fixed Point')).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
 });
 
 test('switches from default stable to modern beta/testing and back without losing form values', async ({ page }) => {

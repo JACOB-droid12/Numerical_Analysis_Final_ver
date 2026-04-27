@@ -9,6 +9,7 @@ import { chopToSignificantDigits, roundToSignificantDigits } from '../lib/machin
 import { formatValue } from '../lib/resultFormatters';
 import type { RootEngineMode } from '../lib/rootEngineSelector';
 import type { AngleMode, MethodFormState, PrecisionDisplayConfig, PrecisionDisplayMode, RootMethod } from '../types/roots';
+import { FixedPointComparisonPanel } from './FixedPointComparisonPanel';
 
 interface ClassroomToolsPanelProps {
   angleMode: AngleMode;
@@ -77,6 +78,7 @@ export function ClassroomToolsPanel({
   const precisionMode = precisionDisplay.mode;
   const digits = precisionDisplay.digits;
   const showBisectionHelper = method === 'bisection';
+  const showFixedPointComparison = method === 'fixedPoint';
 
   const bracketEvaluation = useMemo(
     () => bracketFields ? evaluateBracket(expression, lower, upper, angleMode) : null,
@@ -198,6 +200,12 @@ export function ClassroomToolsPanel({
             </article>
             ) : null}
           </>
+        ) : null}
+        {showFixedPointComparison ? (
+          <FixedPointComparisonPanel
+            angleMode={angleMode}
+            precisionDisplay={precisionDisplay}
+          />
         ) : null}
         </div>
       </div>

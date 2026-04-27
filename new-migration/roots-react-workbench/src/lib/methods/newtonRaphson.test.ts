@@ -281,6 +281,88 @@ describe('math.js-backed isolated Newton-Raphson', () => {
     expect(result.approximations).toHaveLength(2);
   });
 
+  it('makes the professor stopping rule explicit as successive approximations below epsilon', () => {
+    const result = expectSuccessful(runNewtonRaphson({
+      expression: 'x^2 - 2',
+      derivativeExpression: '2*x',
+      x0: 1,
+      tolerance: 0.0001,
+      functionTolerance: 1e-30,
+      maxIterations: 20,
+    }));
+
+    expect(result.stopReason).toBe('tolerance-satisfied');
+    const lastRow = result.approximations[result.approximations.length - 1];
+    expect(lastRow.error).toBeLessThan(0.0001);
+    expect(result.root).toBeCloseTo(Math.SQRT2, 8);
+  });
+
+  it('uses interval midpoint x0 when x0 is missing for x^3 - 2*x^2 - 5', () => {
+    const result = expectSuccessful(runNewtonRaphson({
+      expression: 'x^3 - 2*x^2 - 5',
+      derivativeMode: 'numeric',
+      interval: { lower: 1, upper: 4 },
+      initialStrategy: 'midpoint',
+      tolerance: 0.0001,
+      functionTolerance: 1e-30,
+      maxIterations: 30,
+    }));
+
+    expect(result.initial?.strategy).toBe('midpoint');
+    expect(result.initial?.x0).toBe(2.5);
+    expect(result.root).toBeCloseTo(2.69064745, 8);
+    const lastRow = result.approximations[result.approximations.length - 1];
+    expect(lastRow?.error).toBeLessThan(0.0001);
+  });
+
+  it('solves x^3 + 3*x^2 - 1 from interval midpoint', () => {
+    const result = expectSuccessful(runNewtonRaphson({
+      expression: 'x^3 + 3*x^2 - 1',
+      derivativeMode: 'numeric',
+      interval: { lower: -3, upper: -2 },
+      initialStrategy: 'midpoint',
+      tolerance: 0.0001,
+      functionTolerance: 1e-30,
+      maxIterations: 30,
+    }));
+
+    expect(result.root).toBeCloseTo(-2.87938524, 8);
+    const lastRow = result.approximations[result.approximations.length - 1];
+    expect(lastRow?.error).toBeLessThan(0.0001);
+  });
+
+  it('solves x - cos(x) from interval midpoint', () => {
+    const result = expectSuccessful(runNewtonRaphson({
+      expression: 'x - cos(x)',
+      derivativeMode: 'numeric',
+      interval: { lower: 0, upper: Math.PI / 2 },
+      initialStrategy: 'midpoint',
+      tolerance: 0.0001,
+      functionTolerance: 1e-30,
+      maxIterations: 30,
+    }));
+
+    expect(result.root).toBeCloseTo(0.73908513, 8);
+    const lastRow = result.approximations[result.approximations.length - 1];
+    expect(lastRow?.error).toBeLessThan(0.0001);
+  });
+
+  it('solves x - 0.8 - 0.2*sin(x) from interval midpoint', () => {
+    const result = expectSuccessful(runNewtonRaphson({
+      expression: 'x - 0.8 - 0.2*sin(x)',
+      derivativeMode: 'numeric',
+      interval: { lower: 0, upper: Math.PI / 2 },
+      initialStrategy: 'midpoint',
+      tolerance: 0.0001,
+      functionTolerance: 1e-30,
+      maxIterations: 30,
+    }));
+
+    expect(result.root).toBeCloseTo(0.96433389, 8);
+    const lastRow = result.approximations[result.approximations.length - 1];
+    expect(lastRow?.error).toBeLessThan(0.0001);
+  });
+
   it('supports degree-mode trig functions with numeric derivatives', () => {
     const result = expectSuccessful(runNewtonRaphson({
       expression: 'cos(x)',
