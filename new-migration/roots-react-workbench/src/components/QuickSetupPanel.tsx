@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Play } from 'lucide-react';
 
-import type { MethodFormState, RootMethod } from '../types/roots';
+import type { MethodFormState, RootMethod, StoppingKind } from '../types/roots';
 import { Button } from './ui/Button';
 
 type QuickSetupMethod = Extract<RootMethod, 'bisection' | 'newton' | 'fixedPoint'>;
@@ -51,6 +51,12 @@ const initialFields: QuickSetupFields = {
   fixedPointStopValue: '',
 };
 
+const initialStopKinds: Record<QuickSetupMethod, StoppingKind> = {
+  bisection: 'iterations',
+  newton: 'iterations',
+  fixedPoint: 'iterations',
+};
+
 function hasValue(value: string) {
   return value.trim().length > 0;
 }
@@ -58,11 +64,17 @@ function hasValue(value: string) {
 export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
   const [activeMethod, setActiveMethod] = useState<QuickSetupMethod>('bisection');
   const [fields, setFields] = useState<QuickSetupFields>(initialFields);
+  const [stopKinds, setStopKinds] =
+    useState<Record<QuickSetupMethod, StoppingKind>>(initialStopKinds);
   const [newtonDerivativeMode, setNewtonDerivativeMode] =
     useState<NewtonDerivativeMode>('auto');
 
   const updateField = (field: keyof QuickSetupFields, value: string) => {
     setFields((current) => ({ ...current, [field]: value }));
+  };
+
+  const updateStopKind = (method: QuickSetupMethod, value: StoppingKind) => {
+    setStopKinds((current) => ({ ...current, [method]: value }));
   };
 
   const canRun = useMemo(() => {
@@ -107,7 +119,7 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
         'root-bis-scan-steps': '',
         'root-bis-k': '8',
         'root-bis-mode': 'round',
-        'root-bis-stop-kind': 'iterations',
+        'root-bis-stop-kind': stopKinds.bisection,
         'root-bis-stop-value': fields.bisectionStopValue.trim(),
         'root-bis-sign-display': 'both',
         'root-bis-decision-basis': 'machine',
@@ -125,7 +137,7 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
         'root-newton-initial-strategy': 'manual',
         'root-newton-k': '8',
         'root-newton-mode': 'round',
-        'root-newton-stop-kind': 'iterations',
+        'root-newton-stop-kind': stopKinds.newton,
         'root-newton-stop-value': fields.newtonStopValue.trim(),
       };
     }
@@ -141,7 +153,7 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
       'root-fpi-scan-steps': '8',
       'root-fpi-k': '8',
       'root-fpi-mode': 'round',
-      'root-fpi-stop-kind': 'iterations',
+      'root-fpi-stop-kind': stopKinds.fixedPoint,
       'root-fpi-stop-value': fields.fixedPointStopValue.trim(),
     };
   };
@@ -219,6 +231,20 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
             </label>
           </div>
           <label className="field-row">
+            <span>Stop by</span>
+            <select
+              aria-label="Quick Setup Bisection stop by"
+              className="field-control numeric-value"
+              value={stopKinds.bisection}
+              onChange={(event) =>
+                updateStopKind('bisection', event.target.value as StoppingKind)
+              }
+            >
+              <option value="iterations">Iterations</option>
+              <option value="epsilon">Tolerance</option>
+            </select>
+          </label>
+          <label className="field-row">
             <span>Stop value</span>
             <input
               aria-label="Quick Setup Bisection stop value"
@@ -252,6 +278,20 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
               value={fields.newtonX0}
               onChange={(event) => updateField('newtonX0', event.target.value)}
             />
+          </label>
+          <label className="field-row">
+            <span>Stop by</span>
+            <select
+              aria-label="Quick Setup Newton-Raphson stop by"
+              className="field-control numeric-value"
+              value={stopKinds.newton}
+              onChange={(event) =>
+                updateStopKind('newton', event.target.value as StoppingKind)
+              }
+            >
+              <option value="iterations">Iterations</option>
+              <option value="epsilon">Tolerance</option>
+            </select>
           </label>
           <label className="field-row">
             <span>Stop value</span>
@@ -318,6 +358,20 @@ export function QuickSetupPanel({ onRun }: QuickSetupPanelProps) {
               value={fields.fixedPointP0}
               onChange={(event) => updateField('fixedPointP0', event.target.value)}
             />
+          </label>
+          <label className="field-row">
+            <span>Stop by</span>
+            <select
+              aria-label="Quick Setup Fixed Point stop by"
+              className="field-control numeric-value"
+              value={stopKinds.fixedPoint}
+              onChange={(event) =>
+                updateStopKind('fixedPoint', event.target.value as StoppingKind)
+              }
+            >
+              <option value="iterations">Iterations</option>
+              <option value="epsilon">Tolerance</option>
+            </select>
           </label>
           <label className="field-row">
             <span>Stop value</span>
