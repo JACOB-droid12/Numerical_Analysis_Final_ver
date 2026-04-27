@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { rowsToCsv } from '../lib/csv';
 import { tableHeadersForRun, tableValuesForRow } from '../lib/resultFormatters';
 import type { MethodConfig, PrecisionDisplayConfig, RootRunResult } from '../types/roots';
+import { PanelActionButton } from './ui/PanelActionButton';
 
 interface IterationTableProps {
   config: MethodConfig;
@@ -47,15 +48,14 @@ export function IterationTable({ config, precisionDisplay, run }: IterationTable
         <h2 className="section-kicker">
           Iteration table
         </h2>
-        <button
-          type="button"
-          className="copy-icon-button h-8 w-auto px-3 text-xs"
+        <PanelActionButton
+          display="compact"
           onClick={downloadCsv}
           disabled={!rows.length}
           aria-label={`Download ${config.shortLabel} iteration table as CSV`}
         >
           Download CSV
-        </button>
+        </PanelActionButton>
       </div>
 
       {rows.length ? (

@@ -498,6 +498,12 @@
         }
         return C.sqrtValue(evaluateValue(ast.args[0], env));
       }
+      if (name === "cbrt") {
+        if (ast.args.length !== 1) {
+          throw new Error("cbrt() expects exactly one argument.");
+        }
+        return C.cbrtValue(evaluateValue(ast.args[0], env));
+      }
       if (name === "sin") {
         if (ast.args.length !== 1) {
           throw new Error("sin() expects exactly one argument.");
@@ -522,9 +528,9 @@
         }
         return C.expValue(evaluateValue(ast.args[0], env));
       }
-      if (name === "ln") {
+      if (name === "ln" || name === "log") {
         if (ast.args.length !== 1) {
-          throw new Error("ln() expects exactly one argument.");
+          throw new Error(name + "() expects exactly one argument.");
         }
         return C.lnValue(evaluateValue(ast.args[0], env));
       }

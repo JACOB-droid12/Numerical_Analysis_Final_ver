@@ -1,63 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 
+import { useCopyFeedback } from '../hooks/useCopyFeedback';
 import { methodFormulaDisplay, solutionSteps as buildSolutionSteps, solutionText } from '../lib/resultFormatters';
 import type { RootRunResult } from '../types/roots';
+import { PanelActionButton } from './ui/PanelActionButton';
 
 interface SolutionStepsProps {
   run: RootRunResult;
 }
 
-type CopyStatus = 'idle' | 'success' | 'error';
-
-async function copyText(text: string): Promise<boolean> {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.setAttribute('readonly', 'true');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  try {
-    textarea.select();
-    return document.execCommand('copy');
-  } catch {
-    return false;
-  } finally {
-    document.body.removeChild(textarea);
-  }
-}
-
 export function SolutionSteps({ run }: SolutionStepsProps) {
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
-  const timerRef = useRef<number | null>(null);
+  const { copyStatus, copyText } = useCopyFeedback();
   const steps = useMemo(() => buildSolutionSteps(run), [run]);
   const formulaDisplay = useMemo(() => methodFormulaDisplay(run.method), [run.method]);
   const copyPayload = useMemo(() => solutionText(run), [run]);
   const copyDisabled = !copyPayload;
-
-  useEffect(
-    () => () => {
-      if (timerRef.current != null) {
-        window.clearTimeout(timerRef.current);
-      }
-    },
-    [],
-  );
-
-  const clearCopyTimer = () => {
-    if (timerRef.current != null) {
-      window.clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
 
   return (
     <section className="solution-panel">
@@ -69,28 +26,15 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
           <p className="formula-caption">{formulaDisplay.caption}</p>
           <p className="formula-display">{formulaDisplay.formula}</p>
         </div>
-        <button
-          type="button"
+        <PanelActionButton
+          display="compact"
           disabled={copyDisabled}
           onClick={async () => {
             if (copyDisabled) {
               return;
             }
 
-            clearCopyTimer();
-            setCopyStatus('idle');
-
-            const copied = await copyText(copyPayload);
-            if (!copied) {
-              setCopyStatus('error');
-              return;
-            }
-
-            setCopyStatus('success');
-            timerRef.current = window.setTimeout(() => {
-              setCopyStatus('idle');
-              timerRef.current = null;
-            }, 1200);
+            await copyText(copyPayload);
           }}
           aria-live="polite"
           aria-label={
@@ -100,14 +44,13 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
                 ? 'Copy solution steps failed'
                 : 'Copy solution steps'
           }
-          className="copy-icon-button h-8 w-auto px-3 text-xs"
         >
           {copyStatus === 'success'
             ? 'Copied'
             : copyStatus === 'error'
               ? 'Failed'
               : 'Copy steps'}
-        </button>
+        </PanelActionButton>
       </div>
 
       <ol className="solution-list">

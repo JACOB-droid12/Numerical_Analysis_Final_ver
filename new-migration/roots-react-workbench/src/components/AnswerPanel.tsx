@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Check, Copy, X } from 'lucide-react';
 
+import { useCopyFeedback } from '../hooks/useCopyFeedback';
 import {
   answerText,
   formatPrecisionDisplayValue,
@@ -10,6 +11,7 @@ import {
   stoppingText,
 } from '../lib/resultFormatters';
 import type { PrecisionDisplayConfig, RootRunResult, RunFreshness } from '../types/roots';
+import { PanelActionButton } from './ui/PanelActionButton';
 
 interface AnswerPanelProps {
   run: RootRunResult | null;
@@ -18,8 +20,6 @@ interface AnswerPanelProps {
   runTimestamp?: string | null;
   staleReason?: string | null;
 }
-
-type CopyStatus = 'idle' | 'success' | 'error';
 
 function numericApproximation(value: unknown): number | null {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
@@ -55,32 +55,6 @@ function formatRootValue(
   return formatValue(value, 18);
 }
 
-async function copyText(text: string): Promise<boolean> {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.setAttribute('readonly', 'true');
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  try {
-    textarea.select();
-    return document.execCommand('copy');
-  } catch {
-    return false;
-  } finally {
-    document.body.removeChild(textarea);
-  }
-}
-
 function freshnessNote(freshness: RunFreshness, staleReason: string | null): string {
   if (freshness === 'stale') {
     return staleReason ?? 'This result is outdated because the inputs changed after it was computed.';
@@ -106,26 +80,8 @@ export function AnswerPanel({
   runTimestamp = null,
   staleReason = null,
 }: AnswerPanelProps) {
-  const [copyStatus, setCopyStatus] = useState<CopyStatus>('idle');
-  const timerRef = useRef<number | null>(null);
-
+  const { copyStatus, copyText } = useCopyFeedback();
   const copyPayload = useMemo(() => answerText(run), [run]);
-
-  useEffect(
-    () => () => {
-      if (timerRef.current != null) {
-        window.clearTimeout(timerRef.current);
-      }
-    },
-    [],
-  );
-
-  const clearCopyTimer = () => {
-    if (timerRef.current != null) {
-      window.clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
 
   if (!run) {
     return null;
@@ -154,29 +110,14 @@ export function AnswerPanel({
           <p className="section-kicker">Calculator output</p>
           <p className="answer-method">{methodLabel(run.method)}</p>
         </div>
-        <button
-          type="button"
-          className="copy-icon-button"
+        <PanelActionButton
           disabled={copyDisabled}
           onClick={async () => {
             if (copyDisabled) {
               return;
             }
 
-            clearCopyTimer();
-            setCopyStatus('idle');
-
-            const copied = await copyText(copyPayload);
-            if (!copied) {
-              setCopyStatus('error');
-              return;
-            }
-
-            setCopyStatus('success');
-            timerRef.current = window.setTimeout(() => {
-              setCopyStatus('idle');
-              timerRef.current = null;
-            }, 1200);
+            await copyText(copyPayload);
           }}
           aria-live="polite"
           aria-label={
@@ -194,7 +135,7 @@ export function AnswerPanel({
           ) : (
             <Copy aria-hidden="true" className="size-4" />
           )}
-        </button>
+        </PanelActionButton>
       </header>
 
       <div className="answer-hero-grid">

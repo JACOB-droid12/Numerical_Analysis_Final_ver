@@ -1077,7 +1077,7 @@ a:focus-visible {
   font-size: 1rem;
 }
 
-.copy-icon-button {
+.panel-action-button {
   display: grid;
   place-items: center;
   min-width: 40px;
@@ -1088,9 +1088,17 @@ a:focus-visible {
   color: var(--ink);
 }
 
-.copy-icon-button:hover {
+.panel-action-button:hover {
   border-color: var(--line-strong);
   background: var(--surface-muted);
+}
+
+.panel-action-button--compact {
+  width: auto;
+  min-width: 112px;
+  min-height: 34px;
+  padding-inline: var(--space-md);
+  font-size: 0.75rem;
 }
 
 .meta-row,
@@ -1479,12 +1487,6 @@ a:focus-visible {
 .iteration-panel {
   min-width: 0;
   overflow: hidden;
-}
-
-.iteration-panel .copy-icon-button {
-  width: auto;
-  min-width: 112px;
-  min-height: 34px;
 }
 
 .iteration-table thead th {
@@ -2431,7 +2433,7 @@ body {
   display: none;
 }
 
-.copy-icon-button {
+.panel-action-button {
   border-color: rgba(70, 64, 54, 0.12);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.36);
