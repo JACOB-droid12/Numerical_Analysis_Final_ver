@@ -12,6 +12,7 @@ import { HelpPopover } from './components/HelpPopover';
 import { MethodForm } from './components/MethodForm';
 import { MethodPicker } from './components/MethodPicker';
 import { QuickCommandMenu } from './components/QuickCommandMenu';
+import { QuickSetupPanel } from './components/QuickSetupPanel';
 import { RunControls } from './components/RunControls';
 import { METHOD_PRESETS } from './config/methods';
 import { useCopyFeedback } from './hooks/useCopyFeedback';
@@ -69,6 +70,7 @@ export default function App() {
     methodConfigs,
     resetActiveMethod,
     runActiveMethod,
+    runQuickSetup,
     setEngineMode,
     setMethod,
     status,
@@ -123,7 +125,7 @@ export default function App() {
               >
                 <Search aria-hidden="true" />
                 <span className="keycap">⌘K</span>
-                <span>Quick command</span>
+                <span>Quick Setup</span>
               </button>
               {openUtility === 'presets' ? (
                 <QuickCommandMenu
@@ -299,6 +301,7 @@ export default function App() {
                   <p>{activeConfig.shortLabel} method</p>
                 </div>
               </div>
+              <QuickSetupPanel onRun={runQuickSetup} />
               <MethodForm
                 angleMode={angleMode}
                 config={activeConfig}
