@@ -609,12 +609,18 @@ a:focus-visible {
 
 .studio-form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-xl);
+  min-width: 0;
 }
 
 .expression-block {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .expression-label-row {
@@ -634,6 +640,9 @@ a:focus-visible {
 .expression-field {
   position: relative;
   display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .expression-field .field-control {
@@ -733,7 +742,11 @@ a:focus-visible {
 
 .calculator-notebook {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-sm);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: var(--space-md);
   border: 1px solid var(--line-strong);
   border-radius: 8px;
@@ -765,7 +778,11 @@ a:focus-visible {
 
 .notebook-screen {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 116px;
   padding: var(--space-lg);
   border: 1px solid color-mix(in srgb, var(--lcd-shadow), var(--ink) 14%);
@@ -796,6 +813,7 @@ a:focus-visible {
 .notebook-equation {
   display: flex;
   align-items: center;
+  min-width: 0;
   min-height: 54px;
   margin: 0;
   color: var(--lcd-ink);
@@ -2893,7 +2911,7 @@ body {
 }
 
 .parameter-fields {
-  grid-template-columns: repeat(4, minmax(138px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(138px, 100%), 1fr));
   align-items: start;
   gap: 14px 12px;
 }
@@ -3025,7 +3043,7 @@ body {
 }
 
 .run-row {
-  grid-template-columns: minmax(260px, 280px) auto minmax(0, 1fr);
+  grid-template-columns: minmax(min(220px, 100%), 280px) auto;
   align-items: center;
   gap: 12px;
   margin-top: 6px;
@@ -3047,7 +3065,7 @@ body {
 }
 
 .run-row .status-text {
-  grid-column: auto;
+  grid-column: 1 / -1;
   font-size: 0.78rem;
 }
 
@@ -3464,7 +3482,7 @@ body {
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1120px) {
   .mac-window {
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
