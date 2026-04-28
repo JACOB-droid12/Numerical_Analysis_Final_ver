@@ -84,9 +84,11 @@ describe('modern root engine UI adapter', () => {
       lower: 1,
       upper: 2,
       tolerance: 1e-10,
+      signDisplay: 'machine',
     }));
 
     expect(run.method).toBe('bisection');
+    expect(run.signDisplay).toBe('machine');
     expect(run.summary?.approximation).toBeCloseTo(plasticRoot, 8);
     expect(run.summary?.stopReason).toBe('tolerance-reached');
     expect(run.rows?.[0]).toHaveProperty('a');

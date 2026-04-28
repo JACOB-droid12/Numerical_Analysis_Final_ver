@@ -172,12 +172,14 @@ describe('root engine selector', () => {
       'root-bis-scan-steps': '20',
       'root-bis-tolerance-type': 'relative',
       'root-bis-decision-basis': 'exact',
+      'root-bis-sign-display': 'machine',
     }), 'rad');
 
     expect(input).toMatchObject({
       method: 'bisection',
       toleranceType: 'relative',
       decisionBasis: 'exact',
+      signDisplay: 'machine',
       scan: {
         min: -10,
         max: 10,

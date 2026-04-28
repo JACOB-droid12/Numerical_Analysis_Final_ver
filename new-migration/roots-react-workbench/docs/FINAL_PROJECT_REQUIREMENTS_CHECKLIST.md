@@ -9,13 +9,13 @@ For a step-by-step classroom presentation script, see [PROFESSOR_DEMO_CHECKLIST.
 | Approximate roots of functions / equations in one variable. | Roots Workbench supports Bisection, False Position, Secant, Fixed Point, and Newton-Raphson. | Covered | Use `x` as the variable. |
 | Choose one method among discussed methods. | Method rail lets users choose Bisection, Newton-Raphson, Secant, False Position, or Fixed Point. | Covered | Recommended demo method: Bisection. |
 | Input values/expressions efficiently. | Equation Studio provides expression fields, method-specific inputs, presets, math key helper, and quick command menu. | Covered | Expressions support powers, parentheses, constants, and common functions. |
-| Maximum allowable significant digits. | Computation settings provide `Digits` per method. | Covered | Legacy uses this for machine arithmetic. Modern beta uses it for display/table/CSV formatting. |
+| Maximum allowable significant digits. | Computation settings provide `Digits` per method. | Covered | Legacy uses this for strict stepwise machine arithmetic. Modern beta uses display formatting by default and boundary-level calculation precision only where explicitly wired. |
 | Identify approximate solution in an interval. | Bracket methods accept interval `[a, b]`; Bisection helper shows bracket validity and solution interval behavior. | Covered | Use Bisection demo `[1, 2]`. |
 | Identify signs of functions / evaluate functions. | Classroom tools show `f(a)`, sign of `f(a)`, `f(b)`, sign of `f(b)`, and whether `f(a) * f(b) < 0`. | Covered | This directly supports IVT/bracket validation. |
 | Determine roots of a function. | Result panel displays the approximate root and stopping result. | Covered | Tables and graph provide supporting work. |
 | Determine number of iterations to achieve desired tolerance. | Bisection helper computes `N = ceil(log2((b - a) / epsilon))`. | Covered | Intended for classroom Bisection setup. |
 | Determine tolerance/epsilon given number of iterations. | Bisection helper computes `epsilon = (b - a) / 2^N`. | Covered | Shows the guaranteed Bisection interval bound. |
-| Apply evaluations/operations/iterations with explicitly identified digits, chopped or rounded. | Computation settings provide `Digits` and `Rule: Round/Chop`. | Covered with mode distinction | Legacy applies these during calculations. Modern beta applies these to displayed final root/table/CSV values only. |
+| Apply evaluations/operations/iterations with explicitly identified digits, chopped or rounded. | Computation settings provide `Digits` and `Rule: Round/Chop`. | Covered with mode distinction | Legacy applies these during stepwise calculations. Modern beta preserves standard internals unless a method is wired to boundary-level calculation precision; use Legacy for strict Legacy parity. |
 | Present tabular iteration results. | Evidence workspace includes method-aware iteration tables. | Covered | Modern beta uses classroom notation such as `n`, `a_n`, `b_n`, `p_n`, `f(p_n)`, and Approx. Error. |
 | Support polynomial functions. | Expression engine supports polynomial expressions such as `x^3 + 4*x^2 - 10`. | Covered | Recommended demo equation is polynomial. |
 | Support transcendental functions. | Expression support includes `sin`, `cos`, `tan`, `exp`, `ln/log`, `sqrt`, and `cbrt`. | Covered | Transcendental examples are recommended as extended tests. |
@@ -105,11 +105,12 @@ Digits and Rule affect Legacy method calculations.
 Modern beta behavior:
 
 ```text
-Digits and Rule affect displayed final root, table values, and CSV/export values only.
-Modern beta internal calculations use standard precision.
+Digits and Rule affect displayed final root, table values, and CSV/export values by default.
+Some Modern bracket-method paths also support boundary-level calculation precision.
+Modern beta does not yet reproduce full Legacy stepwise expression arithmetic.
 ```
 
-This distinction is intentional so Modern beta can preserve high-precision raw details while still showing classroom-compatible chopped or rounded values.
+This distinction is intentional so Modern beta can preserve high-precision raw details while still showing classroom-compatible chopped or rounded values. Use Stable/Legacy mode whenever exact Legacy round/chop parity is required.
 
 ## Approx. Error Meaning
 
@@ -125,6 +126,6 @@ It is not true error unless an exact root is known.
 
 - Symbolic differentiation is deferred.
 - Modern beta is not the default engine.
-- Modern beta machine arithmetic is currently display-only.
-- Fixed Point multi-formula ranking mode for quiz-style comparison problems is not fully implemented.
+- Modern beta machine arithmetic is not full Legacy stepwise arithmetic; bracket methods currently have boundary-level precision behavior where wired.
+- Fixed Point multi-formula ranking mode for quiz-style comparison problems is implemented through the comparison panel and advanced candidate ranking controls.
 - Legacy and Modern beta may differ in stop reason labels, iteration counts, and row details even when the final root agrees.

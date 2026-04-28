@@ -66,6 +66,7 @@ Before Modern beta can become the default:
 - Modern E2E covers all root methods.
 - Known behavior differences are documented.
 - Machine/chopping/rounding parity has an explicit product decision.
+- Modern bracket sign-display controls visibly expose exact and/or machine sign evidence without changing compact table columns.
 - Symbolic derivative support is implemented or explicitly deferred.
 - Modern iteration tables are acceptable for tester and classroom workflows.
 - UI copy is updated from beta language to stable language.
@@ -83,7 +84,7 @@ Before Modern beta can become the default:
 - Legacy and Modern beta may use different stop reason names and iteration counts even when roots agree.
 - Legacy and Modern beta may display equivalent failures in different UI surfaces.
 - Fixed-point divergence and cycle checks may differ as hard failures versus safe stopped result-panel states.
-- Legacy-specific bracket scans and fixed-point batch helper behavior are not fully replicated in Modern beta.
+- Some Legacy-specific bracket scan output details may still differ in Modern beta.
 
 ## Rollback Plan
 

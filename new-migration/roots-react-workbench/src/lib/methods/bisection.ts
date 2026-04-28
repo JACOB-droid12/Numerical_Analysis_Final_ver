@@ -12,6 +12,7 @@ import {
 
 export type BisectionToleranceType = 'absolute' | 'relative' | 'residual' | 'interval';
 export type BisectionDecisionBasis = 'machine' | 'exact';
+export type BisectionSignDisplay = 'both' | 'exact' | 'machine';
 export type BisectionSign = -1 | 0 | 1;
 
 export type BisectionInput = {
@@ -24,6 +25,7 @@ export type BisectionInput = {
   angleMode?: AngleMode;
   precisionPolicy?: PrecisionPolicy;
   decisionBasis?: BisectionDecisionBasis;
+  signDisplay?: BisectionSignDisplay;
   scan?: BisectionScanOptions | null;
 };
 

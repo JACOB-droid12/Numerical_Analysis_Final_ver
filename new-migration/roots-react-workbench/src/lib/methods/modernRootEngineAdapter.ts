@@ -91,7 +91,7 @@ function decisionBasisForInput(input?: ModernRootEngineInput): RootRunResult['de
 
 function signDisplayForInput(input?: ModernRootEngineInput): RootRunResult['signDisplay'] {
   if (input?.method === 'bisection') {
-    return 'both';
+    return input.signDisplay ?? 'both';
   }
 
   if (input?.method === 'false-position') {

@@ -71,6 +71,11 @@ function bisectionDecisionBasis(fields: MethodFormState) {
   return fields['root-bis-decision-basis'] === 'exact' ? 'exact' : 'machine';
 }
 
+function bisectionSignDisplay(fields: MethodFormState) {
+  const value = fields['root-bis-sign-display'];
+  return value === 'exact' || value === 'machine' ? value : 'both';
+}
+
 function falsePositionDecisionBasis(fields: MethodFormState) {
   return fields['root-fp-decision-basis'] === 'exact' ? 'exact' : 'machine';
 }
@@ -146,6 +151,7 @@ export function modernInputFromForm(
         angleMode,
         toleranceType: bisectionToleranceType(fields),
         decisionBasis: bisectionDecisionBasis(fields),
+        signDisplay: bisectionSignDisplay(fields),
         scan: bisectionScanOptions(fields),
         ...stoppingOptions(fields, 'root-bis'),
       };

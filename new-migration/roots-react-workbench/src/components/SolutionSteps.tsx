@@ -60,7 +60,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
       </div>
 
       {bisectionSetup.length ? (
-        <section className="lecture-setup-block" aria-label="Bisection setup">
+        <section className="lecture-setup-block" aria-label="Bracket setup">
           <h3>Professor-style setup</h3>
           <dl className="lecture-setup-list">
             {bisectionSetup.map((line) => {

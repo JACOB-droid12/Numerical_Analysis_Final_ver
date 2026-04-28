@@ -10,6 +10,7 @@ import {
   solutionSteps,
   stopReasonLabel,
   tableValuesForRow,
+  tableHeadersForRun,
 } from './resultFormatters';
 import type { RootRunResult } from '../types/roots';
 
@@ -99,6 +100,106 @@ describe('result formatters', () => {
     expect(lines).toContain('Since f(a) and f(b) have opposite signs, the Intermediate Value Theorem guarantees a root in [1, 2].');
     expect(lines).toContain('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
     expect(lines).toContain('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+  });
+
+  it('shows exact-only Modern bracket sign evidence when requested', () => {
+    const lines = bisectionSetupLines(run({
+      engine: 'modern',
+      method: 'bisection',
+      signDisplay: 'exact',
+      decisionBasis: 'machine',
+      rows: [{
+        iteration: 1,
+        a: 1,
+        b: 2,
+        c: 1.5,
+        fa: -1,
+        fb: 5,
+        fc: 0.875,
+        exactSigns: { a: -1, b: 1, c: 1 },
+        machineSigns: { a: 1, b: 1, c: -1 },
+        decision: 'right',
+      }],
+    }));
+
+    expect(lines).toContain('sgn_exact(f(aₙ)) = -');
+    expect(lines).toContain('sgn_exact(f(pₙ)) = +');
+    expect(lines.join('\n')).not.toContain('sgn_machine');
+    expect(lines.join('\n')).not.toContain('Decision basis used');
+  });
+
+  it('shows machine-only Modern bracket sign evidence when requested', () => {
+    const lines = bisectionSetupLines(run({
+      engine: 'modern',
+      method: 'falsePosition',
+      signDisplay: 'machine',
+      decisionBasis: 'machine',
+      rows: [{
+        iteration: 1,
+        a: 1,
+        b: 2,
+        c: 1.25,
+        fa: -1,
+        fb: 5,
+        fc: -0.3,
+        exactSigns: { a: -1, b: 1, c: -1 },
+        machineSigns: { a: 1, b: 1, c: -1 },
+        decision: 'right',
+      }],
+    }));
+
+    expect(lines).toContain('sgn_machine(f(aₙ)) = +');
+    expect(lines).toContain('sgn_machine(f(pₙ)) = -');
+    expect(lines).toContain('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+    expect(lines.join('\n')).not.toContain('sgn_exact');
+  });
+
+  it('shows both Modern bracket sign sets, decision basis, and disagreement notes', () => {
+    const lines = bisectionSetupLines(run({
+      engine: 'modern',
+      method: 'bisection',
+      signDisplay: 'both',
+      decisionBasis: 'exact',
+      rows: [{
+        iteration: 1,
+        a: 1,
+        b: 2,
+        c: 1.5,
+        fa: -1,
+        fb: 5,
+        fc: 0.875,
+        exactSigns: { a: -1, b: 1, c: 1 },
+        machineSigns: { a: 1, b: 1, c: -1 },
+        decision: 'left',
+        note: 'Exact and machine sign values disagree; decision used the configured basis.',
+      }],
+    }));
+
+    expect(lines).toContain('sgn_exact(f(aₙ)) = -');
+    expect(lines).toContain('sgn_exact(f(pₙ)) = +');
+    expect(lines).toContain('sgn_machine(f(aₙ)) = +');
+    expect(lines).toContain('sgn_machine(f(pₙ)) = -');
+    expect(lines).toContain('Decision basis used: exact signs.');
+    expect(lines).toContain('Sign note: Exact and machine sign values disagree; decision used the configured basis.');
+  });
+
+  it('keeps compact professor-style Modern bracket table headers unchanged', () => {
+    expect(tableHeadersForRun(run({ engine: 'modern', method: 'bisection' }))).toEqual([
+      'n',
+      'aₙ',
+      'bₙ',
+      'pₙ',
+      'f(pₙ)',
+      'Approx. Error',
+    ]);
+    expect(tableHeadersForRun(run({ engine: 'modern', method: 'falsePosition' }))).toEqual([
+      'n',
+      'aₙ',
+      'bₙ',
+      'pₙ',
+      'f(pₙ)',
+      'Approx. Error',
+    ]);
   });
 
   it('summarizes stop reason, metric, and basis for confidence cards', () => {

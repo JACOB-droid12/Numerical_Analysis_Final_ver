@@ -484,8 +484,42 @@ function signFromRowValue(row: IterationRow, key: 'a' | 'b' | 'c'): string {
   return formatSign(exactSigns[key] ?? machineSigns[key]);
 }
 
+function signFromRowBasis(row: IterationRow, key: 'a' | 'b' | 'c', basis: 'exact' | 'machine'): string {
+  const signs = basis === 'exact'
+    ? isObjectLike(row.exactSigns) ? row.exactSigns : {}
+    : isObjectLike(row.machineSigns) ? row.machineSigns : {};
+  return formatSign(signs[key]);
+}
+
+function bracketSignEvidenceLines(run: RootRunResult, row: IterationRow): string[] {
+  const signDisplay = run.signDisplay ?? 'both';
+  const lines: string[] = [];
+
+  if (signDisplay === 'exact' || signDisplay === 'both') {
+    lines.push(`sgn_exact(f(aₙ)) = ${signFromRowBasis(row, 'a', 'exact')}`);
+    lines.push(`sgn_exact(f(pₙ)) = ${signFromRowBasis(row, 'c', 'exact')}`);
+  }
+
+  if (signDisplay === 'machine' || signDisplay === 'both') {
+    lines.push(`sgn_machine(f(aₙ)) = ${signFromRowBasis(row, 'a', 'machine')}`);
+    lines.push(`sgn_machine(f(pₙ)) = ${signFromRowBasis(row, 'c', 'machine')}`);
+  }
+
+  lines.push('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+
+  if (signDisplay === 'both' && run.decisionBasis) {
+    lines.push(`Decision basis used: ${run.decisionBasis} signs.`);
+  }
+
+  if (signDisplay === 'both' && typeof row.note === 'string' && row.note.trim()) {
+    lines.push(`Sign note: ${row.note}`);
+  }
+
+  return lines;
+}
+
 export function bisectionSetupLines(run: RootRunResult | null): string[] {
-  if (!run || run.method !== 'bisection') return [];
+  if (!run || (run.method !== 'bisection' && run.method !== 'falsePosition')) return [];
   const firstRow = run.rows?.[0];
   if (!firstRow) return [];
 
@@ -516,8 +550,12 @@ export function bisectionSetupLines(run: RootRunResult | null): string[] {
     );
   }
 
-  lines.push('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
-  lines.push('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+  if (run.method === 'bisection') {
+    lines.push('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
+  } else {
+    lines.push('False-position formula: pₙ = bₙ − f(bₙ)(bₙ − aₙ) / (f(bₙ) − f(aₙ)).');
+  }
+  lines.push(...bracketSignEvidenceLines(run, firstRow));
 
   return lines;
 }
