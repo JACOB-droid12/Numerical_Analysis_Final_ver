@@ -1658,6 +1658,65 @@ a:focus-visible {
   line-height: 1.45;
 }
 
+.method-view-panel {
+  min-width: 0;
+}
+
+.method-view-svg {
+  display: block;
+  width: 100%;
+  min-height: 270px;
+  margin-top: var(--space-md);
+  overflow: visible;
+}
+
+.method-view-iteration {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.method-view-iteration select {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 var(--space-md) 0 var(--space-sm);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.method-view-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.method-view-legend span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  padding: 0.35rem var(--space-sm);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.method-view-annotations {
+  display: grid;
+  gap: var(--space-xs);
+  margin: var(--space-md) 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .formula-caption {
   margin: var(--space-md) 0 0;
   color: var(--ink);

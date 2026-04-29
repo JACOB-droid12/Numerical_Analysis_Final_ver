@@ -72,6 +72,7 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Graph' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Method View' })).toBeVisible();
   await page.getByRole('tab', { name: 'Graph' }).click();
   const graphPanel = page.locator('.graph-panel').first();
   const graphMode = page.getByRole('group', { name: 'Graph mode' });
@@ -89,6 +90,14 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await graphMode.getByRole('button', { name: 'Residual' }).click();
   await expect(page.getByText('Residual / |f(pₙ)| by iteration.')).toBeVisible();
   await expect(graphPanel.locator('svg text').filter({ hasText: 'Residual / |f(pₙ)|' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Method View' }).click();
+  const methodView = page.getByLabel('Bisection Method View');
+  await expect(methodView.getByRole('heading', { name: 'Bisection Method View' })).toBeVisible();
+  const methodViewDetails = page.getByLabel('Bisection Method View details');
+  await expect(methodViewDetails.getByText('Current interval [a_n, b_n]')).toBeVisible();
+  await expect(methodViewDetails.getByText(/Kept interval/)).toBeVisible();
+  await expect(methodView.locator('svg text').filter({ hasText: 'a_n' })).toBeVisible();
+  await expect(methodView.locator('svg text').filter({ hasText: 'p_n' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Newton-Raphson quick setup' }).click();
   await page.getByLabel('Quick Setup Newton-Raphson f(x)').fill('x^3 - x - 1');

@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { ConvergenceGraph } from './ConvergenceGraph';
 import { IterationTable } from './IterationTable';
+import { MethodViewGraph } from './MethodViewGraph';
 import { SolutionSteps } from './SolutionSteps';
 import { WorkflowPanel } from './WorkflowPanel';
 import type { MethodConfig, PrecisionDisplayConfig, RootRunResult } from '../types/roots';
@@ -14,7 +15,7 @@ interface EvidencePanelProps {
   run: RootRunResult | null;
 }
 
-type EvidenceTab = 'graph' | 'steps' | 'workflow' | 'table';
+type EvidenceTab = 'graph' | 'methodView' | 'steps' | 'workflow' | 'table';
 
 function hasWorkflowContent(run: RootRunResult) {
   const helpers = run.helpers;
@@ -36,6 +37,7 @@ export function EvidencePanel({ config, contentId, expanded, precisionDisplay, r
 
   const tabs: Array<{ id: EvidenceTab; label: string }> = [
     { id: 'graph', label: 'Graph' },
+    ...(run.method === 'bisection' ? [{ id: 'methodView' as const, label: 'Method View' }] : []),
     { id: 'steps', label: 'Steps' },
     ...(hasWorkflowContent(run) ? [{ id: 'workflow' as const, label: 'Setup checks' }] : []),
     { id: 'table', label: 'Table' },
@@ -78,6 +80,16 @@ export function EvidencePanel({ config, contentId, expanded, precisionDisplay, r
             className="evidence-pane"
           >
             <ConvergenceGraph run={run} hero />
+          </div>
+        ) : null}
+        {currentTab === 'methodView' ? (
+          <div
+            id={`${contentId}-methodView`}
+            role="tabpanel"
+            aria-labelledby={`${contentId}-methodView-tab`}
+            className="evidence-pane"
+          >
+            <MethodViewGraph run={run} />
           </div>
         ) : null}
         {currentTab === 'steps' ? (
