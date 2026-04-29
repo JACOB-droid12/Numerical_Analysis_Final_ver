@@ -4,7 +4,7 @@ import { Play } from 'lucide-react';
 import type { MethodFormState, RootMethod, StoppingKind } from '../types/roots';
 import { Button } from './ui/Button';
 
-type QuickSetupMethod = Extract<RootMethod, 'bisection' | 'newton' | 'fixedPoint'>;
+type QuickSetupMethod = Extract<RootMethod, 'bisection' | 'newton' | 'falsePosition' | 'secant' | 'fixedPoint'>;
 type NewtonDerivativeMode = 'auto' | 'provided';
 
 interface QuickSetupPanelProps {
@@ -17,10 +17,18 @@ interface QuickSetupFields {
   bisectionA: string;
   bisectionB: string;
   bisectionStopValue: string;
+  falsePositionExpression: string;
+  falsePositionA: string;
+  falsePositionB: string;
+  falsePositionStopValue: string;
   newtonExpression: string;
   newtonX0: string;
   newtonStopValue: string;
   newtonDerivative: string;
+  secantExpression: string;
+  secantX0: string;
+  secantX1: string;
+  secantStopValue: string;
   fixedPointExpression: string;
   fixedPointP0: string;
   fixedPointStopValue: string;
@@ -29,12 +37,16 @@ interface QuickSetupFields {
 const methodLabels: Record<QuickSetupMethod, string> = {
   bisection: 'Bisection',
   newton: 'Newton-Raphson',
+  falsePosition: 'False Position',
+  secant: 'Secant',
   fixedPoint: 'Fixed Point',
 };
 
 const methodAriaLabels: Record<QuickSetupMethod, string> = {
   bisection: 'Bisection quick setup',
   newton: 'Newton-Raphson quick setup',
+  falsePosition: 'False Position quick setup',
+  secant: 'Secant quick setup',
   fixedPoint: 'Fixed Point quick setup',
 };
 
@@ -43,10 +55,18 @@ const initialFields: QuickSetupFields = {
   bisectionA: '',
   bisectionB: '',
   bisectionStopValue: '',
+  falsePositionExpression: '',
+  falsePositionA: '',
+  falsePositionB: '',
+  falsePositionStopValue: '',
   newtonExpression: '',
   newtonX0: '',
   newtonStopValue: '',
   newtonDerivative: '',
+  secantExpression: '',
+  secantX0: '',
+  secantX1: '',
+  secantStopValue: '',
   fixedPointExpression: '',
   fixedPointP0: '',
   fixedPointStopValue: '',
@@ -55,6 +75,8 @@ const initialFields: QuickSetupFields = {
 const initialStopKinds: Record<QuickSetupMethod, StoppingKind> = {
   bisection: 'iterations',
   newton: 'iterations',
+  falsePosition: 'iterations',
+  secant: 'iterations',
   fixedPoint: 'iterations',
 };
 
@@ -76,6 +98,26 @@ const NEWTON_DEMO_FIELDS: Pick<
   newtonDerivative: '2*x',
   newtonX0: '1',
   newtonStopValue: '8',
+};
+
+const FALSE_POSITION_DEMO_FIELDS: Pick<
+  QuickSetupFields,
+  'falsePositionExpression' | 'falsePositionA' | 'falsePositionB' | 'falsePositionStopValue'
+> = {
+  falsePositionExpression: 'x^2 - 4',
+  falsePositionA: '0',
+  falsePositionB: '3',
+  falsePositionStopValue: '8',
+};
+
+const SECANT_DEMO_FIELDS: Pick<
+  QuickSetupFields,
+  'secantExpression' | 'secantX0' | 'secantX1' | 'secantStopValue'
+> = {
+  secantExpression: 'x^3 - x - 1',
+  secantX0: '1',
+  secantX1: '2',
+  secantStopValue: '6',
 };
 
 function hasValue(value: string) {
@@ -123,6 +165,30 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
     setNewtonDerivativeMode('provided');
   };
 
+  const loadFalsePositionDemo = () => {
+    setActiveMethod('falsePosition');
+    setFields((current) => ({
+      ...current,
+      ...FALSE_POSITION_DEMO_FIELDS,
+    }));
+    setStopKinds((current) => ({
+      ...current,
+      falsePosition: 'iterations',
+    }));
+  };
+
+  const loadSecantDemo = () => {
+    setActiveMethod('secant');
+    setFields((current) => ({
+      ...current,
+      ...SECANT_DEMO_FIELDS,
+    }));
+    setStopKinds((current) => ({
+      ...current,
+      secant: 'iterations',
+    }));
+  };
+
   const canRun = useMemo(() => {
     if (activeMethod === 'bisection') {
       return (
@@ -139,6 +205,24 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
         hasValue(fields.newtonX0) &&
         hasValue(fields.newtonStopValue) &&
         (newtonDerivativeMode === 'auto' || hasValue(fields.newtonDerivative))
+      );
+    }
+
+    if (activeMethod === 'falsePosition') {
+      return (
+        hasValue(fields.falsePositionExpression) &&
+        hasValue(fields.falsePositionA) &&
+        hasValue(fields.falsePositionB) &&
+        hasValue(fields.falsePositionStopValue)
+      );
+    }
+
+    if (activeMethod === 'secant') {
+      return (
+        hasValue(fields.secantExpression) &&
+        hasValue(fields.secantX0) &&
+        hasValue(fields.secantX1) &&
+        hasValue(fields.secantStopValue)
       );
     }
 
@@ -185,6 +269,32 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
         'root-newton-mode': 'round',
         'root-newton-stop-kind': stopKinds.newton,
         'root-newton-stop-value': fields.newtonStopValue.trim(),
+      };
+    }
+
+    if (activeMethod === 'falsePosition') {
+      return {
+        'root-fp-expression': fields.falsePositionExpression.trim(),
+        'root-fp-a': fields.falsePositionA.trim(),
+        'root-fp-b': fields.falsePositionB.trim(),
+        'root-fp-k': '8',
+        'root-fp-mode': 'round',
+        'root-fp-stop-kind': stopKinds.falsePosition,
+        'root-fp-stop-value': fields.falsePositionStopValue.trim(),
+        'root-fp-sign-display': 'both',
+        'root-fp-decision-basis': 'machine',
+      };
+    }
+
+    if (activeMethod === 'secant') {
+      return {
+        'root-secant-expression': fields.secantExpression.trim(),
+        'root-secant-x0': fields.secantX0.trim(),
+        'root-secant-x1': fields.secantX1.trim(),
+        'root-secant-k': '8',
+        'root-secant-mode': 'round',
+        'root-secant-stop-kind': stopKinds.secant,
+        'root-secant-stop-value': fields.secantStopValue.trim(),
       };
     }
 
@@ -238,13 +348,19 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
         <button type="button" className="demo-loader-chip" onClick={loadNewtonDemo}>
           Load Newton demo
         </button>
+        <button type="button" className="demo-loader-chip" onClick={loadFalsePositionDemo}>
+          Load False Position demo
+        </button>
+        <button type="button" className="demo-loader-chip" onClick={loadSecantDemo}>
+          Load Secant demo
+        </button>
       </div>
       <p className="demo-loader-note">
         Examples only fill inputs. You still choose when to run the calculation.
       </p>
 
       <div className="method-list" aria-label="Quick Setup methods">
-        {(['bisection', 'newton', 'fixedPoint'] as const).map((method) => (
+        {(['bisection', 'newton', 'falsePosition', 'secant', 'fixedPoint'] as const).map((method) => (
           <button
             key={method}
             type="button"
@@ -314,6 +430,132 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
               type="text"
               value={fields.bisectionStopValue}
               onChange={(event) => updateField('bisectionStopValue', event.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {activeMethod === 'falsePosition' ? (
+        <div className="field-stack">
+          <p className="muted-copy">
+            False Position requires f(a) and f(b) to have opposite signs.
+          </p>
+          <label className="field-row">
+            <span>f(x)</span>
+            <input
+              aria-label="Quick Setup False Position f(x)"
+              className="field-control numeric-value"
+              type="text"
+              value={fields.falsePositionExpression}
+              onChange={(event) => updateField('falsePositionExpression', event.target.value)}
+            />
+          </label>
+          <div className="parameter-grid">
+            <label className="field-row">
+              <span>a</span>
+              <input
+                aria-label="Quick Setup False Position a"
+                className="field-control numeric-value"
+                type="text"
+                value={fields.falsePositionA}
+                onChange={(event) => updateField('falsePositionA', event.target.value)}
+              />
+            </label>
+            <label className="field-row">
+              <span>b</span>
+              <input
+                aria-label="Quick Setup False Position b"
+                className="field-control numeric-value"
+                type="text"
+                value={fields.falsePositionB}
+                onChange={(event) => updateField('falsePositionB', event.target.value)}
+              />
+            </label>
+          </div>
+          <label className="field-row">
+            <span>Stop by</span>
+            <select
+              aria-label="Quick Setup False Position stop by"
+              className="field-control numeric-value"
+              value={stopKinds.falsePosition}
+              onChange={(event) =>
+                updateStopKind('falsePosition', event.target.value as StoppingKind)
+              }
+            >
+              <option value="iterations">Iterations</option>
+              <option value="epsilon">Tolerance</option>
+            </select>
+          </label>
+          <label className="field-row">
+            <span>Stop value</span>
+            <input
+              aria-label="Quick Setup False Position stop value"
+              className="field-control numeric-value"
+              type="text"
+              value={fields.falsePositionStopValue}
+              onChange={(event) => updateField('falsePositionStopValue', event.target.value)}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {activeMethod === 'secant' ? (
+        <div className="field-stack">
+          <p className="muted-copy">Secant uses two starting guesses.</p>
+          <label className="field-row">
+            <span>f(x)</span>
+            <input
+              aria-label="Quick Setup Secant f(x)"
+              className="field-control numeric-value"
+              type="text"
+              value={fields.secantExpression}
+              onChange={(event) => updateField('secantExpression', event.target.value)}
+            />
+          </label>
+          <div className="parameter-grid">
+            <label className="field-row">
+              <span>x0</span>
+              <input
+                aria-label="Quick Setup Secant x0"
+                className="field-control numeric-value"
+                type="text"
+                value={fields.secantX0}
+                onChange={(event) => updateField('secantX0', event.target.value)}
+              />
+            </label>
+            <label className="field-row">
+              <span>x1</span>
+              <input
+                aria-label="Quick Setup Secant x1"
+                className="field-control numeric-value"
+                type="text"
+                value={fields.secantX1}
+                onChange={(event) => updateField('secantX1', event.target.value)}
+              />
+            </label>
+          </div>
+          <label className="field-row">
+            <span>Stop by</span>
+            <select
+              aria-label="Quick Setup Secant stop by"
+              className="field-control numeric-value"
+              value={stopKinds.secant}
+              onChange={(event) =>
+                updateStopKind('secant', event.target.value as StoppingKind)
+              }
+            >
+              <option value="iterations">Iterations</option>
+              <option value="epsilon">Tolerance</option>
+            </select>
+          </label>
+          <label className="field-row">
+            <span>Stop value</span>
+            <input
+              aria-label="Quick Setup Secant stop value"
+              className="field-control numeric-value"
+              type="text"
+              value={fields.secantStopValue}
+              onChange={(event) => updateField('secantStopValue', event.target.value)}
             />
           </label>
         </div>

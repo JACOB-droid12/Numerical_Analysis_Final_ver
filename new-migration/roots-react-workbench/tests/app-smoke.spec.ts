@@ -147,6 +147,22 @@ test('demo loaders fill fields without running calculations or adding parser UI'
   await expect(page.getByLabel('Quick Setup Newton-Raphson stop value')).toHaveValue('8');
   await expect(page.getByText('Approximate root', { exact: true })).toHaveCount(0);
 
+  await page.getByRole('button', { name: 'Load False Position demo' }).click();
+  await expect(page.getByRole('button', { name: 'False Position quick setup' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('False Position requires f(a) and f(b) to have opposite signs.')).toBeVisible();
+  await expect(page.getByLabel('Quick Setup False Position f(x)')).toHaveValue('x^2 - 4');
+  await expect(page.getByLabel('Quick Setup False Position a')).toHaveValue('0');
+  await expect(page.getByLabel('Quick Setup False Position b')).toHaveValue('3');
+  await expect(page.getByText('Approximate root', { exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Load Secant demo' }).click();
+  await expect(page.getByRole('button', { name: 'Secant quick setup' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Secant uses two starting guesses.')).toBeVisible();
+  await expect(page.getByLabel('Quick Setup Secant f(x)')).toHaveValue('x^3 - x - 1');
+  await expect(page.getByLabel('Quick Setup Secant x0')).toHaveValue('1');
+  await expect(page.getByLabel('Quick Setup Secant x1')).toHaveValue('2');
+  await expect(page.getByText('Approximate root', { exact: true })).toHaveCount(0);
+
   const methodPicker = page.getByLabel('Root method picker');
   await methodPicker.getByRole('button', { name: 'Fixed Point', exact: true }).click();
   await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
@@ -159,6 +175,44 @@ test('demo loaders fill fields without running calculations or adding parser UI'
   await expect(panel.getByLabel('Formula (c) g(x)')).toHaveValue('x - (x^3 - 21*x) / (x^2 - 21)');
   await expect(panel.getByLabel('Formula (d) g(x)')).toHaveValue('sqrt(21 / x)');
   await expect(panel.getByText(/Ranking:/)).toHaveCount(0);
+});
+
+test('quick setup runs false position and secant through Run Table', async ({ page }) => {
+  await page.goto('/');
+
+  await page.locator('summary').filter({ hasText: 'Quick Setup' }).click();
+  await expect(page.getByText(/OCR|PDF import|paste-question|problem parser|Professor Problem Solver/i)).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'False Position quick setup' }).click();
+  await expect(page.getByText('False Position requires f(a) and f(b) to have opposite signs.')).toBeVisible();
+  await page.getByLabel('Quick Setup False Position f(x)').fill('x^2 - 4');
+  await page.getByLabel('Quick Setup False Position a').fill('0');
+  await page.getByLabel('Quick Setup False Position b').fill('3');
+  await page.getByLabel('Quick Setup False Position stop value').fill('8');
+  await page.getByRole('button', { name: 'Run Table' }).click();
+
+  const methodPicker = page.getByLabel('Root method picker');
+  await expect(methodPicker.getByRole('button', { name: 'False Position', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByText('Method: False Position')).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Secant quick setup' }).click();
+  await expect(page.getByText('Secant uses two starting guesses.')).toBeVisible();
+  await page.getByLabel('Quick Setup Secant f(x)').fill('x^3 - x - 1');
+  await page.getByLabel('Quick Setup Secant x0').fill('1');
+  await page.getByLabel('Quick Setup Secant x1').fill('2');
+  await page.getByLabel('Quick Setup Secant stop value').fill('6');
+  await page.getByRole('button', { name: 'Run Table' }).click();
+
+  await expect(methodPicker.getByRole('button', { name: 'Secant', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(page.getByText('Method: Secant')).toBeVisible();
+  await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
 });
 
 test('compares manually entered fixed-point formulas in classroom tools', async ({ page }) => {
