@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import { graphCaption } from '../lib/resultFormatters';
 import type { RootMethod, RootRunResult, IterationRow } from '../types/roots';
@@ -13,6 +13,36 @@ export interface ConvergenceGraphPoint {
   x: number;
   y: number;
 }
+
+export type GraphMode = 'approximation' | 'error' | 'residual';
+
+interface GraphModeConfig {
+  label: string;
+  title: string;
+  yAxisLabel: string;
+  captionLead: string;
+}
+
+const GRAPH_MODE_CONFIG: Record<GraphMode, GraphModeConfig> = {
+  approximation: {
+    label: 'Approximation',
+    title: 'Approximation graph',
+    yAxisLabel: 'Root estimate',
+    captionLead: 'Root estimate by iteration.',
+  },
+  error: {
+    label: 'Approx. Error',
+    title: 'Approx. Error graph',
+    yAxisLabel: 'Approximation error',
+    captionLead: 'Approximation error by iteration.',
+  },
+  residual: {
+    label: 'Residual',
+    title: 'Residual graph',
+    yAxisLabel: 'Residual / |f(pₙ)|',
+    captionLead: 'Residual / |f(pₙ)| by iteration.',
+  },
+};
 
 function parseNumericString(value: string): number | null {
   const trimmed = value.trim();
@@ -100,12 +130,45 @@ function pickRowValue(method: RootMethod, row: IterationRow): number | null {
   return null;
 }
 
-export function buildConvergenceGraphPoints(run: RootRunResult): ConvergenceGraphPoint[] {
+function pickFirstFinite(row: IterationRow, keys: string[], absolute = false): number | null {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      const parsed = numericFromValue(row[key]);
+      if (parsed != null) {
+        return absolute ? Math.abs(parsed) : parsed;
+      }
+    }
+  }
+
+  return null;
+}
+
+function pickGraphValue(method: RootMethod, row: IterationRow, mode: GraphMode): number | null {
+  if (mode === 'approximation') {
+    return pickRowValue(method, row);
+  }
+
+  if (mode === 'error') {
+    return pickFirstFinite(row, ['error', 'approxError', 'approximateError', 'ea', 'relativeError', 'absError']);
+  }
+
+  const residual = pickFirstFinite(row, ['residual']);
+  return residual ?? pickFirstFinite(
+    row,
+    ['fpn', 'fPn', 'fp', 'fC', 'fMidpoint', 'fPoint', 'fNext', 'fxNext', 'fxn', 'fc'],
+    true,
+  );
+}
+
+export function buildConvergenceGraphPoints(
+  run: RootRunResult,
+  mode: GraphMode = 'approximation',
+): ConvergenceGraphPoint[] {
   const rows = run.rows ?? [];
   return rows
     .map((row, index) => ({
       x: typeof row.iteration === 'number' ? row.iteration : index + 1,
-      y: pickRowValue(run.method, row),
+      y: pickGraphValue(run.method, row, mode),
     }))
     .filter(
       (point): point is ConvergenceGraphPoint =>
@@ -114,27 +177,50 @@ export function buildConvergenceGraphPoints(run: RootRunResult): ConvergenceGrap
 }
 
 export function ConvergenceGraph({ run, compact = false, hero = false }: ConvergenceGraphProps) {
+  const [mode, setMode] = useState<GraphMode>('approximation');
   const titleId = useId();
   const svgTitleId = useId();
   const descId = useId();
   const lineGradientId = `${svgTitleId.replace(/[^a-zA-Z0-9_-]/g, '')}-line`;
   const wrapperClassName = hero || compact ? 'graph-panel' : 'graph-panel';
   const caption = graphCaption(run.method);
-  const points = buildConvergenceGraphPoints(run);
+  const modeConfig = GRAPH_MODE_CONFIG[mode];
+  const points = buildConvergenceGraphPoints(run, mode);
 
   const graphSummary =
     points.length > 0
       ? `Plotted ${points.length} iteration${points.length === 1 ? '' : 's'} with iteration values from ${Math.min(...points.map((point) => point.x))} to ${Math.max(...points.map((point) => point.x))} and y-values from ${Math.min(...points.map((point) => point.y))} to ${Math.max(...points.map((point) => point.y))}.`
       : 'No finite iteration data available for the graph.';
+  const emptyMessage = mode === 'approximation'
+    ? 'No iteration data for graph.'
+    : 'Not enough finite data for this graph mode.';
+  const selector = (
+    <div className="graph-mode-selector" role="group" aria-label="Graph mode">
+      <span>Graph:</span>
+      {(Object.keys(GRAPH_MODE_CONFIG) as GraphMode[]).map((graphMode) => (
+        <button
+          key={graphMode}
+          type="button"
+          aria-pressed={mode === graphMode}
+          onClick={() => setMode(graphMode)}
+        >
+          {GRAPH_MODE_CONFIG[graphMode].label}
+        </button>
+      ))}
+    </div>
+  );
 
   if (points.length < 2) {
     return (
       <section className={wrapperClassName}>
-        <h2 id={titleId} className="section-kicker">
-          Approximation graph
-        </h2>
+        <div className="graph-panel-header">
+          <h2 id={titleId} className="section-kicker">
+            {modeConfig.title}
+          </h2>
+          {selector}
+        </div>
         <p className="mt-2 text-sm muted-copy">{graphSummary}</p>
-        <p className="mt-3 text-sm text-[var(--text)]">No iteration data for graph.</p>
+        <p className="mt-3 text-sm text-[var(--text)]">{emptyMessage}</p>
       </section>
     );
   }
@@ -157,10 +243,11 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
 
   return (
     <section className={wrapperClassName}>
-      <div className="flex items-center justify-between gap-3">
+      <div className="graph-panel-header">
         <h2 id={titleId} className="section-kicker">
-          Approximation graph
+          {modeConfig.title}
         </h2>
+        {selector}
         <p className="numeric-value text-xs text-[var(--quiet)]">{points.length} points</p>
       </div>
       <p className="sr-only">{graphSummary}</p>
@@ -171,7 +258,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
         aria-labelledby={svgTitleId}
         aria-describedby={descId}
       >
-        <title id={svgTitleId}>Approximation graph</title>
+        <title id={svgTitleId}>{modeConfig.title}</title>
         <desc id={descId}>{graphSummary}</desc>
         <defs>
           <linearGradient id={lineGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
@@ -235,7 +322,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           fill="var(--muted)"
           transform={`rotate(-90 12 ${height / 2})`}
         >
-          Root estimate
+          {modeConfig.yAxisLabel}
         </text>
         <path d={path} fill="none" stroke={`url(#${lineGradientId})`} strokeWidth={hero ? '3' : '2.5'} />
         {points.map((point, index) => (
@@ -248,7 +335,7 @@ export function ConvergenceGraph({ run, compact = false, hero = false }: Converg
           />
         ))}
       </svg>
-      <p className="graph-caption">Root estimate by iteration. {caption}</p>
+      <p className="graph-caption">{modeConfig.captionLead} {caption}</p>
     </section>
   );
 }

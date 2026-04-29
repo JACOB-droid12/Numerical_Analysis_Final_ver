@@ -72,6 +72,15 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Graph' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Graph' }).click();
+  const graphMode = page.getByRole('group', { name: 'Graph mode' });
+  await expect(graphMode).toBeVisible();
+  await expect(graphMode.getByRole('button', { name: 'Approximation' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('Root estimate by iteration.')).toBeVisible();
+  await graphMode.getByRole('button', { name: 'Approx. Error' }).click();
+  await expect(page.getByText('Approximation error by iteration.')).toBeVisible();
+  await graphMode.getByRole('button', { name: 'Residual' }).click();
+  await expect(page.getByText('Residual / |f(pₙ)| by iteration.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Newton-Raphson quick setup' }).click();
   await page.getByLabel('Quick Setup Newton-Raphson f(x)').fill('x^3 - x - 1');
@@ -99,6 +108,7 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await page.getByRole('button', { name: 'Run bisection' }).click();
 
   await expect(page.getByText('Method: Bisection')).toBeVisible();
+  await page.getByRole('tab', { name: 'Steps' }).click();
   const solutionPanel = page.locator('.solution-panel');
   await expect(solutionPanel).toContainText('Bisection midpoint formula:');
   await expect(solutionPanel).toContainText('pₙ = aₙ + (bₙ − aₙ)/2');

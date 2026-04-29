@@ -1604,6 +1604,40 @@ a:focus-visible {
   min-height: 248px;
 }
 
+.graph-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.graph-mode-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.graph-mode-selector button {
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0 var(--space-sm);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.graph-mode-selector button[aria-pressed="true"] {
+  border-color: rgba(31, 111, 235, 0.38);
+  background: rgba(31, 111, 235, 0.08);
+  color: var(--action-blue-strong);
+}
+
 .graph-panel .graph-caption,
 .table-footnote {
   margin: var(--space-md) 0 0;
@@ -3323,6 +3357,16 @@ body {
   min-height: 230px;
 }
 
+.graph-mode-selector {
+  flex-wrap: wrap;
+}
+
+.graph-mode-selector button[aria-pressed="true"] {
+  border-color: var(--green);
+  background: rgba(30, 126, 85, 0.12);
+  color: var(--ink);
+}
+
 .solution-panel,
 .workflow-panel,
 .table-shell {
@@ -3772,6 +3816,7 @@ body {
   .panel-action-button,
   .panel-action-button--compact,
   .evidence-tabs button,
+  .graph-mode-selector button,
   .stepper button,
   .segment button,
   .run-primary,

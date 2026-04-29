@@ -138,4 +138,96 @@ describe('buildConvergenceGraphPoints', () => {
 
     expect(points).toEqual([{ x: 3, y: 1.25 }]);
   });
+
+  it('plots finite approximation error values in error mode', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'newton',
+      rows: [
+        { iteration: 1, xNext: 1.5, error: 0.5 },
+        { iteration: 2, xNext: 1.25, approxError: 0.25 },
+        { iteration: 3, xNext: 1.125, approximateError: '0.125' },
+      ],
+    }), 'error');
+
+    expect(points).toEqual([
+      { x: 1, y: 0.5 },
+      { x: 2, y: 0.25 },
+      { x: 3, y: 0.125 },
+    ]);
+  });
+
+  it('filters rows without finite approximation error values in error mode', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'secant',
+      rows: [
+        { iteration: 1, xNext: 1.4, error: Number.POSITIVE_INFINITY },
+        { iteration: 2, xNext: 1.41 },
+        { iteration: 3, xNext: 1.414, ea: 0.004 },
+        { iteration: 4, xNext: 1.4142, absError: 'not numeric' },
+        { iteration: 5, xNext: 1.41421, relativeError: '1e-5' },
+      ],
+    }), 'error');
+
+    expect(points).toEqual([
+      { x: 3, y: 0.004 },
+      { x: 5, y: 0.00001 },
+    ]);
+  });
+
+  it('plots residual values in residual mode', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'fixedPoint',
+      rows: [
+        { iteration: 1, xNext: 0.5, residual: 0.25 },
+        { iteration: 2, xNext: 0.75, residual: '0.0625' },
+      ],
+    }), 'residual');
+
+    expect(points).toEqual([
+      { x: 1, y: 0.25 },
+      { x: 2, y: 0.0625 },
+    ]);
+  });
+
+  it('plots absolute f(pn) values in residual mode when using f-value fields', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'bisection',
+      rows: [
+        { iteration: 1, c: 1.5, fMidpoint: -0.125 },
+        { iteration: 2, c: 1.25, fpn: 0.0625 },
+        { iteration: 3, c: 1.375, fNext: -0.01 },
+      ],
+    }), 'residual');
+
+    expect(points).toEqual([
+      { x: 1, y: 0.125 },
+      { x: 2, y: 0.0625 },
+      { x: 3, y: 0.01 },
+    ]);
+  });
+
+  it('filters rows without finite residual values in residual mode', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'newton',
+      rows: [
+        { iteration: 1, xNext: 1.5, residual: Number.NaN },
+        { iteration: 2, xNext: 1.4 },
+        { iteration: 3, xNext: 1.414, fxn: -0.002 },
+      ],
+    }), 'residual');
+
+    expect(points).toEqual([{ x: 3, y: 0.002 }]);
+  });
+
+  it('returns fewer than two points when a mode lacks enough finite data', () => {
+    const points = buildConvergenceGraphPoints(run({
+      method: 'bisection',
+      rows: [
+        { iteration: 1, c: 1.5, error: null },
+        { iteration: 2, c: 1.25, error: 0.25 },
+      ],
+    }), 'error');
+
+    expect(points).toEqual([{ x: 2, y: 0.25 }]);
+  });
 });
