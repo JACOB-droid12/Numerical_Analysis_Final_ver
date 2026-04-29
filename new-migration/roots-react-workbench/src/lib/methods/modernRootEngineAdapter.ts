@@ -47,14 +47,14 @@ const SUCCESS_STOP_REASON_MAP: Record<string, string> = {
 
 const FAILURE_REASON_MAP: Record<string, string> = {
   'invalid-expression': 'invalid-input',
-  'invalid-derivative-expression': 'invalid-input',
-  'missing-derivative': 'invalid-input',
+  'invalid-derivative-expression': 'invalid-derivative-expression',
+  'missing-derivative': 'missing-derivative',
   'invalid-interval': 'invalid-input',
   'invalid-starting-value': 'invalid-input',
   'invalid-starting-values': 'invalid-input',
   'invalid-starting-interval': 'invalid-starting-interval',
   'non-finite-evaluation': 'non-finite-evaluation',
-  'complex-evaluation': 'non-finite-evaluation',
+  'complex-evaluation': 'complex-evaluation',
   'zero-denominator': 'stagnation',
   'zero-derivative': 'derivative-zero',
   'divergence-detected': 'diverged',
@@ -91,7 +91,7 @@ function decisionBasisForInput(input?: ModernRootEngineInput): RootRunResult['de
 
 function signDisplayForInput(input?: ModernRootEngineInput): RootRunResult['signDisplay'] {
   if (input?.method === 'bisection') {
-    return 'both';
+    return input.signDisplay ?? 'both';
   }
 
   if (input?.method === 'false-position') {

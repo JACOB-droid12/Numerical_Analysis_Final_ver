@@ -291,7 +291,7 @@ export default function App() {
           <details className="rail-advanced-testing" aria-label="Advanced testing tools">
             <summary>
               <span>Advanced/testing</span>
-              <small>{engineMode === 'modern' ? 'Modern beta/testing' : 'Stable'}</small>
+              <small>{engineMode === 'modern' ? 'Modern engine' : 'Legacy compatibility fallback'}</small>
             </summary>
             <EngineToggle engineMode={engineMode} onChange={setEngineMode} />
           </details>
@@ -380,7 +380,7 @@ export default function App() {
         <footer className="workbench-statusbar">
           <span><span className="status-dot" /> Ready</span>
           <span>Last run: {formatLastRun(displayRun.ranAt)}</span>
-          <span>Mode: {engineMode === 'modern' ? 'Modern beta/testing' : 'Stable'} · Angle: {angleMode.toUpperCase()} · Precision: current settings</span>
+          <span>Mode: {engineMode === 'modern' ? 'Modern engine' : 'Legacy compatibility fallback'} · Angle: {angleMode.toUpperCase()} · Precision: current settings</span>
         </footer>
       </section>
     </main>

@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   bisectionSetupLines,
+  bracketSetupLines,
   compactConfidenceItems,
   confidenceStatus,
   formatPrecisionDisplayValue,
   formatValue,
   methodFormulaDisplay,
   solutionSteps,
+  solutionText,
   stopReasonLabel,
   tableValuesForRow,
 } from './resultFormatters';
@@ -99,14 +101,76 @@ describe('result formatters', () => {
     expect(lines).toContain('Since f(a) and f(b) have opposite signs, the Intermediate Value Theorem guarantees a root in [1, 2].');
     expect(lines).toContain('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
     expect(lines).toContain('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+    expect(lines).toContain('sgn_exact(f(aₙ)) = -');
+    expect(lines).toContain('sgn_machine(f(aₙ)) = -');
+    expect(lines).toContain('Exact sign test: sgn_exact(f(aₙ))sgn_exact(f(pₙ)) < 0');
+    expect(lines).toContain('Machine sign test: sgn_machine(f(aₙ))sgn_machine(f(pₙ)) < 0');
+  });
+
+  it('honors exact, machine, and both bracket sign display settings', () => {
+    const base = run({
+      method: 'bisection',
+      rows: [{
+        iteration: 1,
+        a: 1,
+        b: 2,
+        c: 1.5,
+        fa: -1,
+        fb: 5,
+        fc: 0.875,
+        exactSigns: { a: -1, b: 1, c: 1 },
+        machineSigns: { a: -1, b: 1, c: -1 },
+        note: 'Exact and machine sign values disagree; decision used the configured basis.',
+      }],
+    });
+
+    const exactLines = bracketSetupLines({ ...base, signDisplay: 'exact' });
+    expect(exactLines).toContain('sgn_exact(f(aₙ)) = -');
+    expect(exactLines.join('\n')).not.toContain('sgn_machine');
+
+    const machineLines = bracketSetupLines({ ...base, signDisplay: 'machine' });
+    expect(machineLines).toContain('sgn_machine(f(pₙ)) = -');
+    expect(machineLines.join('\n')).not.toContain('sgn_exact');
+
+    const bothLines = bracketSetupLines({ ...base, signDisplay: 'both' });
+    expect(bothLines.join('\n')).toContain('sgn_exact(f(pₙ)) = +');
+    expect(bothLines.join('\n')).toContain('sgn_machine(f(pₙ)) = -');
+    expect(bothLines.join('\n')).toContain('Sign disagreement note: Exact and machine sign values disagree');
+  });
+
+  it('builds professor-style false-position sign setup without changing table headers', () => {
+    const falsePositionRun = run({
+      method: 'falsePosition',
+      signDisplay: 'machine',
+      decisionBasis: 'machine',
+      rows: [{
+        iteration: 1,
+        lower: 0,
+        upper: 3,
+        point: 1.3333333333333333,
+        fLower: -4,
+        fUpper: 5,
+        fPoint: -2.2222222222222223,
+        exactSigns: { a: -1, b: 1, c: -1 },
+        machineSigns: { a: -1, b: 1, c: -1 },
+      }],
+    });
+
+    const lines = bracketSetupLines(falsePositionRun);
+    expect(lines).toContain('False position formula: pₙ = (aₙf(bₙ) − bₙf(aₙ)) / (f(bₙ) − f(aₙ)).');
+    expect(lines).toContain('Decision basis used: machine signs');
+    expect(lines).toContain('sgn_machine(f(aₙ)) = -');
+    expect(lines).toContain('sgn_machine(f(pₙ)) = -');
+    expect(lines.join('\n')).not.toContain('sgn_exact');
+    expect(solutionText(falsePositionRun)).toContain('False Position setup:');
   });
 
   it('summarizes stop reason, metric, and basis for confidence cards', () => {
-    expect(stopReasonLabel('derivative-zero', 'newton')).toBe('Derivative is zero, so the method cannot continue');
+    expect(stopReasonLabel('derivative-zero', 'newton')).toBe('Derivative is zero at the current point');
     expect(stopReasonLabel('function-tolerance-satisfied', 'newton')).toBe('Function tolerance reached');
     expect(stopReasonLabel('exact-root', 'bisection')).toBe('Exact root found');
-    expect(stopReasonLabel('complex-evaluation', 'fixedPoint')).toBe('Complex result rejected');
-    expect(stopReasonLabel('missing-derivative', 'newton')).toBe('Missing derivative');
+    expect(stopReasonLabel('complex-evaluation', 'fixedPoint')).toBe('The function produced a complex value');
+    expect(stopReasonLabel('missing-derivative', 'newton')).toBe('Newton-Raphson needs a derivative');
     expect(compactConfidenceItems(run({ decisionBasis: 'machine' }))).toEqual([
       { label: 'Stop', value: 'Reached the requested tolerance' },
       { label: 'Metric', value: '0.001' },

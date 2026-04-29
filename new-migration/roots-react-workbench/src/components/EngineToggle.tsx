@@ -6,19 +6,19 @@ interface EngineToggleProps {
 }
 
 const OPTIONS: Array<{ value: RootEngineMode; label: string }> = [
-  { value: 'legacy', label: 'Stable' },
-  { value: 'modern', label: 'Modern beta/testing' },
+  { value: 'modern', label: 'Modern engine' },
+  { value: 'legacy', label: 'Legacy compatibility fallback' },
 ];
 
 export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
   const description = engineMode === 'modern'
-    ? 'Modern beta/testing uses the new TypeScript + math.js engine for experimental comparison.'
-    : 'Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.';
+    ? 'Modern engine is the default. Legacy compatibility fallback is retained for strict legacy machine-arithmetic behavior and compatibility checks.'
+    : 'Legacy compatibility fallback is retained for strict stepwise machine-arithmetic behavior and compatibility checks.';
 
   return (
     <div className="engine-toggle-shell">
       <div className="engine-toggle" aria-label="Root engine selector">
-        <span>Engine:</span>
+        <span>Engine mode:</span>
         <div className="engine-toggle-options" role="group" aria-label="Choose root engine">
           {OPTIONS.map((option) => (
             <button
@@ -37,7 +37,7 @@ export function EngineToggle({ engineMode, onChange }: EngineToggleProps) {
       <p className="engine-toggle-help">{description}</p>
       {engineMode === 'modern' ? (
         <p className="engine-beta-notice" role="status">
-          Modern beta/testing is active.
+          Modern engine is active.
         </p>
       ) : null}
     </div>

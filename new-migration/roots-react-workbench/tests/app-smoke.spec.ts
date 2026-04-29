@@ -1,5 +1,17 @@
 import { expect, test } from '@playwright/test';
 
+const DEFAULT_ENGINE = process.env.VITE_ROOT_ENGINE === 'legacy' ? 'legacy' : 'modern';
+const MODERN_LABEL = 'Modern engine';
+const LEGACY_LABEL = 'Legacy compatibility fallback';
+const MODERN_NOTE =
+  'Modern engine is the default. Legacy compatibility fallback is retained for strict legacy machine-arithmetic behavior and compatibility checks.';
+const LEGACY_NOTE =
+  'Legacy compatibility fallback is retained for strict stepwise machine-arithmetic behavior and compatibility checks.';
+const MODERN_PRECISION_NOTE =
+  'Modern engine: Digits and Rule format displayed final root, table, and CSV values. Some Modern methods support method-level precision behavior, but strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.';
+const LEGACY_PRECISION_NOTE =
+  'Legacy compatibility fallback: Digits and Rule affect legacy calculation behavior. This fallback is retained for strict stepwise machine-arithmetic compatibility.';
+
 test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', async ({ page }) => {
   await page.goto('/');
 
@@ -8,19 +20,20 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   const toolbar = page.getByRole('navigation', { name: 'Application controls' });
   await expect(toolbar.getByText('Quick Setup')).toHaveCount(0);
   await expect(toolbar.getByRole('button', { name: /Load preset/ })).toBeVisible();
-  await expect(toolbar.getByText('Stable')).toHaveCount(0);
-  await expect(toolbar.getByText('Modern beta/testing')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Stable' })).not.toBeVisible();
+  await expect(toolbar.getByText(LEGACY_LABEL)).toHaveCount(0);
+  await expect(toolbar.getByText(MODERN_LABEL)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: LEGACY_LABEL })).not.toBeVisible();
+  await expect(page.getByRole('button', { name: MODERN_LABEL })).not.toBeVisible();
   await page.locator('summary').filter({ hasText: 'Advanced/testing' }).click();
-  await expect(page.getByLabel('Root engine selector')).toContainText('Engine:');
-  await expect(page.getByRole('button', { name: 'Stable' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.')).toBeVisible();
-  await expect(page.getByText('Modern beta/testing is active.')).not.toBeVisible();
+  await expect(page.getByLabel('Root engine selector')).toContainText('Engine mode:');
+  await expect(page.getByRole('button', { name: DEFAULT_ENGINE === 'modern' ? MODERN_LABEL : LEGACY_LABEL })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(DEFAULT_ENGINE === 'modern' ? MODERN_NOTE : LEGACY_NOTE)).toBeVisible();
+  await expect(page.getByText('Modern engine is active.')).toHaveCount(DEFAULT_ENGINE === 'modern' ? 1 : 0);
   await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
   await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
   await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
   await expect(page.getByLabel('Classroom project helpers')).toContainText(
-    'Stable engine: Digits and Rule affect method calculations.',
+    DEFAULT_ENGINE === 'modern' ? MODERN_PRECISION_NOTE : LEGACY_PRECISION_NOTE,
   );
 
   await page.getByRole('button', { name: 'Help' }).click();
@@ -99,6 +112,45 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(solutionPanel).not.toContainText('Newton-Raphson iteration formula:');
 });
 
+test('demo loaders fill fields without running calculations or adding parser UI', async ({ page }) => {
+  await page.goto('/');
+
+  await page.locator('summary').filter({ hasText: 'Quick Setup' }).click();
+  await expect(
+    page.getByText('Examples only fill inputs. You still choose when to run the calculation.').first(),
+  ).toBeVisible();
+  await expect(page.getByText(/OCR|PDF import|paste-question|problem parser|Professor Problem Solver/i)).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Load Bisection demo' }).click();
+  await expect(page.getByRole('button', { name: 'Bisection quick setup' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Quick Setup Bisection f(x)')).toHaveValue('x^3 + 4*x^2 - 10');
+  await expect(page.getByLabel('Quick Setup Bisection a')).toHaveValue('1');
+  await expect(page.getByLabel('Quick Setup Bisection b')).toHaveValue('2');
+  await expect(page.getByLabel('Quick Setup Bisection stop value')).toHaveValue('12');
+  await expect(page.getByText('Approximate root', { exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Load Newton demo' }).click();
+  await expect(page.getByRole('button', { name: 'Newton-Raphson quick setup' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Quick Setup Newton-Raphson f(x)')).toHaveValue('x^2 - 2');
+  await expect(page.getByLabel('Quick Setup Newton-Raphson x0')).toHaveValue('1');
+  await expect(page.getByLabel('Quick Setup Newton-Raphson derivative')).toHaveValue('2*x');
+  await expect(page.getByLabel('Quick Setup Newton-Raphson stop value')).toHaveValue('8');
+  await expect(page.getByText('Approximate root', { exact: true })).toHaveCount(0);
+
+  const methodPicker = page.getByLabel('Root method picker');
+  await methodPicker.getByRole('button', { name: 'Fixed Point', exact: true }).click();
+  await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
+  const panel = page.getByLabel('Fixed Point Comparison tool');
+  await page.getByRole('button', { name: 'Load Fixed Point comparison demo' }).click();
+  await expect(panel.getByLabel('Fixed Point Comparison p0')).toHaveValue('1');
+  await expect(panel.getByLabel('Fixed Point Comparison target value')).toHaveValue('21^(1/3)');
+  await expect(panel.getByLabel('Formula (a) g(x)')).toHaveValue('(20*x + 21 / x^2) / 21');
+  await expect(panel.getByLabel('Formula (b) g(x)')).toHaveValue('x - (x^3 - 21) / (3*x^2)');
+  await expect(panel.getByLabel('Formula (c) g(x)')).toHaveValue('x - (x^3 - 21*x) / (x^2 - 21)');
+  await expect(panel.getByLabel('Formula (d) g(x)')).toHaveValue('sqrt(21 / x)');
+  await expect(panel.getByText(/Ranking:/)).toHaveCount(0);
+});
+
 test('compares manually entered fixed-point formulas in classroom tools', async ({ page }) => {
   await page.goto('/');
 
@@ -141,17 +193,14 @@ test('compares manually entered fixed-point formulas in classroom tools', async 
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
 });
 
-test('switches from default stable to modern beta/testing and back without losing form values', async ({ page }) => {
+test('switches between Modern engine and Legacy compatibility fallback without losing form values', async ({ page }) => {
   await page.goto('/');
 
   await page.locator('summary').filter({ hasText: 'Advanced/testing' }).click();
-  await expect(page.getByRole('button', { name: 'Stable' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Modern beta/testing' }).click();
-  await expect(page.getByRole('button', { name: 'Modern beta/testing' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(
-    page.getByText('Modern beta/testing uses the new TypeScript + math.js engine for experimental comparison.'),
-  ).toBeVisible();
-  await expect(page.getByText(/Modern beta\/testing is active/)).toBeVisible();
+  await page.getByRole('button', { name: MODERN_LABEL }).click();
+  await expect(page.getByRole('button', { name: MODERN_LABEL })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(MODERN_NOTE)).toBeVisible();
+  await expect(page.getByText('Modern engine is active.')).toBeVisible();
 
   await page
     .getByLabel('Root method picker')
@@ -164,10 +213,16 @@ test('switches from default stable to modern beta/testing and back without losin
   await expect(page.getByText('Method: Bisection')).toBeVisible();
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Stable' }).click();
-  await expect(page.getByRole('button', { name: 'Stable' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.')).toBeVisible();
-  await expect(page.getByText(/Modern beta\/testing is active/)).not.toBeVisible();
+  await page.getByRole('button', { name: LEGACY_LABEL }).click();
+  await expect(page.getByRole('button', { name: LEGACY_LABEL })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(LEGACY_NOTE)).toBeVisible();
+  await expect(page.getByText('Modern engine is active.')).not.toBeVisible();
+  await expect(page.locator('[name="root-bis-expression"]')).toHaveValue('x^3 - x - 1');
+  await page.getByRole('button', { name: 'Run bisection' }).click();
+  await expect(page.getByText('Method: Bisection')).toBeVisible();
+
+  await page.getByRole('button', { name: MODERN_LABEL }).click();
+  await expect(page.getByRole('button', { name: MODERN_LABEL })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('[name="root-bis-expression"]')).toHaveValue('x^3 - x - 1');
   await page.getByRole('button', { name: 'Run bisection' }).click();
   await expect(page.getByText('Method: Bisection')).toBeVisible();

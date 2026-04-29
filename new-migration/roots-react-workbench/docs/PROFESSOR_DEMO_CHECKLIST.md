@@ -1,6 +1,6 @@
 # Professor Demo Checklist
 
-Use this checklist before classroom demos, project presentations, or groupmate validation. Legacy remains the default engine. Modern beta is available for testing and comparison.
+Use this checklist before classroom demos, project presentations, or groupmate validation. Modern engine is now the default. Legacy compatibility fallback is retained for strict legacy machine-arithmetic behavior and compatibility checks.
 
 ## 1. Bisection Demo
 
@@ -25,7 +25,7 @@ Expected table columns:
 n | a_n | b_n | p_n | f(p_n)
 ```
 
-In Modern beta classroom table notation, this appears as:
+In Modern engine classroom table notation, this appears as:
 
 ```text
 n | aₙ | bₙ | pₙ | f(pₙ) | Approx. Error
@@ -61,7 +61,7 @@ Stopping target:
 Stop when successive approximations differ by less than 0.0001.
 ```
 
-Expected Modern beta classroom columns:
+Expected Modern engine classroom columns:
 
 ```text
 n | pₙ | f(pₙ) | f′(pₙ) | f(pₙ)/f′(pₙ) | pₙ₊₁ | Approx. Error
@@ -136,18 +136,19 @@ significant digits rule: |p - p*| / |p| <= 5 × 10^-t
 ## 5. Notes For Reviewers
 
 - Chopping/Rounding uses the top `Computation settings` controls.
-- Legacy engine machine arithmetic can still affect legacy internal calculations through its existing `k digits` and `Rule` fields.
-- Modern beta uses `Digits` and `Rule` for displayed final root, table, CSV, and helper values only.
+- Legacy compatibility fallback machine arithmetic can still affect legacy internal calculations through its existing `k digits` and `Rule` fields.
+- Modern engine uses `Digits` and `Rule` for displayed final root, table, CSV, and helper values. Some Modern methods support method-level precision behavior, but strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.
 - Approx. Error means the difference between successive approximations, not true error unless an exact root is known.
-- Legacy remains the default/stable engine.
-- Modern beta remains opt-in for testing and comparison.
+- Modern engine is the default.
+- Rollback path: set `VITE_ROOT_ENGINE=legacy` or choose Legacy compatibility fallback in Advanced/testing.
+- Legacy should not be removed until a separate removal task.
 - Do not use display-only chopping/rounding results as proof that the internal root-method arithmetic has been chopped or rounded.
 
 ## Quick Demo Order
 
-1. Start in Legacy mode and run the Bisection demo.
-2. Switch to Modern beta and rerun the same Bisection demo.
+1. Start in Modern engine mode and run the Bisection demo.
+2. Optionally switch to Legacy compatibility fallback and rerun the same Bisection demo for compatibility comparison.
 3. Open the table and confirm classroom notation.
 4. Run the Newton-Raphson demo and confirm the correction column.
 5. Use Computation settings to show π chopping and rounding.
-6. Mention that Modern beta display precision is presentation-only unless a future task explicitly wires it into the algorithms.
+6. Mention that strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.

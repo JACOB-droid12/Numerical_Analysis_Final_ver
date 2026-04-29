@@ -36,7 +36,7 @@ describe('root engine adapter result classification', () => {
     expect(hasValidApproximation(invalid)).toBe(false);
     expect(isInvalidRun(invalid)).toBe(true);
     expect(resultFailureMessage(invalid)).toBe(
-      'The derivative is zero or too close to zero, so the method cannot continue.',
+      'The derivative is zero or too close to zero at the current point. Try a different starting value.',
     );
   });
 
@@ -53,14 +53,26 @@ describe('root engine adapter result classification', () => {
     expect(isInvalidRun(partial)).toBe(false);
   });
 
-  it('uses stop detail before generic failure messages', () => {
+  it('uses beginner-safe known failure messages before raw stop detail', () => {
     expect(resultFailureMessage(result({
       summary: {
         approximation: null,
         stopReason: 'invalid-input',
         stopDetail: 'x0 is required.',
       },
-    }))).toBe('x0 is required.');
+    }))).toBe('Check the required inputs. Make sure f(x) is filled in and each number is finite.');
+  });
+
+  it('uses classroom-safe messages for bracket, complex, and missing-derivative failures', () => {
+    expect(resultFailureMessage(result({
+      summary: { approximation: null, stopReason: 'invalid-starting-interval' },
+    }))).toMatch(/opposite signs/);
+    expect(resultFailureMessage(result({
+      summary: { approximation: null, stopReason: 'complex-evaluation' },
+    }))).toMatch(/complex value/);
+    expect(resultFailureMessage(result({
+      summary: { approximation: null, stopReason: 'missing-derivative' },
+    }))).toMatch(/needs a derivative/);
   });
 
   it('rejects missing and non-finite numeric approximations', () => {

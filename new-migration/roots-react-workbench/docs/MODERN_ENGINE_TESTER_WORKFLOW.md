@@ -1,32 +1,32 @@
 # Modern Engine Tester Workflow
 
-This guide explains how to test Modern beta, interpret failures, and separate real regressions from expected numerical-method limits.
+This guide explains how to test Modern engine, interpret failures, and separate real regressions from expected numerical-method limits.
 
 ## Purpose
 
-Modern beta is a TypeScript + math.js root-method engine being tested before any default-switch discussion. It is checked against:
+Modern engine is the default TypeScript + math.js root-method engine. It is checked against:
 
-- Legacy engine behavior.
+- Legacy compatibility fallback behavior.
 - Playwright UI comparison tests.
 - mpmath high-precision golden fixtures.
 - Method-specific edge and failure tests.
 
-Modern beta is still a comparison engine. Legacy remains the stable default.
+Legacy compatibility fallback is retained for strict legacy machine-arithmetic behavior and compatibility checks.
 
 ## Engine Modes
 
 The app supports two engine modes:
 
-- Legacy: default and stable production path.
-- Modern beta: opt-in TypeScript + math.js engine for comparison and migration testing.
+- Modern engine: default TypeScript + math.js engine.
+- Legacy compatibility fallback: compatibility path for strict stepwise machine arithmetic and legacy checks.
 
-The runtime `Engine: Legacy | Modern beta` toggle lets testers compare behavior without losing current form values. Switching engines clears existing results so stale output is not mistaken for a result from the newly selected engine.
+The Advanced/testing `Engine mode: Modern engine | Legacy compatibility fallback` toggle lets testers compare behavior without losing current form values. Switching engines clears existing results so stale output is not mistaken for a result from the newly selected engine.
 
 The `VITE_ROOT_ENGINE` environment flag can start the app in either mode:
 
-- `VITE_ROOT_ENGINE=legacy`: start in Legacy.
-- `VITE_ROOT_ENGINE=modern`: start in Modern beta.
-- Missing or unknown value: start in Legacy.
+- `VITE_ROOT_ENGINE=legacy`: start in Legacy compatibility fallback.
+- `VITE_ROOT_ENGINE=modern`: start in Modern engine.
+- Missing or unknown value: start in Modern engine.
 
 ## How To Run Tests
 
@@ -37,13 +37,13 @@ npm run test:unit
 npm run typecheck
 ```
 
-Run default Legacy E2E coverage:
+Run default Modern engine E2E coverage:
 
 ```powershell
 npm run test:e2e
 ```
 
-Run Legacy vs Modern beta UI comparison coverage:
+Run Legacy compatibility fallback vs Modern engine UI comparison coverage:
 
 ```powershell
 npm run test:e2e:comparison
@@ -55,7 +55,7 @@ Regenerate high-precision golden fixtures only when fixture updates are intended
 npm run generate:golden
 ```
 
-Run the Modern beta UI smoke suite from Windows PowerShell:
+Run the Modern engine UI smoke suite from Windows PowerShell:
 
 ```powershell
 $env:VITE_ROOT_ENGINE='modern'; $env:CI='1'; npx playwright test tests/modern-engine-smoke.spec.ts
@@ -72,10 +72,10 @@ Remove-Item Env:CI
 
 - `npm run test:unit`: run for engine, evaluator, adapter, golden fixture, and failure-path correctness.
 - `npm run typecheck`: run for TypeScript API and integration safety.
-- `npm run test:e2e`: run for default Legacy app behavior.
-- `npm run test:e2e:comparison`: run when behavior compatibility between Legacy and Modern beta matters.
+- `npm run test:e2e`: run for default Modern engine app behavior.
+- `npm run test:e2e:comparison`: run when behavior compatibility between Legacy compatibility fallback and Modern engine matters.
 - `npm run generate:golden`: run only when adding or correcting oracle fixtures.
-- Modern smoke command: run when checking the Modern beta UI path directly.
+- Modern smoke command: run when checking the Modern engine UI path directly.
 
 ## Interpreting Golden Oracle Failures
 
@@ -94,7 +94,7 @@ When a golden test fails, check:
 - Is the method appropriate for the function?
 - Is the bracket or starting value valid?
 - Is the residual small even if the root difference is noisy?
-- Does Legacy agree or differ?
+- Does Legacy compatibility fallback agree or differ?
 - Does the failure occur only in UI tests, or also in unit tests?
 
 Do not update fixtures just to hide a regression.
@@ -114,14 +114,14 @@ Some failures are expected numerical-method limits rather than app bugs:
 
 Generated golden fixtures should include method-appropriate cases. Unsuitable cases belong in failure-path tests or documented exclusions.
 
-## Legacy Vs Modern Differences
+## Legacy Compatibility Fallback Vs Modern Differences
 
 Expected differences include:
 
 - Stop reason names may differ.
 - Iteration counts may differ.
 - Failure wording may differ.
-- Legacy may show an alert while Modern beta may show a result-panel failure, or vice versa.
+- Legacy compatibility fallback may show an alert while Modern engine may show a result-panel failure, or vice versa.
 - Modern rejects complex and non-finite values in root-method mode.
 - Modern calculator/evaluator mode and legacy-compatible mode differ for `log`, complex values, and non-finite results.
 - UI comparison tests compare high-level behavior, not exact object shapes.
@@ -149,13 +149,13 @@ Review the JSON diff. It should show the intended fixture changes only.
 
 ## Triage Checklist
 
-When a Modern beta test fails:
+When a Modern engine test fails:
 
 - Re-run `npm run generate:golden`.
 - Re-run `npm run test:unit`.
 - Check the `root-method-cases.json` diff.
 - Check whether the failure is method-specific.
-- Compare Legacy vs Modern UI behavior if relevant.
+- Compare Legacy compatibility fallback vs Modern engine UI behavior if relevant.
 - Check residual and tolerance.
 - Check documented exclusions.
 - Decide whether the issue is a bug, expected limitation, fixture issue, or tolerance issue.
@@ -175,13 +175,13 @@ When a Modern beta test fails:
 
 For each case, confirm the app does not crash, results are clearly associated with the selected engine, and failures are visible to the user.
 
-## Default-Switch Criteria
+## Default Engine Criteria
 
-Modern beta should not become the default until:
+For Modern engine to remain the default:
 
 - Unit tests pass.
 - Typecheck passes.
-- Legacy E2E passes.
+- Legacy compatibility fallback E2E passes.
 - Modern smoke passes.
 - Comparison E2E passes.
 - Golden oracle cases pass.
@@ -190,10 +190,11 @@ Modern beta should not become the default until:
 
 ## Rollback Guidance
 
-Keep Legacy as the default. If Modern beta breaks:
+If Modern engine breaks:
 
-- Switch the runtime toggle back to Legacy.
-- If the app was started with Modern beta, remove `VITE_ROOT_ENGINE` or set it to `legacy`.
+- Choose Legacy compatibility fallback in Advanced/testing.
+- Set `VITE_ROOT_ENGINE=legacy`.
 - Keep `public/legacy`, `root-engine.js`, `ExpressionEngine`, and the legacy loader intact.
+- Keep `math-engine.js` and `calc-engine.js` intact.
 
-Legacy files should not be deleted until after a separate default-switch and deprecation plan is approved.
+Legacy files should not be deleted until a separate removal task is approved.

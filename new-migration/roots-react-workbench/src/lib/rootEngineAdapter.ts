@@ -136,6 +136,9 @@ const FAILURE_STOP_REASONS = new Set([
   'relative-tolerance-invalid',
   'singularity-encountered',
   'non-finite-evaluation',
+  'complex-evaluation',
+  'missing-derivative',
+  'invalid-derivative-expression',
   'derivative-zero',
   'diverged',
   'diverged-step',
@@ -146,20 +149,23 @@ const FAILURE_STOP_REASONS = new Set([
 ]);
 
 const FAILURE_MESSAGES: Record<string, string> = {
-  'invalid-input': 'The root calculation could not finish because one or more inputs are invalid.',
-  'invalid-starting-interval': 'Choose an interval where the endpoint signs differ.',
-  'invalid-bracket': 'Choose an interval where the endpoint signs differ.',
-  'discontinuity-detected': 'The method stopped at a discontinuity or singularity.',
-  'relative-tolerance-invalid': 'The relative tolerance check could not be completed for this interval.',
-  'singularity-encountered': 'Function evaluation failed during the iteration.',
-  'non-finite-evaluation': 'Function evaluation returned a non-finite value.',
-  'derivative-zero': 'The derivative is zero or too close to zero, so the method cannot continue.',
-  diverged: 'The iteration diverged before a reliable approximation was found.',
-  'diverged-step': 'The step grew too quickly to trust convergence.',
-  stagnation: 'The method stalled because the denominator is near zero.',
-  'retained-endpoint-stagnation': 'False Position retained the same endpoint too long to trust convergence.',
-  'step-small-residual-large': 'The step is small, but the residual remains too large to confirm convergence.',
-  'cycle-detected': 'The iteration entered a cycle instead of settling to one value.',
+  'invalid-input': 'Check the required inputs. Make sure f(x) is filled in and each number is finite.',
+  'invalid-starting-interval': 'This interval is not a valid bracket yet. Choose a and b so f(a) and f(b) have opposite signs.',
+  'invalid-bracket': 'This interval is not a valid bracket yet. Choose a and b so f(a) and f(b) have opposite signs.',
+  'discontinuity-detected': 'The method reached a discontinuity or singularity. Try an interval or starting value away from undefined points.',
+  'relative-tolerance-invalid': 'The relative tolerance check could not be completed for this interval. Try an absolute tolerance or a different bracket.',
+  'singularity-encountered': 'The function became undefined during the iteration. Check the formula and avoid singular points.',
+  'non-finite-evaluation': 'The function produced a non-finite value such as Infinity or NaN during the iteration. Check the formula and starting values.',
+  'complex-evaluation': 'The function produced a complex value. This root method expects real-number results.',
+  'missing-derivative': 'Newton-Raphson needs a derivative. Enter f′(x), or use Auto derivative when available.',
+  'invalid-derivative-expression': 'Check f′(x). The derivative formula could not be evaluated as a real-number expression.',
+  'derivative-zero': 'The derivative is zero or too close to zero at the current point. Try a different starting value.',
+  diverged: 'The iteration moved away from a reliable root. Try a different starting value or method.',
+  'diverged-step': 'The next step grew too large to trust convergence. Try a different starting value.',
+  stagnation: 'The method stalled because the denominator is near zero. Try different starting values.',
+  'retained-endpoint-stagnation': 'False Position kept the same endpoint for too long. Try a tighter bracket or Bisection for a steadier table.',
+  'step-small-residual-large': 'The step is small, but f(x) is still too large to confirm a root. Try more iterations or a different start.',
+  'cycle-detected': 'The iteration is repeating values instead of settling. Try a different fixed-point formula or starting value.',
 };
 
 function hasFailureStopReason(result: RootRunResult): boolean {
@@ -196,6 +202,13 @@ export function isInvalidRun(result: RootRunResult): boolean {
 
 export function resultFailureMessage(result: RootRunResult): string {
   const detail = result.summary?.stopDetail?.trim();
+  const reason = result.summary?.stopReason;
+  const reasonMessage = typeof reason === 'string' ? FAILURE_MESSAGES[reason] : undefined;
+
+  if (reasonMessage) {
+    return reasonMessage;
+  }
+
   if (detail) {
     if (
       result.summary?.stopReason === 'invalid-input' &&
@@ -204,11 +217,6 @@ export function resultFailureMessage(result: RootRunResult): string {
       return `Check the expression: ${detail}`;
     }
     return detail;
-  }
-
-  const reason = result.summary?.stopReason;
-  if (typeof reason === 'string' && FAILURE_MESSAGES[reason]) {
-    return FAILURE_MESSAGES[reason];
   }
 
   const warning = result.warnings?.[0]?.message?.trim();

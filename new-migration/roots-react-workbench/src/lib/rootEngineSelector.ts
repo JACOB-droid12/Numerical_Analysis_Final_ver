@@ -7,13 +7,14 @@ import { runRootMethod } from './rootEngineAdapter';
 export type RootEngineMode = 'legacy' | 'modern';
 
 const MODERN_FLAG_VALUE = 'modern';
+const LEGACY_FLAG_VALUE = 'legacy';
 
 function configuredFlag(): string | undefined {
   return import.meta.env?.VITE_ROOT_ENGINE;
 }
 
 export function selectedRootEngineName(flag = configuredFlag()): RootEngineMode {
-  return flag === MODERN_FLAG_VALUE ? 'modern' : 'legacy';
+  return flag === LEGACY_FLAG_VALUE ? 'legacy' : MODERN_FLAG_VALUE;
 }
 
 function numberField(fields: MethodFormState, field: string): number {
@@ -69,6 +70,11 @@ function bisectionToleranceType(fields: MethodFormState) {
 
 function bisectionDecisionBasis(fields: MethodFormState) {
   return fields['root-bis-decision-basis'] === 'exact' ? 'exact' : 'machine';
+}
+
+function bisectionSignDisplay(fields: MethodFormState) {
+  const value = fields['root-bis-sign-display'];
+  return value === 'exact' || value === 'machine' ? value : 'both';
 }
 
 function falsePositionDecisionBasis(fields: MethodFormState) {
@@ -146,6 +152,7 @@ export function modernInputFromForm(
         angleMode,
         toleranceType: bisectionToleranceType(fields),
         decisionBasis: bisectionDecisionBasis(fields),
+        signDisplay: bisectionSignDisplay(fields),
         scan: bisectionScanOptions(fields),
         ...stoppingOptions(fields, 'root-bis'),
       };

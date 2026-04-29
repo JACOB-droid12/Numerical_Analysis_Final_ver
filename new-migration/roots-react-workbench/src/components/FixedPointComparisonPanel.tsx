@@ -5,6 +5,7 @@ import {
   type FixedPointComparisonResult,
 } from '../lib/methods/fixedPointComparison';
 import { chopToSignificantDigits, roundToSignificantDigits } from '../lib/machineArithmetic/decimalMachine';
+import { evaluateExpression } from '../lib/math/evaluator';
 import { formatValue } from '../lib/resultFormatters';
 import type { AngleMode, PrecisionDisplayConfig } from '../types/roots';
 
@@ -14,6 +15,16 @@ interface FixedPointComparisonPanelProps {
 }
 
 const FORMULA_LABELS = ['a', 'b', 'c', 'd'] as const;
+const FIXED_POINT_COMPARISON_DEMO = {
+  p0: '1',
+  targetValue: '21^(1/3)',
+  formulas: {
+    a: '(20*x + 21 / x^2) / 21',
+    b: 'x - (x^3 - 21) / (3*x^2)',
+    c: 'x - (x^3 - 21*x) / (x^2 - 21)',
+    d: 'sqrt(21 / x)',
+  },
+};
 
 function displayValue(value: number | null | undefined, precisionDisplay: PrecisionDisplayConfig) {
   if (value == null || !Number.isFinite(value)) return 'N/A';
@@ -28,7 +39,19 @@ function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
   const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  if (Number.isFinite(parsed)) return parsed;
+
+  const evaluated = evaluateExpression(trimmed, {}, {
+    angleMode: 'rad',
+    mode: 'legacy-compatible',
+    allowComplex: false,
+    allowNonFinite: false,
+  });
+  if (!evaluated.ok || typeof evaluated.value !== 'number' || !Number.isFinite(evaluated.value)) {
+    return undefined;
+  }
+
+  return evaluated.value;
 }
 
 export function FixedPointComparisonPanel({
@@ -52,6 +75,16 @@ export function FixedPointComparisonPanel({
     setFormulas((current) => ({ ...current, [label]: value }));
   };
 
+  const loadComparisonDemo = () => {
+    setP0(FIXED_POINT_COMPARISON_DEMO.p0);
+    setTolerance('1e-8');
+    setMaxIterations('120');
+    setTargetValue(FIXED_POINT_COMPARISON_DEMO.targetValue);
+    setFormulas(FIXED_POINT_COMPARISON_DEMO.formulas);
+    setResult(null);
+    setMessage('');
+  };
+
   const runComparison = () => {
     const activeFormulas = FORMULA_LABELS
       .map((label) => ({ label, expression: formulas[label].trim() }))
@@ -62,22 +95,22 @@ export function FixedPointComparisonPanel({
 
     if (!Number.isFinite(x0)) {
       setResult(null);
-      setMessage('Enter a finite p0 value.');
+      setMessage('Enter a real starting value for p0, such as 1.');
       return;
     }
     if (!Number.isFinite(toleranceValue) || toleranceValue <= 0) {
       setResult(null);
-      setMessage('Enter a positive tolerance.');
+      setMessage('Enter a positive tolerance, such as 1e-8.');
       return;
     }
     if (!Number.isInteger(maxIterationValue) || maxIterationValue < 1) {
       setResult(null);
-      setMessage('Enter a positive integer max iteration count.');
+      setMessage('Enter a whole-number max iteration count of 1 or more.');
       return;
     }
     if (activeFormulas.length === 0) {
       setResult(null);
-      setMessage('Enter at least one g(x) formula.');
+      setMessage('Enter at least one g(x) formula before comparing.');
       return;
     }
 
@@ -90,7 +123,11 @@ export function FixedPointComparisonPanel({
       targetValue: parseOptionalNumber(targetValue),
     });
     setResult(comparison);
-    setMessage('');
+    setMessage(
+      comparison.entries.every((entry) => entry.status === 'undefined')
+        ? 'None of the entered formulas produced a usable fixed-point iteration. Check each g(x) formula and try one valid formula at a time.'
+        : '',
+    );
   };
 
   return (
@@ -98,6 +135,14 @@ export function FixedPointComparisonPanel({
       <h4>Fixed Point Comparison</h4>
       <p className="classroom-result">
         This tool compares manually entered fixed-point formulas. It does not parse full problem statements.
+      </p>
+      <div className="demo-loader-strip" aria-label="Fixed Point comparison demo loader">
+        <button type="button" className="demo-loader-chip" onClick={loadComparisonDemo}>
+          Load Fixed Point comparison demo
+        </button>
+      </div>
+      <p className="demo-loader-note">
+        Examples only fill inputs. You still choose when to run the calculation.
       </p>
 
       <div className="comparison-controls">

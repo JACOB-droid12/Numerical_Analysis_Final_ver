@@ -124,8 +124,8 @@ export function ClassroomToolsPanel({
       <div className="classroom-tools-body">
         <p className="muted-copy text-sm">
           {engineMode === 'legacy'
-            ? 'Stable engine: Digits and Rule affect method calculations.'
-            : 'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only. Internal calculations use standard precision.'}
+            ? 'Legacy compatibility fallback: Digits and Rule affect legacy calculation behavior. This fallback is retained for strict stepwise machine-arithmetic compatibility.'
+            : 'Modern engine: Digits and Rule format displayed final root, table, and CSV values. Some Modern methods support method-level precision behavior, but strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.'}
           {' '}Approx. Error is based on successive approximations, not true error unless the exact root is known.
         </p>
 

@@ -58,6 +58,26 @@ const initialStopKinds: Record<QuickSetupMethod, StoppingKind> = {
   fixedPoint: 'iterations',
 };
 
+const BISECTION_DEMO_FIELDS: Pick<
+  QuickSetupFields,
+  'bisectionExpression' | 'bisectionA' | 'bisectionB' | 'bisectionStopValue'
+> = {
+  bisectionExpression: 'x^3 + 4*x^2 - 10',
+  bisectionA: '1',
+  bisectionB: '2',
+  bisectionStopValue: '12',
+};
+
+const NEWTON_DEMO_FIELDS: Pick<
+  QuickSetupFields,
+  'newtonExpression' | 'newtonDerivative' | 'newtonX0' | 'newtonStopValue'
+> = {
+  newtonExpression: 'x^2 - 2',
+  newtonDerivative: '2*x',
+  newtonX0: '1',
+  newtonStopValue: '8',
+};
+
 function hasValue(value: string) {
   return value.trim().length > 0;
 }
@@ -76,6 +96,31 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
 
   const updateStopKind = (method: QuickSetupMethod, value: StoppingKind) => {
     setStopKinds((current) => ({ ...current, [method]: value }));
+  };
+
+  const loadBisectionDemo = () => {
+    setActiveMethod('bisection');
+    setFields((current) => ({
+      ...current,
+      ...BISECTION_DEMO_FIELDS,
+    }));
+    setStopKinds((current) => ({
+      ...current,
+      bisection: 'iterations',
+    }));
+  };
+
+  const loadNewtonDemo = () => {
+    setActiveMethod('newton');
+    setFields((current) => ({
+      ...current,
+      ...NEWTON_DEMO_FIELDS,
+    }));
+    setStopKinds((current) => ({
+      ...current,
+      newton: 'iterations',
+    }));
+    setNewtonDerivativeMode('provided');
   };
 
   const canRun = useMemo(() => {
@@ -184,6 +229,18 @@ export function QuickSetupPanel({ disabled = false, onRun }: QuickSetupPanelProp
 
       <p className="muted-copy">
         Quick Setup is calculator-style. It does not parse full problem statements.
+      </p>
+
+      <div className="demo-loader-strip" aria-label="Demo example loaders">
+        <button type="button" className="demo-loader-chip" onClick={loadBisectionDemo}>
+          Load Bisection demo
+        </button>
+        <button type="button" className="demo-loader-chip" onClick={loadNewtonDemo}>
+          Load Newton demo
+        </button>
+      </div>
+      <p className="demo-loader-note">
+        Examples only fill inputs. You still choose when to run the calculation.
       </p>
 
       <div className="method-list" aria-label="Quick Setup methods">

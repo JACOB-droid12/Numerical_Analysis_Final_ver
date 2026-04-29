@@ -287,8 +287,8 @@ export function MethodForm({ angleMode, config, engineMode, expressionError, for
           {stopValueField ? renderField(stopValueField) : null}
           <p className="precision-note">
             {engineMode === 'modern'
-              ? 'Modern beta/testing: Digits and Rule format the final root, table, and CSV only. Internal calculations use standard precision.'
-              : 'Stable engine: Digits and Rule affect method calculations.'}
+              ? 'Modern engine: Digits and Rule format displayed final root, table, and CSV values. Some Modern methods support method-level precision behavior, but strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.'
+              : 'Legacy compatibility fallback: Digits and Rule affect legacy calculation behavior. This fallback is retained for strict stepwise machine-arithmetic compatibility.'}
           </p>
           </div>
         </details>

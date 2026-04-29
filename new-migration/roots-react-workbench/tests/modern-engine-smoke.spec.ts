@@ -1,9 +1,18 @@
 import { expect, type Page, test } from '@playwright/test';
 
 test.skip(
-  process.env.VITE_ROOT_ENGINE !== 'modern',
-  'Modern engine smoke runs only when VITE_ROOT_ENGINE=modern.',
+  process.env.VITE_ROOT_ENGINE === 'legacy',
+  'Modern engine smoke runs when the default or explicit Modern engine is active.',
 );
+
+const MODERN_LABEL = 'Modern engine';
+const LEGACY_LABEL = 'Legacy compatibility fallback';
+const MODERN_NOTE =
+  'Modern engine is the default. Legacy compatibility fallback is retained for strict legacy machine-arithmetic behavior and compatibility checks.';
+const LEGACY_NOTE =
+  'Legacy compatibility fallback is retained for strict stepwise machine-arithmetic behavior and compatibility checks.';
+const MODERN_PRECISION_NOTE =
+  'Modern engine: Digits and Rule format displayed final root, table, and CSV values. Some Modern methods support method-level precision behavior, but strict stepwise Legacy arithmetic remains available through Legacy compatibility fallback.';
 
 async function setField(page: Page, name: string, value: string) {
   await page.locator(`[name="${name}"]`).fill(value);
@@ -28,7 +37,7 @@ async function runCurrentMethod(page: Page, label: string | RegExp) {
 
 async function openClassroomTools(page: Page) {
   const classroomCopy = page.getByText(
-    'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only.',
+    MODERN_PRECISION_NOTE,
   );
   if (!(await classroomCopy.isVisible().catch(() => false))) {
     await page.locator('summary').filter({ hasText: 'Classroom tools' }).click();
@@ -68,13 +77,11 @@ test('loads the workbench in modern engine mode without crashing', async ({ page
   await expect(page.getByLabel('Result console')).toBeVisible();
   await expect(page.getByLabel('Classroom project helpers')).toBeVisible();
   const toolbar = page.getByRole('navigation', { name: 'Application controls' });
-  await expect(toolbar.getByText('Modern beta/testing')).toHaveCount(0);
+  await expect(toolbar.getByText(MODERN_LABEL)).toHaveCount(0);
   await openAdvancedTesting(page);
-  await expect(page.getByRole('button', { name: 'Modern beta/testing' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(
-    page.getByText('Modern beta/testing uses the new TypeScript + math.js engine for experimental comparison.'),
-  ).toBeVisible();
-  await expect(page.getByText(/Modern beta\/testing is active/)).toBeVisible();
+  await expect(page.getByRole('button', { name: MODERN_LABEL })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(MODERN_NOTE)).toBeVisible();
+  await expect(page.getByText('Modern engine is active.')).toBeVisible();
 });
 
 test('runs Bisection on x^3 - x - 1', async ({ page }) => {
@@ -97,6 +104,29 @@ test('runs Bisection on x^3 - x - 1', async ({ page }) => {
   await expect(page.getByRole('columnheader', { name: 'Approx. Error', exact: true })).toBeVisible();
 });
 
+test('shows Modern Bisection exact, machine, and both sign evidence', async ({ page }) => {
+  await selectMethod(page, 'Bisection');
+  await setField(page, 'root-bis-expression', 'x^3 - x - 1');
+  await setField(page, 'root-bis-a', '1');
+  await setField(page, 'root-bis-b', '2');
+  await page.getByLabel('Signs shown').selectOption('exact');
+
+  await runCurrentMethod(page, 'Run bisection');
+  const solutionPanel = page.locator('.solution-panel');
+  await expect(solutionPanel).toContainText('sgn_exact(f(aₙ))');
+  await expect(solutionPanel).not.toContainText('sgn_machine(f(aₙ))');
+
+  await page.getByLabel('Signs shown').selectOption('machine');
+  await page.getByRole('button', { name: 'Run bisection' }).click();
+  await expect(solutionPanel).toContainText('sgn_machine(f(aₙ))');
+  await expect(solutionPanel).not.toContainText('sgn_exact(f(aₙ))');
+
+  await page.getByLabel('Signs shown').selectOption('both');
+  await page.getByRole('button', { name: 'Run bisection' }).click();
+  await expect(solutionPanel).toContainText('sgn_exact(f(aₙ))');
+  await expect(solutionPanel).toContainText('sgn_machine(f(aₙ))');
+});
+
 test('runs False Position on x^2 - 4', async ({ page }) => {
   await selectMethod(page, 'False Position');
   await setField(page, 'root-fp-expression', 'x^2 - 4');
@@ -106,6 +136,29 @@ test('runs False Position on x^2 - 4', async ({ page }) => {
 
   await runCurrentMethod(page, 'Run false position');
   await expectMethodResult(page, 'False Position', 2);
+});
+
+test('shows Modern False Position exact, machine, and both sign evidence', async ({ page }) => {
+  await selectMethod(page, 'False Position');
+  await setField(page, 'root-fp-expression', 'x^2 - 4');
+  await setField(page, 'root-fp-a', '0');
+  await setField(page, 'root-fp-b', '3');
+  await page.getByLabel('Signs shown').selectOption('exact');
+
+  await runCurrentMethod(page, 'Run false position');
+  const solutionPanel = page.locator('.solution-panel');
+  await expect(solutionPanel).toContainText('sgn_exact(f(aₙ))');
+  await expect(solutionPanel).not.toContainText('sgn_machine(f(aₙ))');
+
+  await page.getByLabel('Signs shown').selectOption('machine');
+  await page.getByRole('button', { name: 'Run false position' }).click();
+  await expect(solutionPanel).toContainText('sgn_machine(f(aₙ))');
+  await expect(solutionPanel).not.toContainText('sgn_exact(f(aₙ))');
+
+  await page.getByLabel('Signs shown').selectOption('both');
+  await page.getByRole('button', { name: 'Run false position' }).click();
+  await expect(solutionPanel).toContainText('sgn_exact(f(aₙ))');
+  await expect(solutionPanel).toContainText('sgn_machine(f(aₙ))');
 });
 
 test('runs Secant on x^3 - x - 1', async ({ page }) => {
@@ -152,7 +205,7 @@ test('runs Newton-Raphson with a provided derivative', async ({ page }) => {
   await expectMethodResult(page, 'Newton-Raphson', 2);
 });
 
-test('displays the Modern beta final root with selected rounded precision', async ({ page }) => {
+test('displays the Modern engine final root with selected rounded precision', async ({ page }) => {
   await setField(page, 'root-newton-expression', 'x^2 - 2');
   await setField(page, 'root-newton-df', '2*x');
   await setField(page, 'root-newton-x0', '1');
@@ -162,21 +215,13 @@ test('displays the Modern beta final root with selected rounded precision', asyn
   await expect(page.locator('.answer-hero-major .answer-root')).toHaveText('1.4142136');
 });
 
-test('uses Computation settings as the only Modern beta precision display control', async ({ page }) => {
+test('uses Computation settings as the only Modern engine precision display control', async ({ page }) => {
   await expect(page.getByText('Precision / Machine Arithmetic')).not.toBeVisible();
   await openClassroomTools(page);
-  await expect(
-    page.getByText(
-      'Modern beta/testing: Digits and Rule format displayed final root, table, and CSV values only. Internal calculations use standard precision.',
-    ),
-  ).toBeVisible();
+  await expect(page.getByLabel('Classroom project helpers').getByText(MODERN_PRECISION_NOTE)).toBeVisible();
 
   await page.getByText('Computation settings').click();
-  await expect(
-    page.getByText(
-      'Modern beta/testing: Digits and Rule format the final root, table, and CSV only. Internal calculations use standard precision.',
-    ),
-  ).toBeVisible();
+  await expect(page.locator('.precision-stack').getByText(MODERN_PRECISION_NOTE)).toBeVisible();
   await expect(page.getByLabel('Digit precision', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Round' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Chop' })).toBeVisible();
@@ -203,14 +248,14 @@ test('shows a clear failure for a bad bracket without crashing', async ({ page }
   await expect(page.getByRole('heading', { name: 'Answer workstation' })).toBeVisible();
 });
 
-test('can switch from modern beta back to legacy and run after lazy loading legacy scripts', async ({ page }) => {
+test('can switch from Modern engine back to Legacy compatibility fallback and run after lazy loading legacy scripts', async ({ page }) => {
   await openAdvancedTesting(page);
-  await expect(page.getByRole('button', { name: 'Modern beta/testing' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: MODERN_LABEL })).toHaveAttribute('aria-pressed', 'true');
 
-  await page.getByRole('button', { name: 'Stable' }).click();
-  await expect(page.getByRole('button', { name: 'Stable' })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByText('Stable is recommended for class use. Modern beta/testing is experimental and used for comparison.')).toBeVisible();
-  await expect(page.getByText(/Modern beta\/testing is active/)).not.toBeVisible();
+  await page.getByRole('button', { name: LEGACY_LABEL }).click();
+  await expect(page.getByRole('button', { name: LEGACY_LABEL })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText(LEGACY_NOTE)).toBeVisible();
+  await expect(page.getByText('Modern engine is active.')).not.toBeVisible();
 
   await selectMethod(page, 'Bisection');
   await setField(page, 'root-bis-expression', 'x^2 - 4');

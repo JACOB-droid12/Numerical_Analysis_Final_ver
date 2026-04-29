@@ -83,15 +83,16 @@ describe('root engine selector', () => {
     vi.unstubAllGlobals();
   });
 
-  it('uses legacy when the env flag is missing', () => {
+  it('uses modern when the env flag is missing', () => {
     vi.stubEnv('VITE_ROOT_ENGINE', undefined);
     const legacy = stubLegacyRootEngine();
 
     const result = runSelectedRootMethod('bisection', bisectionFields(), 'rad');
 
-    expect(selectedRootEngineName()).toBe('legacy');
-    expect(legacy.runBisection).toHaveBeenCalledOnce();
-    expect(result.summary?.stopReason).toBe('legacy-stub');
+    expect(selectedRootEngineName()).toBe('modern');
+    expect(legacy.runBisection).not.toHaveBeenCalled();
+    expect(result.engine).toBe('modern');
+    expect(result.summary?.approximation).toBeCloseTo(2, 9);
   });
 
   it('uses legacy when VITE_ROOT_ENGINE is legacy', () => {
@@ -140,15 +141,16 @@ describe('root engine selector', () => {
     expect(result.summary?.approximation).toBeCloseTo(2, 9);
   });
 
-  it('falls back to legacy for unknown values', () => {
+  it('falls back to modern for unknown values', () => {
     vi.stubEnv('VITE_ROOT_ENGINE', 'experimental');
     const legacy = stubLegacyRootEngine();
 
     const result = runSelectedRootMethod('bisection', bisectionFields(), 'rad');
 
-    expect(selectedRootEngineName()).toBe('legacy');
-    expect(legacy.runBisection).toHaveBeenCalledOnce();
-    expect(result.summary?.stopReason).toBe('legacy-stub');
+    expect(selectedRootEngineName()).toBe('modern');
+    expect(legacy.runBisection).not.toHaveBeenCalled();
+    expect(result.engine).toBe('modern');
+    expect(result.summary?.approximation).toBeCloseTo(2, 9);
   });
 
   it('converts form state into modern input without invoking legacy code', () => {
@@ -172,12 +174,14 @@ describe('root engine selector', () => {
       'root-bis-scan-steps': '20',
       'root-bis-tolerance-type': 'relative',
       'root-bis-decision-basis': 'exact',
+      'root-bis-sign-display': 'machine',
     }), 'rad');
 
     expect(input).toMatchObject({
       method: 'bisection',
       toleranceType: 'relative',
       decisionBasis: 'exact',
+      signDisplay: 'machine',
       scan: {
         min: -10,
         max: 10,

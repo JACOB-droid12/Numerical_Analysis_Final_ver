@@ -192,24 +192,24 @@ export function stopReasonLabel(reason: string | null | undefined, method?: Root
     'exact-fixed-point': 'Exact fixed point found',
     'exact-zero': method === 'fixedPoint' ? 'The iteration reached an exact fixed point' : 'Reference value is exactly zero',
     'machine-zero': 'Machine value is zero or near zero',
-    'invalid-starting-interval': 'Not a valid starting bracket',
-    'invalid-bracket': 'The interval does not bracket a sign change',
-    'discontinuity-detected': 'Stopped at a discontinuity or singularity',
-    'singularity-encountered': 'Function evaluation failed during the iteration',
-    'non-finite-evaluation': 'Function evaluation returned a non-finite value',
-    'complex-evaluation': 'Complex result rejected',
-    'derivative-zero': 'Derivative is zero, so the method cannot continue',
-    'missing-derivative': 'Missing derivative',
+    'invalid-starting-interval': 'Choose a bracket with opposite endpoint signs',
+    'invalid-bracket': 'Choose a bracket with opposite endpoint signs',
+    'discontinuity-detected': 'Stopped at an undefined or singular point',
+    'singularity-encountered': 'The function became undefined during the iteration',
+    'non-finite-evaluation': 'The function produced a non-finite value such as Infinity or NaN',
+    'complex-evaluation': 'The function produced a complex value',
+    'derivative-zero': 'Derivative is zero at the current point',
+    'missing-derivative': 'Newton-Raphson needs a derivative',
     'zero-denominator': 'Zero denominator',
     'zero-derivative': 'Derivative is zero, so the method cannot continue',
     stagnation: 'The method stalled because the denominator is near zero',
-    diverged: 'Iteration diverged',
+    diverged: 'Iteration moved away from a reliable root',
     'divergence-detected': 'Divergence detected',
     'diverged-step': 'Step grew too quickly',
     'step-small-residual-large': 'Step is small but residual remains large',
     'retained-endpoint-stagnation': 'Same endpoint retained too long',
     'stagnation-detected': 'Stagnation detected',
-    'cycle-detected': 'Iteration entered a cycle',
+    'cycle-detected': 'Iteration entered a cycle instead of settling',
     'sample-root': 'Sample point is a root',
     'invalid-input': 'Invalid input',
   };
@@ -484,8 +484,36 @@ function signFromRowValue(row: IterationRow, key: 'a' | 'b' | 'c'): string {
   return formatSign(exactSigns[key] ?? machineSigns[key]);
 }
 
-export function bisectionSetupLines(run: RootRunResult | null): string[] {
-  if (!run || run.method !== 'bisection') return [];
+function signFromRowBasis(row: IterationRow, key: 'a' | 'b' | 'c', basis: 'exact' | 'machine'): string {
+  const exactSigns = isObjectLike(row.exactSigns) ? row.exactSigns : {};
+  const machineSigns = isObjectLike(row.machineSigns) ? row.machineSigns : {};
+  return formatSign((basis === 'exact' ? exactSigns : machineSigns)[key]);
+}
+
+function signEvidenceLines(run: RootRunResult, row: IterationRow): string[] {
+  const signDisplay = run.signDisplay ?? 'both';
+  const decisionBasis = run.decisionBasis === 'exact' ? 'exact' : 'machine';
+  const bases: Array<'exact' | 'machine'> =
+    signDisplay === 'exact' ? ['exact'] : signDisplay === 'machine' ? ['machine'] : ['exact', 'machine'];
+  const lines = [`Decision basis used: ${decisionBasis} signs`];
+
+  bases.forEach((basis) => {
+    const prefix = basis === 'exact' ? 'sgn_exact' : 'sgn_machine';
+    lines.push(`${prefix}(f(aₙ)) = ${signFromRowBasis(row, 'a', basis)}`);
+    lines.push(`${prefix}(f(pₙ)) = ${signFromRowBasis(row, 'c', basis)}`);
+    lines.push(`${prefix}(f(bₙ)) = ${signFromRowBasis(row, 'b', basis)}`);
+    lines.push(`${basis === 'exact' ? 'Exact' : 'Machine'} sign test: ${prefix}(f(aₙ))${prefix}(f(pₙ)) < 0`);
+  });
+
+  if (typeof row.note === 'string' && row.note.trim()) {
+    lines.push(`Sign disagreement note: ${row.note.trim()}`);
+  }
+
+  return lines;
+}
+
+export function bracketSetupLines(run: RootRunResult | null): string[] {
+  if (!run || (run.method !== 'bisection' && run.method !== 'falsePosition')) return [];
   const firstRow = run.rows?.[0];
   if (!firstRow) return [];
 
@@ -516,10 +544,19 @@ export function bisectionSetupLines(run: RootRunResult | null): string[] {
     );
   }
 
-  lines.push('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
+  if (run.method === 'bisection') {
+    lines.push('Midpoint formula: pₙ = aₙ + (bₙ − aₙ)/2.');
+  } else {
+    lines.push('False position formula: pₙ = (aₙf(bₙ) − bₙf(aₙ)) / (f(bₙ) − f(aₙ)).');
+  }
   lines.push('Iteration decision: use sgn(f(aₙ))sgn(f(pₙ)) < 0 to choose the next bracket.');
+  lines.push(...signEvidenceLines(run, firstRow));
 
   return lines;
+}
+
+export function bisectionSetupLines(run: RootRunResult | null): string[] {
+  return run?.method === 'bisection' ? bracketSetupLines(run) : [];
 }
 
 export function solutionText(run: RootRunResult | null): string {
@@ -569,7 +606,9 @@ export function solutionText(run: RootRunResult | null): string {
     `Stopping condition: ${stoppingText(run)}`,
     `Stopping result: ${stopReasonLabel(run.summary?.stopReason, run.method)}`,
     `Final residual: ${formatValue(run.summary?.residual, 18)}`,
-    ...(run.method === 'bisection' ? ['', 'Bisection setup:', ...bisectionSetupLines(run)] : []),
+    ...(run.method === 'bisection' || run.method === 'falsePosition'
+      ? ['', `${methodLabel(run.method)} setup:`, ...bracketSetupLines(run)]
+      : []),
     '',
     'Steps:',
     ...steps.map((step, index) => `${index + 1}. ${step}`),

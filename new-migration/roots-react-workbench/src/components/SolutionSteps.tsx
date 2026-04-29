@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useCopyFeedback } from '../hooks/useCopyFeedback';
 import {
-  bisectionSetupLines,
+  bracketSetupLines,
   methodFormulaDisplay,
   solutionSteps as buildSolutionSteps,
   solutionText,
@@ -18,7 +18,7 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
   const { copyStatus, copyText } = useCopyFeedback();
   const steps = useMemo(() => buildSolutionSteps(run), [run]);
   const formulaDisplay = useMemo(() => methodFormulaDisplay(run.method), [run.method]);
-  const bisectionSetup = useMemo(() => bisectionSetupLines(run), [run]);
+  const bracketSetup = useMemo(() => bracketSetupLines(run), [run]);
   const copyPayload = useMemo(() => solutionText(run), [run]);
   const copyDisabled = !copyPayload;
 
@@ -59,11 +59,14 @@ export function SolutionSteps({ run }: SolutionStepsProps) {
         </PanelActionButton>
       </div>
 
-      {bisectionSetup.length ? (
-        <section className="lecture-setup-block" aria-label="Bisection setup">
+      {bracketSetup.length ? (
+        <section
+          className="lecture-setup-block"
+          aria-label={`${run.method === 'falsePosition' ? 'False Position' : 'Bisection'} bracket setup`}
+        >
           <h3>Professor-style setup</h3>
           <dl className="lecture-setup-list">
-            {bisectionSetup.map((line) => {
+            {bracketSetup.map((line) => {
               const [label, ...rest] = line.split(': ');
               const value = rest.join(': ');
 

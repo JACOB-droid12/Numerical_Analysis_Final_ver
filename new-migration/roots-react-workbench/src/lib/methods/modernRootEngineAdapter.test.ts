@@ -102,6 +102,47 @@ describe('modern root engine UI adapter', () => {
     expect(tableValuesForRow(run.method, run.rows?.[0] ?? { iteration: 1 }, run)).toHaveLength(6);
   });
 
+  it('preserves selected bisection sign display controls in the UI result', () => {
+    const exactRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'bisection',
+      expression: 'x^3 - x - 1',
+      lower: 1,
+      upper: 2,
+      maxIterations: 2,
+      decisionBasis: 'exact',
+      signDisplay: 'exact',
+    }));
+    const machineRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'bisection',
+      expression: 'x^3 - x - 1',
+      lower: 1,
+      upper: 2,
+      maxIterations: 2,
+      decisionBasis: 'machine',
+      signDisplay: 'machine',
+    }));
+    const bothRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'bisection',
+      expression: 'x^3 - x - 1',
+      lower: 1,
+      upper: 2,
+      maxIterations: 2,
+      signDisplay: 'both',
+    }));
+
+    expect(exactRun.signDisplay).toBe('exact');
+    expect(exactRun.decisionBasis).toBe('exact');
+    expect(solutionText(exactRun)).toContain('sgn_exact(f(aₙ))');
+    expect(solutionText(exactRun)).not.toContain('sgn_machine(f(aₙ))');
+    expect(machineRun.signDisplay).toBe('machine');
+    expect(solutionText(machineRun)).toContain('sgn_machine(f(aₙ))');
+    expect(solutionText(machineRun)).not.toContain('sgn_exact(f(aₙ))');
+    expect(bothRun.signDisplay).toBe('both');
+    expect(solutionText(bothRun)).toContain('sgn_exact(f(aₙ))');
+    expect(solutionText(bothRun)).toContain('sgn_machine(f(aₙ))');
+    expect(tableHeadersForRun(bothRun)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error']);
+  });
+
   it('converts false position results into UI-compatible shape', () => {
     const run = expectUiSuccess(runModernRootMethodForUi({
       method: 'false-position',
@@ -137,6 +178,41 @@ describe('modern root engine UI adapter', () => {
     expect(run.rows?.[0]).toHaveProperty('machineSigns');
     expect(run.rows?.[0]).toHaveProperty('decision');
     expect(tableHeadersForRun(run)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error']);
+  });
+
+  it('uses false-position sign display settings in visible setup text', () => {
+    const exactRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'false-position',
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      maxIterations: 2,
+      signDisplay: 'exact',
+    }));
+    const machineRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'false-position',
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      maxIterations: 2,
+      signDisplay: 'machine',
+    }));
+    const bothRun = expectUiSuccess(runModernRootMethodForUi({
+      method: 'false-position',
+      expression: 'x^2 - 4',
+      lower: 0,
+      upper: 3,
+      maxIterations: 2,
+      signDisplay: 'both',
+    }));
+
+    expect(solutionText(exactRun)).toContain('sgn_exact(f(aₙ))');
+    expect(solutionText(exactRun)).not.toContain('sgn_machine(f(aₙ))');
+    expect(solutionText(machineRun)).toContain('sgn_machine(f(aₙ))');
+    expect(solutionText(machineRun)).not.toContain('sgn_exact(f(aₙ))');
+    expect(solutionText(bothRun)).toContain('sgn_exact(f(aₙ))');
+    expect(solutionText(bothRun)).toContain('sgn_machine(f(aₙ))');
+    expect(tableHeadersForRun(bothRun)).toEqual(['n', 'aₙ', 'bₙ', 'pₙ', 'f(pₙ)', 'Approx. Error']);
   });
 
   it('converts secant results into UI-compatible shape', () => {
@@ -298,7 +374,7 @@ describe('modern root engine UI adapter', () => {
 
     expect(run.method).toBe('newton');
     expect(run.summary?.approximation).toBeNull();
-    expect(run.summary?.stopReason).toBe('invalid-input');
+    expect(run.summary?.stopReason).toBe('missing-derivative');
     expect(run.summary?.stopDetail).toMatch(/derivativeExpression/);
   });
 
@@ -309,7 +385,7 @@ describe('modern root engine UI adapter', () => {
       x0: -1,
     });
     expect(complexRun.summary?.approximation).toBeNull();
-    expect(complexRun.summary?.stopReason).toBe('non-finite-evaluation');
+    expect(complexRun.summary?.stopReason).toBe('complex-evaluation');
     expect(complexRun.summary?.stopDetail).toMatch(/complex/);
 
     const nonFiniteRun = runModernRootMethodForUi({
