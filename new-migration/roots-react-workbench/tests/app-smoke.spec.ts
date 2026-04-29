@@ -73,14 +73,22 @@ test('loads, calculates, opens utilities, and keeps non-Newton formula scoped', 
   await expect(page.getByRole('tab', { name: 'Table' })).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Graph' })).toBeVisible();
   await page.getByRole('tab', { name: 'Graph' }).click();
+  const graphPanel = page.locator('.graph-panel').first();
   const graphMode = page.getByRole('group', { name: 'Graph mode' });
   await expect(graphMode).toBeVisible();
   await expect(graphMode.getByRole('button', { name: 'Approximation' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Root estimate by iteration.')).toBeVisible();
+  await expect(graphPanel.locator('svg text').filter({ hasText: 'Iteration' })).toBeVisible();
+  await expect(graphPanel.locator('svg text').filter({ hasText: 'Root estimate' })).toBeVisible();
+  await expect(graphPanel.locator('circle title').first()).toContainText('Iteration 1 - Approximation:');
+  await expect(graphPanel.getByText(/plotted points\. First:/)).toBeVisible();
   await graphMode.getByRole('button', { name: 'Approx. Error' }).click();
   await expect(page.getByText('Approximation error by iteration.')).toBeVisible();
+  await expect(graphPanel.locator('svg text').filter({ hasText: 'Approximation error' })).toBeVisible();
+  await expect(graphPanel.locator('circle title').first()).toContainText(/Iteration \d+ - Approx\. Error:/);
   await graphMode.getByRole('button', { name: 'Residual' }).click();
   await expect(page.getByText('Residual / |f(pₙ)| by iteration.')).toBeVisible();
+  await expect(graphPanel.locator('svg text').filter({ hasText: 'Residual / |f(pₙ)|' })).toBeVisible();
 
   await page.getByRole('button', { name: 'Newton-Raphson quick setup' }).click();
   await page.getByLabel('Quick Setup Newton-Raphson f(x)').fill('x^3 - x - 1');

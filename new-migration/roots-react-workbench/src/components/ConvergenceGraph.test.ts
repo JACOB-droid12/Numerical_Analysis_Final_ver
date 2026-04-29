@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildConvergenceGraphPoints } from './ConvergenceGraph';
+import {
+  buildConvergenceGraphPoints,
+  buildXAxisTicks,
+  buildYAxisTicks,
+  formatGraphValue,
+  graphPointTitle,
+  graphSummaryLine,
+} from './ConvergenceGraph';
 import { modernRootResultToUiResult } from '../lib/methods/modernRootEngineAdapter';
 import { runModernRootMethod } from '../lib/methods/modernRootEngine';
 import type { RootRunResult } from '../types/roots';
@@ -229,5 +236,52 @@ describe('buildConvergenceGraphPoints', () => {
     }), 'error');
 
     expect(points).toEqual([{ x: 2, y: 0.25 }]);
+  });
+});
+
+describe('convergence graph readability helpers', () => {
+  it('formats graph values compactly across moderate and extreme scales', () => {
+    expect(formatGraphValue(1.414213562)).toBe('1.4142');
+    expect(formatGraphValue(0.0000001234)).toBe('1.23e-7');
+    expect(formatGraphValue(12_345_678)).toBe('1.23e7');
+  });
+
+  it('builds y-axis tick labels from current graph values', () => {
+    const ticks = buildYAxisTicks([
+      { x: 1, y: 1.5 },
+      { x: 2, y: 1.25 },
+      { x: 3, y: 1.375 },
+    ]);
+
+    expect(ticks).toHaveLength(5);
+    expect(ticks[0]).toEqual({ value: 1.25, label: '1.25' });
+    expect(ticks[ticks.length - 1]).toEqual({ value: 1.5, label: '1.5' });
+  });
+
+  it('builds x-axis tick labels from iteration values without overcrowding', () => {
+    const ticks = buildXAxisTicks(Array.from({ length: 8 }, (_, index) => ({
+      x: index + 1,
+      y: index / 10,
+    })));
+
+    expect(ticks).toEqual([
+      { value: 1, label: '1' },
+      { value: 2, label: '2' },
+      { value: 4, label: '4' },
+      { value: 5, label: '5' },
+      { value: 7, label: '7' },
+      { value: 8, label: '8' },
+    ]);
+  });
+
+  it('builds point title text with iteration, graph mode, and plotted value', () => {
+    expect(graphPointTitle({ x: 3, y: 0.00001234 }, 'residual')).toBe('Iteration 3 - Residual: 1.23e-5');
+  });
+
+  it('summarizes first and last plotted values for the selected graph mode', () => {
+    expect(graphSummaryLine([
+      { x: 1, y: 0.5 },
+      { x: 2, y: 0.25 },
+    ], 'error')).toBe('2 plotted points. First error: 0.5 -> Last error: 0.25');
   });
 });

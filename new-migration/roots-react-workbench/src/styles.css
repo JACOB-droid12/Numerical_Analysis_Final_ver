@@ -1600,8 +1600,10 @@ a:focus-visible {
 }
 
 .graph-panel svg {
+  display: block;
   width: 100%;
   min-height: 248px;
+  overflow: visible;
 }
 
 .graph-panel-header {
@@ -1610,6 +1612,7 @@ a:focus-visible {
   justify-content: space-between;
   gap: var(--space-md);
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .graph-mode-selector {
@@ -1639,10 +1642,20 @@ a:focus-visible {
 }
 
 .graph-panel .graph-caption,
+.graph-summary-line,
 .table-footnote {
   margin: var(--space-md) 0 0;
   color: var(--muted);
   font-size: 0.78rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding-inline: 2px;
+}
+
+.graph-summary-line {
+  color: var(--quiet);
+  font-family: "JetBrains Mono", "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  line-height: 1.45;
 }
 
 .formula-caption {
