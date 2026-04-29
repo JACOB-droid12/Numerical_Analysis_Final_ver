@@ -23,6 +23,26 @@ function bisectionRun(overrides: Partial<RootRunResult> = {}): RootRunResult {
   };
 }
 
+function falsePositionRun(overrides: Partial<RootRunResult> = {}): RootRunResult {
+  return {
+    method: 'falsePosition',
+    expression: 'x^2 - 4',
+    rows: [
+      {
+        iteration: 1,
+        lower: 0,
+        upper: 3,
+        point: 1.3333333333333335,
+        fLower: -4,
+        fUpper: 5,
+        fPoint: -2.222222222222222,
+        decision: 'right',
+      },
+    ],
+    ...overrides,
+  };
+}
+
 describe('buildMethodViewModel', () => {
   it('builds a Bisection method view model from Modern row fields', () => {
     const model = buildMethodViewModel(bisectionRun(), 1);
@@ -138,7 +158,7 @@ describe('buildMethodViewModel', () => {
   it('returns a friendly empty reason for unsupported methods', () => {
     const model = buildMethodViewModel({ method: 'newton', expression: 'x^2 - 2', rows: [] }, 1);
 
-    expect(model.emptyReason).toBe('Method View currently supports Bisection only.');
+    expect(model.emptyReason).toBe('Method View currently supports Bisection and False Position only.');
   });
 
   it('filters non-finite samples and still returns finite display samples', () => {
@@ -168,5 +188,86 @@ describe('buildMethodViewModel', () => {
     buildMethodViewModel(run, 1);
 
     expect(JSON.stringify(run)).toBe(before);
+  });
+
+  it('builds a False Position method view model from Modern row fields', () => {
+    const model = buildMethodViewModel(falsePositionRun(), 1);
+
+    expect(model.method).toBe('falsePosition');
+    expect(model.selectedIteration).toBe(1);
+    expect(model.curveExpression).toBe('x^2 - 4');
+    expect(model.functionSamples.length).toBeGreaterThan(2);
+    expect(model.emptyReason).toBeUndefined();
+  });
+
+  it('builds a False Position method view model from Legacy alias row fields', () => {
+    const model = buildMethodViewModel(falsePositionRun({
+      rows: [
+        {
+          iteration: 2,
+          a: '1.3333333333333335',
+          b: '3',
+          c: '1.8461538461538463',
+          fa: '-2.222222222222222',
+          fb: '5',
+          fc: '-0.5917159763313604',
+          decision: 'right',
+        },
+      ],
+    }), 2);
+
+    expect(model.points).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'a', label: 'a_n', x: 1.3333333333333335, y: -2.222222222222222, kind: 'endpoint' }),
+      expect.objectContaining({ id: 'b', label: 'b_n', x: 3, y: 5, kind: 'endpoint' }),
+      expect.objectContaining({ id: 'p', label: 'p_n', x: 1.8461538461538463, y: -0.5917159763313604, kind: 'root-estimate' }),
+    ]));
+  });
+
+  it('adds False Position points for a_n, b_n, and p_n', () => {
+    const model = buildMethodViewModel(falsePositionRun(), 1);
+
+    expect(model.points).toEqual([
+      { id: 'a', label: 'a_n', x: 0, y: -4, kind: 'endpoint' },
+      { id: 'b', label: 'b_n', x: 3, y: 5, kind: 'endpoint' },
+      { id: 'p', label: 'p_n', x: 1.3333333333333335, y: -2.222222222222222, kind: 'root-estimate' },
+    ]);
+  });
+
+  it('adds a False Position interpolation construction segment through endpoints', () => {
+    const model = buildMethodViewModel(falsePositionRun(), 1);
+
+    expect(model.segments).toEqual(expect.arrayContaining([
+      {
+        id: 'interpolation-line',
+        label: 'Interpolation line through (a_n, f(a_n)) and (b_n, f(b_n))',
+        from: { x: 0, y: -4 },
+        to: { x: 3, y: 5 },
+        kind: 'construction',
+      },
+    ]));
+  });
+
+  it('annotates the False Position x-intercept construction', () => {
+    const model = buildMethodViewModel(falsePositionRun(), 1);
+
+    expect(model.annotations).toContain('p_n is the x-intercept of the line through (a_n, f(a_n)) and (b_n, f(b_n)).');
+  });
+
+  it('derives the False Position kept interval', () => {
+    const model = buildMethodViewModel(falsePositionRun(), 1);
+
+    expect(model.intervalBands).toEqual(expect.arrayContaining([
+      { id: 'kept-interval', label: 'Kept interval [p_n, b_n]', fromX: 1.3333333333333335, toX: 3, kind: 'kept-interval' },
+    ]));
+    expect(model.annotations).toContain('sgn(f(p_n))sgn(f(b_n)) < 0, keep [p_n, b_n].');
+  });
+
+  it('returns a friendly empty reason when False Position fields are missing', () => {
+    const model = buildMethodViewModel(falsePositionRun({
+      rows: [{ iteration: 1, lower: 0, upper: 3, point: 1.3333333333333335 }],
+    }), 1);
+
+    expect(model.emptyReason).toBe('False Position geometry fields are missing for Method View.');
+    expect(model.points).toEqual([]);
   });
 });

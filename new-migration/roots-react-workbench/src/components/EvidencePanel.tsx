@@ -28,6 +28,10 @@ function hasWorkflowContent(run: RootRunResult) {
   );
 }
 
+function hasMethodView(run: RootRunResult) {
+  return run.method === 'bisection' || run.method === 'falsePosition';
+}
+
 export function EvidencePanel({ config, contentId, expanded, precisionDisplay, run }: EvidencePanelProps) {
   const [activeTab, setActiveTab] = useState<EvidenceTab>('steps');
 
@@ -37,7 +41,7 @@ export function EvidencePanel({ config, contentId, expanded, precisionDisplay, r
 
   const tabs: Array<{ id: EvidenceTab; label: string }> = [
     { id: 'graph', label: 'Graph' },
-    ...(run.method === 'bisection' ? [{ id: 'methodView' as const, label: 'Method View' }] : []),
+    ...(hasMethodView(run) ? [{ id: 'methodView' as const, label: 'Method View' }] : []),
     { id: 'steps', label: 'Steps' },
     ...(hasWorkflowContent(run) ? [{ id: 'workflow' as const, label: 'Setup checks' }] : []),
     { id: 'table', label: 'Table' },

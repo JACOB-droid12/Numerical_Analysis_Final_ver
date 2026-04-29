@@ -43,7 +43,7 @@ export interface MethodViewModel {
   emptyReason?: string;
 }
 
-interface BisectionGeometry {
+interface BracketGeometry {
   a: number;
   b: number;
   p: number;
@@ -125,13 +125,29 @@ function pickFirstFinite(row: IterationRow, keys: string[]): number | null {
   return null;
 }
 
-function normalizeBisectionRow(row: IterationRow): BisectionGeometry | null {
+function normalizeBisectionRow(row: IterationRow): BracketGeometry | null {
   const a = pickFirstFinite(row, ['a', 'lower']);
   const b = pickFirstFinite(row, ['b', 'upper']);
   const p = pickFirstFinite(row, ['p', 'c', 'midpoint']);
   const fa = pickFirstFinite(row, ['f(a)', 'fa', 'fLower']);
   const fb = pickFirstFinite(row, ['f(b)', 'fb', 'fUpper']);
   const fp = pickFirstFinite(row, ['f(p)', 'fp', 'fc', 'fMidpoint']);
+
+  if (a == null || b == null || p == null || fa == null || fb == null || fp == null) {
+    return null;
+  }
+
+  const decision = row.decision === 'left' || row.decision === 'right' ? row.decision : undefined;
+  return { a, b, p, fa, fb, fp, decision };
+}
+
+function normalizeFalsePositionRow(row: IterationRow): BracketGeometry | null {
+  const a = pickFirstFinite(row, ['a', 'lower']);
+  const b = pickFirstFinite(row, ['b', 'upper']);
+  const p = pickFirstFinite(row, ['p', 'c', 'point']);
+  const fa = pickFirstFinite(row, ['f(a)', 'fa', 'fLower']);
+  const fb = pickFirstFinite(row, ['f(b)', 'fb', 'fUpper']);
+  const fp = pickFirstFinite(row, ['f(p)', 'fp', 'fPoint', 'fc']);
 
   if (a == null || b == null || p == null || fa == null || fb == null || fp == null) {
     return null;
@@ -198,7 +214,7 @@ function selectedRowFor(rows: IterationRow[], selectedIteration: number): Iterat
   return rows.find((row) => row.iteration === selectedIteration) ?? null;
 }
 
-function keptIntervalFor(geometry: BisectionGeometry): MethodViewIntervalBand | null {
+function keptIntervalFor(geometry: BracketGeometry): MethodViewIntervalBand | null {
   if (isZero(geometry.fp)) return null;
 
   if (hasOppositeSigns(geometry.fa, geometry.fp)) {
@@ -244,7 +260,7 @@ function keptIntervalFor(geometry: BisectionGeometry): MethodViewIntervalBand | 
   return null;
 }
 
-function annotationsFor(geometry: BisectionGeometry, keptInterval: MethodViewIntervalBand | null): string[] {
+function bisectionAnnotationsFor(geometry: BracketGeometry, keptInterval: MethodViewIntervalBand | null): string[] {
   const annotations = ['Initial bracket satisfies the Intermediate Value Theorem when f(a_n) and f(b_n) have opposite signs.'];
 
   if (isZero(geometry.fp)) {
@@ -265,33 +281,72 @@ function annotationsFor(geometry: BisectionGeometry, keptInterval: MethodViewInt
   return annotations;
 }
 
-export function buildMethodViewModel(
-  run: RootRunResult | null | undefined,
+function falsePositionAnnotationsFor(geometry: BracketGeometry, keptInterval: MethodViewIntervalBand | null): string[] {
+  const annotations = [
+    'p_n is the x-intercept of the line through (a_n, f(a_n)) and (b_n, f(b_n)).',
+    'The current bracket satisfies the Intermediate Value Theorem when f(a_n) and f(b_n) have opposite signs.',
+  ];
+
+  if (isZero(geometry.fp)) {
+    annotations.push('f(p_n) = 0, so p_n is an exact root for this iteration.');
+    return annotations;
+  }
+
+  if (keptInterval?.label === 'Kept interval [a_n, p_n]') {
+    annotations.push('sgn(f(a_n))sgn(f(p_n)) < 0, keep [a_n, p_n].');
+  } else if (keptInterval?.label === 'Kept interval [p_n, b_n]') {
+    annotations.push('sgn(f(p_n))sgn(f(b_n)) < 0, keep [p_n, b_n].');
+  }
+
+  if (keptInterval) {
+    annotations.push(`${keptInterval.label}.`);
+  }
+
+  return annotations;
+}
+
+function baseSegmentsFor(
+  geometry: BracketGeometry,
+  sampleDomain: { min: number; max: number },
+): MethodViewSegment[] {
+  return [
+    {
+      id: 'x-axis',
+      label: 'x-axis',
+      from: { x: sampleDomain.min, y: 0 },
+      to: { x: sampleDomain.max, y: 0 },
+      kind: 'axis',
+    },
+    {
+      id: 'a-to-axis',
+      label: 'a_n to x-axis',
+      from: { x: geometry.a, y: geometry.fa },
+      to: { x: geometry.a, y: 0 },
+      kind: 'vertical',
+    },
+    {
+      id: 'b-to-axis',
+      label: 'b_n to x-axis',
+      from: { x: geometry.b, y: geometry.fb },
+      to: { x: geometry.b, y: 0 },
+      kind: 'vertical',
+    },
+    {
+      id: 'p-to-axis',
+      label: 'p_n to x-axis',
+      from: { x: geometry.p, y: geometry.fp },
+      to: { x: geometry.p, y: 0 },
+      kind: 'vertical',
+    },
+  ];
+}
+
+function buildBracketMethodViewModel(
+  run: RootRunResult,
   selectedIteration: number,
+  geometry: BracketGeometry,
+  methodName: 'Bisection' | 'False Position',
 ): MethodViewModel {
-  if (!run) {
-    return emptyModel(run, selectedIteration, 'No run is available for Method View.');
-  }
-
-  if (run.method !== 'bisection') {
-    return emptyModel(run, selectedIteration, 'Method View currently supports Bisection only.');
-  }
-
-  const rows = run.rows ?? [];
-  if (rows.length === 0) {
-    return emptyModel(run, selectedIteration, 'No iteration rows are available for Method View.');
-  }
-
-  const row = selectedRowFor(rows, selectedIteration);
-  if (!row) {
-    return emptyModel(run, selectedIteration, 'Selected iteration is not available for Method View.');
-  }
-
-  const geometry = normalizeBisectionRow(row);
-  if (!geometry) {
-    return emptyModel(run, selectedIteration, 'Bisection geometry fields are missing for Method View.');
-  }
-
   const curveExpression = run.expression ?? run.canonical ?? '';
   const sampleDomain = sampleDomainFor(geometry.a, geometry.b);
   const functionSamples = sampleExpression(curveExpression, sampleDomain, angleModeFor(run));
@@ -312,6 +367,18 @@ export function buildMethodViewModel(
   };
   const keptInterval = keptIntervalFor(geometry);
   const intervalBands = keptInterval ? [currentInterval, keptInterval] : [currentInterval];
+  const segments = baseSegmentsFor(geometry, sampleDomain);
+  const isFalsePosition = methodName === 'False Position';
+
+  if (isFalsePosition) {
+    segments.push({
+      id: 'interpolation-line',
+      label: 'Interpolation line through (a_n, f(a_n)) and (b_n, f(b_n))',
+      from: { x: geometry.a, y: geometry.fa },
+      to: { x: geometry.b, y: geometry.fb },
+      kind: 'construction',
+    });
+  }
 
   return {
     method: run.method,
@@ -323,39 +390,53 @@ export function buildMethodViewModel(
     points: [
       { id: 'a', label: 'a_n', x: geometry.a, y: geometry.fa, kind: 'endpoint' },
       { id: 'b', label: 'b_n', x: geometry.b, y: geometry.fb, kind: 'endpoint' },
-      { id: 'p', label: 'p_n', x: geometry.p, y: geometry.fp, kind: 'midpoint' },
+      { id: 'p', label: 'p_n', x: geometry.p, y: geometry.fp, kind: isFalsePosition ? 'root-estimate' : 'midpoint' },
     ],
-    segments: [
-      {
-        id: 'x-axis',
-        label: 'x-axis',
-        from: { x: sampleDomain.min, y: 0 },
-        to: { x: sampleDomain.max, y: 0 },
-        kind: 'axis',
-      },
-      {
-        id: 'a-to-axis',
-        label: 'a_n to x-axis',
-        from: { x: geometry.a, y: geometry.fa },
-        to: { x: geometry.a, y: 0 },
-        kind: 'vertical',
-      },
-      {
-        id: 'b-to-axis',
-        label: 'b_n to x-axis',
-        from: { x: geometry.b, y: geometry.fb },
-        to: { x: geometry.b, y: 0 },
-        kind: 'vertical',
-      },
-      {
-        id: 'p-to-axis',
-        label: 'p_n to x-axis',
-        from: { x: geometry.p, y: geometry.fp },
-        to: { x: geometry.p, y: 0 },
-        kind: 'vertical',
-      },
-    ],
+    segments,
     intervalBands,
-    annotations: annotationsFor(geometry, keptInterval),
+    annotations: isFalsePosition
+      ? falsePositionAnnotationsFor(geometry, keptInterval)
+      : bisectionAnnotationsFor(geometry, keptInterval),
   };
+}
+
+export function buildMethodViewModel(
+  run: RootRunResult | null | undefined,
+  selectedIteration: number,
+): MethodViewModel {
+  if (!run) {
+    return emptyModel(run, selectedIteration, 'No run is available for Method View.');
+  }
+
+  if (run.method !== 'bisection' && run.method !== 'falsePosition') {
+    return emptyModel(run, selectedIteration, 'Method View currently supports Bisection and False Position only.');
+  }
+
+  const rows = run.rows ?? [];
+  if (rows.length === 0) {
+    return emptyModel(run, selectedIteration, 'No iteration rows are available for Method View.');
+  }
+
+  const row = selectedRowFor(rows, selectedIteration);
+  if (!row) {
+    return emptyModel(run, selectedIteration, 'Selected iteration is not available for Method View.');
+  }
+
+  const geometry = run.method === 'bisection'
+    ? normalizeBisectionRow(row)
+    : normalizeFalsePositionRow(row);
+  if (!geometry) {
+    return emptyModel(
+      run,
+      selectedIteration,
+      `${run.method === 'bisection' ? 'Bisection' : 'False Position'} geometry fields are missing for Method View.`,
+    );
+  }
+
+  return buildBracketMethodViewModel(
+    run,
+    selectedIteration,
+    geometry,
+    run.method === 'bisection' ? 'Bisection' : 'False Position',
+  );
 }

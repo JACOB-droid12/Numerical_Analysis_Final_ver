@@ -215,6 +215,12 @@ test('quick setup runs false position and secant through Run Table', async ({ pa
   );
   await expect(page.getByText('Method: False Position')).toBeVisible();
   await expect(page.getByText('Approximate root', { exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Method View' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Method View' }).click();
+  const falsePositionMethodView = page.getByLabel('False Position Method View');
+  await expect(falsePositionMethodView.getByRole('heading', { name: 'False Position Method View' })).toBeVisible();
+  await expect(falsePositionMethodView.getByText('p_n is the x-intercept')).toBeVisible();
+  await expect(falsePositionMethodView.locator('svg title').filter({ hasText: 'Interpolation line' })).toHaveCount(1);
 
   await page.getByRole('button', { name: 'Secant quick setup' }).click();
   await expect(page.getByText('Secant uses two starting guesses.')).toBeVisible();

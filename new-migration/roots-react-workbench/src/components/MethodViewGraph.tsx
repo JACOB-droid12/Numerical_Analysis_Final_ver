@@ -101,6 +101,22 @@ function pointFill(kind: MethodViewPoint['kind']): string {
   return kind === 'midpoint' || kind === 'root-estimate' ? 'var(--green)' : 'var(--action-blue)';
 }
 
+function methodViewTitle(run: RootRunResult): string {
+  return run.method === 'falsePosition' ? 'False Position Method View' : 'Bisection Method View';
+}
+
+function methodViewSummary(run: RootRunResult, selectedIteration: number): string {
+  return run.method === 'falsePosition'
+    ? `Geometry for iteration ${selectedIteration}: f(x), bracket, interpolation line, x-intercept, and kept interval.`
+    : `Geometry for iteration ${selectedIteration}: f(x), bracket, midpoint, and kept interval.`;
+}
+
+function methodViewDescription(run: RootRunResult): string {
+  return run.method === 'falsePosition'
+    ? 'False Position geometry showing y equals f of x, the current interval, interpolation line, x-intercept, and kept interval.'
+    : 'Bisection geometry showing y equals f of x, the current interval, midpoint, and kept interval.';
+}
+
 export function MethodViewGraph({ run }: MethodViewGraphProps) {
   const titleId = useId();
   const descId = useId();
@@ -114,12 +130,13 @@ export function MethodViewGraph({ run }: MethodViewGraphProps) {
     () => buildMethodViewModel(run, selectedIteration),
     [run, selectedIteration],
   );
+  const title = methodViewTitle(run);
 
   if (model.emptyReason) {
     return (
-      <section className="method-view-panel" aria-label="Bisection Method View">
+      <section className="method-view-panel" aria-label={title}>
         <div className="graph-panel-header">
-          <h2 id={titleId} className="section-kicker">Bisection Method View</h2>
+          <h2 id={titleId} className="section-kicker">{title}</h2>
         </div>
         <p className="mt-3 text-sm text-[var(--text)]">{model.emptyReason}</p>
       </section>
@@ -139,11 +156,11 @@ export function MethodViewGraph({ run }: MethodViewGraphProps) {
     .filter((value, index, values) => values.findIndex((candidate) => Math.abs(candidate - value) < 1e-12) === index);
 
   return (
-    <section className="method-view-panel" aria-label="Bisection Method View">
+    <section className="method-view-panel" aria-label={title}>
       <div className="graph-panel-header">
         <div>
-          <h2 id={titleId} className="section-kicker">Bisection Method View</h2>
-          <p className="graph-summary-line">Geometry for iteration {selectedIteration}: f(x), bracket, midpoint, and kept interval.</p>
+          <h2 id={titleId} className="section-kicker">{title}</h2>
+          <p className="graph-summary-line">{methodViewSummary(run, selectedIteration)}</p>
         </div>
         {iterations.length > 1 ? (
           <label className="method-view-iteration">
@@ -167,9 +184,7 @@ export function MethodViewGraph({ run }: MethodViewGraphProps) {
         aria-labelledby={titleId}
         aria-describedby={descId}
       >
-        <desc id={descId}>
-          Bisection geometry showing y equals f of x, the current interval, midpoint, and kept interval.
-        </desc>
+        <desc id={descId}>{methodViewDescription(run)}</desc>
         <defs>
           <linearGradient id={curveGradientId} x1="0%" x2="100%" y1="0%" y2="0%">
             <stop offset="0%" stopColor="var(--action-blue)" stopOpacity="0.9" />
@@ -291,7 +306,7 @@ export function MethodViewGraph({ run }: MethodViewGraphProps) {
         </text>
       </svg>
 
-      <div className="method-view-legend" aria-label="Bisection Method View details">
+      <div className="method-view-legend" aria-label={`${title} details`}>
         {model.intervalBands.map((band) => (
           <span key={band.id}>{band.label}</span>
         ))}
